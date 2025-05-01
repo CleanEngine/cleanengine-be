@@ -4,7 +4,7 @@ run-name: Start containers in cloud service by ${{ github.actor }}
 
 on:
   workflow_run:
-    workflows: [CI/CD Deploy]
+    workflows: ["CI/CD Deploy"]
     types:
       - completed
 

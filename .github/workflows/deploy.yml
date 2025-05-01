@@ -40,21 +40,21 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/if-be:latest
 
-  dependency-submission:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Submit Dependency Graph
-        uses: gradle/actions/dependency-submission@v4
+#  dependency-submission:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: write
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 21
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: '21'
+#          distribution: 'temurin'
+#
+#      - name: Submit Dependency Graph
+#        uses: gradle/actions/dependency-submission@v4

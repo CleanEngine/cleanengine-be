@@ -1,0 +1,27 @@
+name: Start services
+
+run-name: Start containers in cloud service by ${{ github.actor }}
+
+on:
+  workflow_run:
+    workflows: [CI/CD Deploy]
+    types:
+      - completed
+
+jobs:
+  start-services:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect to cloud server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{secrets.CLOUD_HOST}}
+          username: ${{secrets.CLOUD_USERNAME}}
+          key: ${{secrets.CLOUD_SECRET_KEY}}
+          port: ${{secrets.CLOUD_PORT}}
+          script: |
+            cd ~
+            sudo docker compose down --volumes
+            sudo docker container prune -f
+            sudo docker image prune -a -f
+            sudo docker compose up -d

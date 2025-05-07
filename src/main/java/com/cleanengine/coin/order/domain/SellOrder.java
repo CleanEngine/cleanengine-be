@@ -19,7 +19,7 @@ public class SellOrder {
     private String ticker;
 
     @Column(name="user_id", nullable = false, updatable = false)
-    private Long userId;
+    private Integer userId;
 
     // TODO size를 VO로 바꾸어야 함
     @Column(name="size", nullable = false)
@@ -43,7 +43,7 @@ public class SellOrder {
         this.size -= buySize;
     }
 
-    public static SellOrder create(String ticker, Long userId, Double size, Double price, LocalDateTime createdAt,
+    public static SellOrder create(String ticker, Integer userId, Double size, Double price, LocalDateTime createdAt,
                                    Boolean isMarketOrder, Boolean isBot) {
         SellOrder sellOrder = new SellOrder();
         sellOrder.ticker = ticker;

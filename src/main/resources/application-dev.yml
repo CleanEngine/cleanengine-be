@@ -1,0 +1,17 @@
+spring:
+  config:
+    import: optional:file:./local.properties
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+frontend:
+  url: "http://localhost:3000"

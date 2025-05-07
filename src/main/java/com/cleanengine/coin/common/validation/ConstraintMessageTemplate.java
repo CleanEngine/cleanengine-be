@@ -13,5 +13,5 @@ public final class ConstraintMessageTemplate {
     public static final String SIZE_MESSAGE_TEMPLATE =
             "'s length should be between {min} and {max}. but, submitted value was '${validatedValue}'.";
     public static final String POSITIVE_MESSAGE_TEMPLATE =
-            " should be positive. but, submitted value '${validatedValue}' was negative.";
+            " should be positive. but, submitted value '${validatedValue}' was zero or negative.";
 }

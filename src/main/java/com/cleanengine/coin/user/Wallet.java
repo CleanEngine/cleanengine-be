@@ -1,36 +1,37 @@
 package com.cleanengine.coin.user;
 
-import com.cleanengine.coin.order.Asset;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "wallet")
+@NoArgsConstructor
+@AllArgsConstructor
 public class Wallet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "oauth_id")
+    @Column(name = "wallet_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ticker", nullable = false)
-    private Asset asset;
+    @Column(name = "ticker", nullable = false, length = 10)
+    private String ticker;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
+    @Column(name = "account_id", nullable = false)
+    private Integer accountId;
 
-    @Column(name = "size")
+    @Column(name = "size", nullable = false)
     private Double size;
 
     @Column(name = "buy_price")
     private Double buyPrice;
 
     @Column(name = "roi")
-    private Double roi;
+    private Double roi; // Return on Investment (수익률)
 
 }

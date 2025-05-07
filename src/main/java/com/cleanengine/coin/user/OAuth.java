@@ -1,7 +1,9 @@
 package com.cleanengine.coin.user;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -10,20 +12,22 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @Table(name = "oauth")
+@NoArgsConstructor
+@AllArgsConstructor
 public class OAuth {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "oauth_id")
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private Integer userId;
 
-    @Column(name = "provider")
+    @Column(name = "provider", nullable = false, length = 20)
     private String provider;
 
-    @Column(name = "provider_user_id")
+    @Column(name = "provider_user_id", nullable = false)
     private String providerUserId;
 
     @Column(name = "email")

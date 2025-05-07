@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class BuyOrder {
-    @Id @Column(name="buy_id", nullable = false) @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @Column(name="buy_order_id", nullable = false) @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name="ticker", length = 10, nullable = false, updatable = false)

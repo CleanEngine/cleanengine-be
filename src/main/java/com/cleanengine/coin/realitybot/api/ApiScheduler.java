@@ -35,6 +35,11 @@ public class ApiScheduler implements DisposableBean {
             Ticks ticks = gson.get(i);
 //            System.out.println("fori = " + gson.size());
             if (ticks.getSequential_id() > lastMaxSequentialId){
+                //----------------------
+                if (ticksQueue.size()>=10){ //갯수를 20개 까지만으로 제한
+                    ticksQueue.poll();  //queue에서 빼기, 추세를 구현하기만 하면 필요가 있을까? -> 없음
+                }//멀티 쓰레드환경이 아니므로 concurrentlinkedqueue는 나중에 구현
+                //--------------------
                 System.out.println(ticks.getSequential_id());
                 ticksQueue.add(ticks);
                 lastMaxSequentialId = Math.max(lastMaxSequentialId, ticks.getSequential_id());

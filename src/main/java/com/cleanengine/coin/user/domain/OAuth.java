@@ -33,6 +33,9 @@ public class OAuth {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "nickname")
+    private String nickname;
+
     @Column(name = "access_token", columnDefinition = "TEXT")
     private String accessToken;
 

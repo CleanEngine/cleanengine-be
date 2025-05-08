@@ -19,8 +19,11 @@ import java.util.Queue;
 public class ApiScheduler implements DisposableBean {
 
     private final BithumbAPIClient bithumbAPIClient;
+    private final TickService tickService;
+    private final VirtualMarketService virtualMarketService;
     private long lastMaxSequentialId = 1L;
-    private final Queue<Ticks> ticksQueue = new LinkedList<>();
+//    private final Queue<Ticks> ticksQueue = new LinkedList<>();
+    private final Queue<Ticks> ticksQueue;
 
     @Scheduled(fixedRate = 5000)
     public void MarketDataRequest(){

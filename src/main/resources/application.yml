@@ -4,6 +4,8 @@ spring:
   web:
     resources:
       add-mappings: false
+order:
+  tickers: BTC, TRUMP
 
   profiles:
     active: dev

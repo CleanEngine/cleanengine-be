@@ -10,23 +10,11 @@ import java.time.LocalDateTime;
 
 @Entity(name = "sell_orders")
 @Table(name="sell_orders")
+@AttributeOverride(name="id", column=@Column(name="sell_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class SellOrder {
-    @Id @Column(name="sell_order_id", nullable = false) @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name="ticker", length = 10, nullable = false, updatable = false)
-    private String ticker;
-
-    @Column(name="user_id", nullable = false, updatable = false)
-    private Integer userId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name="state", nullable = false)
-    private OrderStatus state;
-
+public class SellOrder extends Order implements Comparable<SellOrder> {
     // TODO size를 VO로 바꾸어야 함
     @Column(name="order_size", nullable = false)
     private Double orderSize;
@@ -35,17 +23,8 @@ public class SellOrder {
     @Column(name="price", nullable = true)
     private Double price;
 
-    @Column(name="created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name="is_marketorder", nullable = false, updatable = false)
-    private Boolean isMarketOrder;
-
     @Column(name="remaining_size", nullable = true)
     private Double remainingSize;
-
-    @Column(name="is_bot", nullable = false, updatable = false)
-    private Boolean isBot;
 
     public static SellOrder createMarketSellOrder(String ticker, Integer userId, Double orderSize,
                                                   LocalDateTime createdAt, Boolean isBot) {
@@ -75,5 +54,19 @@ public class SellOrder {
         sellOrder.remainingSize = orderSize;
         sellOrder.isBot = isBot;
         return sellOrder;
+    }
+
+    @Override
+    public int compareTo(SellOrder order) {
+        // 지정가 매도 가격 비교
+        if(!this.isMarketOrder){
+            // 매도 가격이 낮다면 음수가 나와야 함
+            int priceCompareResult = Double.compare(this.price, order.price);
+            if(priceCompareResult != 0) return priceCompareResult;
+        }
+        
+        // 생성 시간 비교
+        
+        return this.createdAt.compareTo(order.createdAt);
     }
 }

@@ -26,7 +26,7 @@ public class OrderController {
 
         LocalDateTime createdAt = LocalDateTime.now();
         OrderCommand.CreateOrder createOrderCommand = createOrderRequest.toOrderCommand(createdAt);
-        OrderInfo orderInfo = orderService.createOrder(createOrderCommand);
+        OrderInfo<?> orderInfo = orderService.createOrder(createOrderCommand);
 
         return ApiResponse.success(OrderResponseDto.CreateOrder.from(orderInfo), HttpStatus.CREATED)
                 .toResponseEntity();

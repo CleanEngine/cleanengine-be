@@ -8,29 +8,18 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+// TODO AttributeOverride를 통해 Annotation 재지정 필요
 @Entity(name = "buy_orders")
 @Table(name="buy_orders")
 @AttributeOverride(name="id", column=@Column(name="buy_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class BuyOrder extends Order implements Comparable<BuyOrder> {
     @Column(name="locked_deposit", nullable = false, updatable = false)
     private Double lockedDeposit;
 
-    // TODO orderSize를 VO로 바꾸어야 함
-    @Column(name="order_size")
-    private Double orderSize;
-
-    // TODO price를 VO로 바꾸어야 함
-    @Column(name="price", nullable = true)
-    private Double price;
-
     @Column(name="remaining_deposit", nullable = false)
     private Double remainingDeposit;
-
-    @Column(name="remaining_size", nullable = true)
-    private Double remainingSize;
 
     public static BuyOrder createMarketBuyOrder(String ticker, Integer userId, Double price,
                                                 LocalDateTime createdAt, Boolean isBot) {

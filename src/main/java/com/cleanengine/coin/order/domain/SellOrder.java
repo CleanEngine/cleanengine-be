@@ -12,20 +12,8 @@ import java.time.LocalDateTime;
 @Table(name="sell_orders")
 @AttributeOverride(name="id", column=@Column(name="sell_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class SellOrder extends Order implements Comparable<SellOrder> {
-    // TODO size를 VO로 바꾸어야 함
-    @Column(name="order_size", nullable = false)
-    private Double orderSize;
-
-    // TODO price를 VO로 바꾸어야 함
-    @Column(name="price", nullable = true)
-    private Double price;
-
-    @Column(name="remaining_size", nullable = true)
-    private Double remainingSize;
-
     public static SellOrder createMarketSellOrder(String ticker, Integer userId, Double orderSize,
                                                   LocalDateTime createdAt, Boolean isBot) {
         SellOrder sellOrder = new SellOrder();

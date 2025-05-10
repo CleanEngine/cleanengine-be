@@ -23,12 +23,14 @@ repositories {
 	mavenCentral()
 }
 
-dependencies {
+dependencies {\
+    implementation 'org.springframework.boot:spring-boot-starter-websocket' // WS + STOMP
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
+	implementation("org.mariadb.jdbc:mariadb-java-client:3.3.3")  // ← 드라이버
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

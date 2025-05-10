@@ -1,6 +1,37 @@
 spring:
+  #현재는 h2로컬에서 실행을 하니 이걸로 추후에 mariadb로 수정예정
+  profiles:
+    active: h2
   application:
     name: coin
-  web:
-    resources:
-      add-mappings: false
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  datasource:
+    # 파일 기반 DB 사용 (별도 옵션 없이도 파일이 자동 생성됩니다)
+    url: jdbc:h2:file:~/test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type: trace
+    com.cleanengine.coin: debug
+    org.springframework.web.socket: debug
+    org.springframework.messaging: debug
+
+

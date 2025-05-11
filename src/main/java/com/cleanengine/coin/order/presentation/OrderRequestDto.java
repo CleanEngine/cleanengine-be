@@ -1,6 +1,8 @@
 package com.cleanengine.coin.order.presentation;
 
 import com.cleanengine.coin.order.application.OrderCommand;
+import com.cleanengine.coin.order.presentation.validation.OrderType;
+import com.cleanengine.coin.order.presentation.validation.Side;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.time.LocalDateTime;
@@ -11,7 +13,9 @@ public final class OrderRequestDto {
     public record CreateOrderRequest(
             String ticker,
             Integer userId,
+            @Side
             String side,
+            @OrderType
             String orderType,
             Double orderSize,
             Double price

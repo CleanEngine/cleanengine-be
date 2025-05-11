@@ -4,6 +4,7 @@ import com.cleanengine.coin.common.response.ApiResponse;
 import com.cleanengine.coin.order.application.OrderCommand;
 import com.cleanengine.coin.order.application.OrderInfo;
 import com.cleanengine.coin.order.application.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDto.CreateOrder>> createOrder(
-            @RequestBody OrderRequestDto.CreateOrderRequest createOrderRequest) {
+            @RequestBody @Valid OrderRequestDto.CreateOrderRequest createOrderRequest) {
 
         LocalDateTime createdAt = LocalDateTime.now();
         OrderCommand.CreateOrder createOrderCommand = createOrderRequest.toOrderCommand(createdAt);

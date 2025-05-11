@@ -68,6 +68,11 @@ public abstract class BuyOrderGenerator {
                     DEFAULT_PRICE, createdAt, false);
         }
 
+        public static BuyOrder createMarketBuyOrderWithPriceAndCreatedTime(Double price, LocalDateTime createdAt){
+            return BuyOrder.createMarketBuyOrder(DEFAULT_TICKER, DEFAULT_USER_ID,
+                    price, createdAt, false);
+        }
+
         public static List<BuyOrder> createMarketBuyOrdersWithPrices(Double... prices){
             return Stream.of(prices).map(MarketBuyOrderGenerator::createMarketBuyOrderWithPrice).toList();
         }

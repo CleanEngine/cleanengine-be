@@ -1,12 +1,20 @@
 package com.cleanengine.coin.order.application.queue;
 
 import com.cleanengine.coin.order.domain.BuyOrder;
+import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
+import static com.cleanengine.coin.order.domain.tool.SellOrderGenerator.LimitSellOrderGenerator.*;
+import static com.cleanengine.coin.order.domain.tool.SellOrderGenerator.MarketSellOrderGenerator.*;
+import static com.cleanengine.coin.order.domain.tool.BuyOrderGenerator.LimitBuyOrderGenerator.*;
+import static com.cleanengine.coin.order.domain.tool.BuyOrderGenerator.MarketBuyOrderGenerator.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,19 +22,35 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class OrderQueueManagerTest {
     private static final String TICKER = "BTC";
 
-    private OrderQueueManager createOrderQueueManager() {
-        return new OrderQueueManager(TICKER);
+    private OrderQueueManager orderQueueManager;
+
+    @BeforeEach
+    public void setUp(){
+        orderQueueManager = new OrderQueueManager(TICKER);
+    }
+
+    private void addOrderToQueueManager(Order order){
+        orderQueueManager.addOrder(order);
+    }
+
+    private void addBuyOrdersToQueueManager(List<BuyOrder> orders){
+        for(Order order : orders){
+            orderQueueManager.addOrder(order);
+        }
+    }
+
+    private void addSellOrdersToQueueManager(List<SellOrder> orders){
+        for(Order order : orders){
+            orderQueueManager.addOrder(order);
+        }
     }
 
     @Test
     @DisplayName("매수지정가 주문을 삽입시 매수지정가 큐에 올바르게 삽입됨")
     void addLimitBuyOrder_limitBuyOrderQueueSizeIncreased() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        BuyOrder limitBuyOrder = createLimitBuyOrderWithRandomPrice();
 
-        BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder
-                (TICKER, 1, 1.0, 1000.0, LocalDateTime.now(), false);
-
-        orderQueueManager.addOrder(limitBuyOrder);
+        addOrderToQueueManager(limitBuyOrder);
 
         PriorityBlockingQueue<BuyOrder> limitBuyOrderQueue = orderQueueManager.getLimitBuyOrderQueue();
 
@@ -37,12 +61,9 @@ public class OrderQueueManagerTest {
     @Test
     @DisplayName("매수시장가 주문을 삽입시 매수시장가 큐에 올바르게 삽입됨")
     void addMarketBuyOrder_marketBuyOrderQueueSizeIncreased() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        BuyOrder marketBuyOrder = createMarketBuyOrderWithRandomPrice();
 
-        BuyOrder marketBuyOrder = BuyOrder.createMarketBuyOrder
-                (TICKER, 1, 1000.0, LocalDateTime.now(), false);
-
-        orderQueueManager.addOrder(marketBuyOrder);
+        addOrderToQueueManager(marketBuyOrder);
 
         PriorityBlockingQueue<BuyOrder> marketBuyOrderQueue = orderQueueManager.getMarketBuyOrderQueue();
 
@@ -53,12 +74,9 @@ public class OrderQueueManagerTest {
     @Test
     @DisplayName("매도지정가 주문을 삽입시 매도지정가 큐에 올바르게 삽입됨")
     void addLimitSellOrder_limitSellOrderQueueSizeIncreased() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        SellOrder limitSellOrder = createLimitSellOrderWithRandomPrice();
 
-        SellOrder limitSellOrder = SellOrder.createLimitSellOrder
-                (TICKER, 1, 1.0, 1000.0, LocalDateTime.now(), false);
-
-        orderQueueManager.addOrder(limitSellOrder);
+        addOrderToQueueManager(limitSellOrder);
 
         PriorityBlockingQueue<SellOrder> limitSellOrderQueue = orderQueueManager.getLimitSellOrderQueue();
 
@@ -69,12 +87,9 @@ public class OrderQueueManagerTest {
     @Test
     @DisplayName("매도시장가 주문을 삽입시 매도시장가 큐에 올바르게 삽입됨")
     void addMarketSellOrder_marketSellOrderQueueSizeIncreased() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        SellOrder marketSellOrder = createMarketSellOrderWithCreatedTime(LocalDateTime.now());
 
-        SellOrder marketSellOrder = SellOrder.createMarketSellOrder
-                (TICKER, 1, 1.0, LocalDateTime.now(), false);
-
-        orderQueueManager.addOrder(marketSellOrder);
+        addOrderToQueueManager(marketSellOrder);
 
         PriorityBlockingQueue<SellOrder> marketSellOrderQueue = orderQueueManager.getMarketSellOrderQueue();
 
@@ -85,23 +100,11 @@ public class OrderQueueManagerTest {
     @Test
     @DisplayName("매수지정가 주문을 가격이 높은 순서대로 큐에 삽입시 가격이 높은 순서대로 정렬됨")
     void addLimitBuyOrders_higherPriceFirst_sortedDescending() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        List<BuyOrder> limitBuyOrdersAsc = createLimitBuyOrdersWithPrices
+                        (1000.0, 500.0, 100.0);
+        List<BuyOrder> limitBuyOrdersDesc = limitBuyOrdersAsc.reversed();
 
-        String ticker = TICKER;
-        Integer userId = 1;
-        LocalDateTime sameTime = LocalDateTime.of(2025, 5, 8, 20, 30, 0);
-        Double orderSize = 1.0;
-
-        BuyOrder limitBuyOrderWithHighestPrice =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, 1000.0, sameTime, false);
-        BuyOrder limitBuyOrderWithMiddlePrice =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, 500.0, sameTime, false);
-        BuyOrder limitBuyOrderWithLowestPrice =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, 100.0, sameTime, false);
-
-        orderQueueManager.addOrder(limitBuyOrderWithHighestPrice);
-        orderQueueManager.addOrder(limitBuyOrderWithMiddlePrice);
-        orderQueueManager.addOrder(limitBuyOrderWithLowestPrice);
+        addBuyOrdersToQueueManager(limitBuyOrdersDesc);
 
         PriorityBlockingQueue<BuyOrder> limitBuyOrderQueue = orderQueueManager.getLimitBuyOrderQueue();
 
@@ -113,23 +116,10 @@ public class OrderQueueManagerTest {
     @Test
     @DisplayName("매수지정가 주문을 가격이 작은 순서대로 큐에 삽입시 가격이 높은 순서대로 정렬됨")
     void addLimitBuyOrders_lowerPriceFirst_sortedDescending() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        List<BuyOrder> limitBuyOrdersAsc = createLimitBuyOrdersWithPrices
+                        (100.0, 500.0, 1000.0);
 
-        String ticker = TICKER;
-        Integer userId = 1;
-        LocalDateTime sameTime = LocalDateTime.of(2025, 5, 8, 20, 30, 0);
-        Double orderSize = 1.0;
-
-        BuyOrder limitBuyOrderWithLowestPrice =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, 100.0, sameTime, false);
-        BuyOrder limitBuyOrderWithMiddlePrice =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, 500.0, sameTime, false);
-        BuyOrder limitBuyOrderWithHighestPrice =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, 1000.0, sameTime, false);
-
-        orderQueueManager.addOrder(limitBuyOrderWithLowestPrice);
-        orderQueueManager.addOrder(limitBuyOrderWithMiddlePrice);
-        orderQueueManager.addOrder(limitBuyOrderWithHighestPrice);
+        addBuyOrdersToQueueManager(limitBuyOrdersAsc);
 
         PriorityBlockingQueue<BuyOrder> limitBuyOrderQueue = orderQueueManager.getLimitBuyOrderQueue();
 
@@ -141,87 +131,45 @@ public class OrderQueueManagerTest {
     @Test
     @DisplayName("가격이 같은 매수지정가 주문을 시간이 빠른 순서대로 큐에 삽입시 시간이 빠른 순서대로 정렬됨")
     void addLimitBuyOrdersSamePrice_fasterTimeFirst_sortedFaster() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        List<BuyOrder> limitBuyOrders =
+                createLimitBuyOrdersWithDifferentCreatedTimesAsc();
 
-        String ticker = TICKER;
-        Integer userId = 1;
-        Double orderSize = 1.0;
-        Double price = 100.0;
-
-        LocalDateTime baseTime = LocalDateTime.of(2025, 5, 8, 20, 30, 0);
-        LocalDateTime fastestTime = baseTime.minusMinutes(1);
-        LocalDateTime slowestTime = baseTime.plusMinutes(1);
-
-        BuyOrder limitBuyOrderWithFastestTime =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, price, fastestTime, false);
-        BuyOrder limitBuyOrderWithBaseTime =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, price, baseTime, false);
-        BuyOrder limitBuyOrderWithSlowestTime =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, price, slowestTime, false);
-
-        orderQueueManager.addOrder(limitBuyOrderWithFastestTime);
-        orderQueueManager.addOrder(limitBuyOrderWithBaseTime);
-        orderQueueManager.addOrder(limitBuyOrderWithSlowestTime);
+        addBuyOrdersToQueueManager(limitBuyOrders);
 
         PriorityBlockingQueue<BuyOrder> limitBuyOrderQueue = orderQueueManager.getLimitBuyOrderQueue();
 
-        assertEquals(limitBuyOrderQueue.poll().getCreatedAt(), fastestTime);
-        assertEquals(limitBuyOrderQueue.poll().getCreatedAt(), baseTime);
-        assertEquals(limitBuyOrderQueue.poll().getCreatedAt(), slowestTime);
+        assertEquals(limitBuyOrderQueue.poll().getCreatedAt().getYear(), 2025);
+        assertEquals(limitBuyOrderQueue.poll().getCreatedAt().getYear(), 2026);
+        assertEquals(limitBuyOrderQueue.poll().getCreatedAt().getYear(), 2027);
+        assertEquals(limitBuyOrderQueue.poll().getCreatedAt().getYear(), 2028);
     }
 
     @Test
     @DisplayName("가격이 같은 매수지정가 주문을 시간이 느린 순서대로 큐에 삽입시 시간이 빠른 순서대로 정렬됨")
     void addLimitBuyOrdersSamePrice_slowerTimeFirst_sortedFaster() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        List<BuyOrder> limitBuyOrders =
+                createLimitBuyOrdersWithDifferentCreatedTimesAsc();
+        List<BuyOrder> limitBuyOrdersDesc =
+                limitBuyOrders.reversed();
 
-        String ticker = TICKER;
-        Integer userId = 1;
-        Double orderSize = 1.0;
-        Double price = 100.0;
-
-        LocalDateTime baseTime = LocalDateTime.of(2025, 5, 8, 20, 30, 0);
-        LocalDateTime fastestTime = baseTime.minusMinutes(1);
-        LocalDateTime slowestTime = baseTime.plusMinutes(1);
-
-        BuyOrder limitBuyOrderWithSlowestTime =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, price, slowestTime, false);
-        BuyOrder limitBuyOrderWithBaseTime =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, price, baseTime, false);
-        BuyOrder limitBuyOrderWithFastestTime =
-                BuyOrder.createLimitBuyOrder(ticker, userId, orderSize, price, fastestTime, false);
-
-        orderQueueManager.addOrder(limitBuyOrderWithSlowestTime);
-        orderQueueManager.addOrder(limitBuyOrderWithBaseTime);
-        orderQueueManager.addOrder(limitBuyOrderWithFastestTime);
+        addBuyOrdersToQueueManager(limitBuyOrdersDesc);
 
         PriorityBlockingQueue<BuyOrder> limitBuyOrderQueue = orderQueueManager.getLimitBuyOrderQueue();
 
-        assertEquals(limitBuyOrderQueue.poll().getCreatedAt(), fastestTime);
-        assertEquals(limitBuyOrderQueue.poll().getCreatedAt(), baseTime);
-        assertEquals(limitBuyOrderQueue.poll().getCreatedAt(), slowestTime);
+        assertEquals(limitBuyOrderQueue.poll().getCreatedAt().getYear(), 2025);
+        assertEquals(limitBuyOrderQueue.poll().getCreatedAt().getYear(), 2026);
+        assertEquals(limitBuyOrderQueue.poll().getCreatedAt().getYear(), 2027);
+        assertEquals(limitBuyOrderQueue.poll().getCreatedAt().getYear(), 2028);
     }
 
     @Test
     @DisplayName("매도지정가 주문을 가격이 낮은 순서대로 큐에 삽입시 가격이 낮은 순서대로 정렬됨")
     void addLimitSellOrders_lowerPriceFirst_sortedAscending() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        List<SellOrder> limitSellOrders =
+                createLimitSellOrdersWithPrices
+                        (100.0, 500.0, 1000.0);
 
-        String ticker = TICKER;
-        Integer userId = 1;
-        LocalDateTime sameTime = LocalDateTime.of(2025, 5, 8, 20, 30, 0);
-        Double orderSize = 1.0;
-
-        SellOrder limitBuyOrderWithLowestPrice =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, 100.0, sameTime, false);
-        SellOrder limitSellOrderWithMiddlePrice =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, 500.0, sameTime, false);
-        SellOrder limitSellOrderWithHighestPrice =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, 1000.0, sameTime, false);
-
-        orderQueueManager.addOrder(limitBuyOrderWithLowestPrice);
-        orderQueueManager.addOrder(limitSellOrderWithMiddlePrice);
-        orderQueueManager.addOrder(limitSellOrderWithHighestPrice);
+        addSellOrdersToQueueManager(limitSellOrders);
 
         PriorityBlockingQueue<SellOrder> limitSellOrderQueue = orderQueueManager.getLimitSellOrderQueue();
 
@@ -233,23 +181,11 @@ public class OrderQueueManagerTest {
     @Test
     @DisplayName("매도지정가 주문을 가격이 높은 순서대로 큐에 삽입시 가격이 낮은 순서대로 정렬됨")
     void addLimitSellOrders_highestPriceFirst_sortedAscending() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        List<SellOrder> limitSellOrders =
+                createLimitSellOrdersWithPrices
+                        (1000.0, 500.0, 100.0);
 
-        String ticker = TICKER;
-        Integer userId = 1;
-        LocalDateTime sameTime = LocalDateTime.of(2025, 5, 8, 20, 30, 0);
-        Double orderSize = 1.0;
-
-        SellOrder limitSellOrderWithHighestPrice =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, 1000.0, sameTime, false);
-        SellOrder limitSellOrderWithMiddlePrice =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, 500.0, sameTime, false);
-        SellOrder limitBuyOrderWithLowestPrice =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, 100.0, sameTime, false);
-
-        orderQueueManager.addOrder(limitSellOrderWithHighestPrice);
-        orderQueueManager.addOrder(limitSellOrderWithMiddlePrice);
-        orderQueueManager.addOrder(limitBuyOrderWithLowestPrice);
+        addSellOrdersToQueueManager(limitSellOrders);
 
         PriorityBlockingQueue<SellOrder> limitSellOrderQueue = orderQueueManager.getLimitSellOrderQueue();
 
@@ -261,68 +197,68 @@ public class OrderQueueManagerTest {
     @Test
     @DisplayName("가격이 같은 매도지정가 주문을 시간이 빠른 순서대로 큐에 삽입시 시간이 빠른 순서대로 정렬됨")
     void addLimitSellOrdersSamePrice_fasterTimeFirst_sortedFaster() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+        List<SellOrder> limitSellOrders =
+                createLimitSellOrdersWithDifferentCreatedTimesAsc();
 
-        String ticker = TICKER;
-        Integer userId = 1;
-        Double orderSize = 1.0;
-        Double price = 100.0;
-
-        LocalDateTime baseTime = LocalDateTime.of(2025, 5, 8, 20, 30, 0);
-        LocalDateTime fastestTime = baseTime.minusMinutes(1);
-        LocalDateTime slowestTime = baseTime.plusMinutes(1);
-
-        SellOrder limitSellOrderWithFastestTime =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, price, fastestTime, false);
-        SellOrder limitSellOrderWithBaseTime =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, price, baseTime, false);
-        SellOrder limitSellOrderWithSlowestTime =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, price, slowestTime, false);
-
-        orderQueueManager.addOrder(limitSellOrderWithFastestTime);
-        orderQueueManager.addOrder(limitSellOrderWithBaseTime);
-        orderQueueManager.addOrder(limitSellOrderWithSlowestTime);
+        addSellOrdersToQueueManager(limitSellOrders);
 
         PriorityBlockingQueue<SellOrder> limitSellOrderQueue = orderQueueManager.getLimitSellOrderQueue();
 
-        assertEquals(limitSellOrderQueue.poll().getCreatedAt(), fastestTime);
-        assertEquals(limitSellOrderQueue.poll().getCreatedAt(), baseTime);
-        assertEquals(limitSellOrderQueue.poll().getCreatedAt(), slowestTime);
+        assertEquals(limitSellOrderQueue.poll().getCreatedAt().getYear(), 2025);
+        assertEquals(limitSellOrderQueue.poll().getCreatedAt().getYear(), 2026);
+        assertEquals(limitSellOrderQueue.poll().getCreatedAt().getYear(), 2027);
+        assertEquals(limitSellOrderQueue.poll().getCreatedAt().getYear(), 2028);
     }
 
     @Test
     @DisplayName("가격이 같은 매도지정가 주문을 시간이 느린 순서대로 큐에 삽입시 시간이 빠른 순서대로 정렬됨")
-    void addLimitBuyOrdersSamePrice_slowerTime_sortedFaster() {
-        OrderQueueManager orderQueueManager = createOrderQueueManager();
+    void addLimitSellOrdersSamePrice_slowerTimeFirst_sortedFaster() {
+        List<SellOrder> limitSellOrders =
+                createLimitSellOrdersWithDifferentCreatedTimesAsc();
+        List<SellOrder> limitSellOrdersDesc =
+                limitSellOrders.reversed();
 
-        String ticker = TICKER;
-        Integer userId = 1;
-        Double orderSize = 1.0;
-        Double price = 100.0;
-
-        LocalDateTime baseTime = LocalDateTime.of(2025, 5, 8, 20, 30, 0);
-        LocalDateTime fastestTime = baseTime.minusMinutes(1);
-        LocalDateTime slowestTime = baseTime.plusMinutes(1);
-
-        SellOrder limitSellOrderWithSlowestTime =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, price, slowestTime, false);
-        SellOrder limitSellOrderWithBaseTime =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, price, baseTime, false);
-        SellOrder limitSellOrderWithFastestTime =
-                SellOrder.createLimitSellOrder(ticker, userId, orderSize, price, fastestTime, false);
-
-        orderQueueManager.addOrder(limitSellOrderWithSlowestTime);
-        orderQueueManager.addOrder(limitSellOrderWithBaseTime);
-        orderQueueManager.addOrder(limitSellOrderWithFastestTime);
+        addSellOrdersToQueueManager(limitSellOrdersDesc);
 
         PriorityBlockingQueue<SellOrder> limitSellOrderQueue = orderQueueManager.getLimitSellOrderQueue();
 
-        assertEquals(limitSellOrderQueue.poll().getCreatedAt(), fastestTime);
-        assertEquals(limitSellOrderQueue.poll().getCreatedAt(), baseTime);
-        assertEquals(limitSellOrderQueue.poll().getCreatedAt(), slowestTime);
+        assertEquals(limitSellOrderQueue.poll().getCreatedAt().getYear(), 2025);
+        assertEquals(limitSellOrderQueue.poll().getCreatedAt().getYear(), 2026);
+        assertEquals(limitSellOrderQueue.poll().getCreatedAt().getYear(), 2027);
+        assertEquals(limitSellOrderQueue.poll().getCreatedAt().getYear(), 2028);
     }
 
-//    @Test
-//    @DisplayName("가격이 다른 매수시장가 주문을 높은 가격 순서대로 삽입시 시간이 빠른 순서대로 정렬됨")
-//
+    @Test
+    @DisplayName("가격이 다른 매수시장가 주문을 높은 가격 순서대로 삽입시 시간이 빠른 순서대로 정렬됨")
+    void addMarketBuyOrders_highestPriceFirst_sortedFaster() {
+        List<BuyOrder> marketBuyOrders =
+                List.of(createMarketBuyOrderWithPriceAndCreatedTime(1000.0, LocalDateTime.of(2027, 5, 9, 10, 18, 0)),
+                        createMarketBuyOrderWithPriceAndCreatedTime(500.0, LocalDateTime.of(2026, 5, 9, 10, 18, 0)),
+                        createMarketBuyOrderWithPriceAndCreatedTime(100.0, LocalDateTime.of(2025, 5, 9, 10, 18, 0)));
+
+        addBuyOrdersToQueueManager(marketBuyOrders);
+
+        PriorityBlockingQueue<BuyOrder> marketBuyOrderQueue = orderQueueManager.getMarketBuyOrderQueue();
+
+        assertEquals(marketBuyOrderQueue.poll().getCreatedAt().getYear(), 2025);
+        assertEquals(marketBuyOrderQueue.poll().getCreatedAt().getYear(), 2026);
+        assertEquals(marketBuyOrderQueue.poll().getCreatedAt().getYear(), 2027);
+    }
+
+    @Test
+    @DisplayName("매도시장가 주문을 시간이 느린 순서대로 삽입시 시간이 빠른 순서대로 정렬됨")
+    void addMarketSellOrders_slowerTimeFirst_sortedFaster() {
+        List<SellOrder> marketSellOrders =
+                createMarketSellOrdersWithDifferentCreatedTimesAsc();
+        List<SellOrder> marketSellOrdersDesc =
+                marketSellOrders.reversed();
+
+        addSellOrdersToQueueManager(marketSellOrdersDesc);
+
+        PriorityBlockingQueue<SellOrder> marketSellOrderQueue = orderQueueManager.getMarketSellOrderQueue();
+
+        assertEquals(marketSellOrderQueue.poll().getCreatedAt().getYear(), 2025);
+        assertEquals(marketSellOrderQueue.poll().getCreatedAt().getYear(), 2026);
+        assertEquals(marketSellOrderQueue.poll().getCreatedAt().getYear(), 2027);
+    }
 }

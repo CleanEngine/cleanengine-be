@@ -1,6 +1,6 @@
 package com.cleanengine.coin.order.external.adapter.wallet;
 
-import com.cleanengine.coin.user.Wallet;
+import com.cleanengine.coin.user.domain.Wallet;
 
 import java.util.Optional;
 

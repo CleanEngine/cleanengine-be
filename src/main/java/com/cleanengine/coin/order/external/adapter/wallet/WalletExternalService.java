@@ -2,7 +2,7 @@ package com.cleanengine.coin.order.external.adapter.wallet;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
 import com.cleanengine.coin.order.application.port.WalletUpdatePort;
-import com.cleanengine.coin.user.Wallet;
+import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.FieldError;

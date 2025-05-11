@@ -1,7 +1,7 @@
 package com.cleanengine.coin.order.external.adapter.account;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.user.Account;
+import com.cleanengine.coin.user.domain.Account;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;
 

@@ -5,7 +5,7 @@ import com.cleanengine.coin.order.application.OrderCommand;
 import com.cleanengine.coin.order.application.OrderInfo;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
-import com.cleanengine.coin.user.Wallet;
+import com.cleanengine.coin.user.domain.Wallet;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -2,7 +2,7 @@ package com.cleanengine.coin.order.external.adapter.account;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
 import com.cleanengine.coin.order.application.port.AccountUpdatePort;
-import com.cleanengine.coin.user.Account;
+import com.cleanengine.coin.user.domain.Account;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

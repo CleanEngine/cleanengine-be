@@ -1,6 +1,6 @@
 package com.cleanengine.coin.order.external.adapter.account;
 
-import com.cleanengine.coin.user.Account;
+import com.cleanengine.coin.user.domain.Account;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

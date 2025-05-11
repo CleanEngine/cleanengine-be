@@ -17,7 +17,6 @@ import java.util.List;
 @Table(name="sell_orders")
 @AttributeOverride(name="id", column=@Column(name="sell_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Setter
 public class SellOrder extends Order implements Comparable<SellOrder> {

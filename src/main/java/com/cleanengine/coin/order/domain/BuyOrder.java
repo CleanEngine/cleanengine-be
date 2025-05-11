@@ -2,6 +2,7 @@ package com.cleanengine.coin.order.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,6 +18,7 @@ import java.util.List;
 @Table(name="buy_orders")
 @AttributeOverride(name="id", column=@Column(name="buy_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Setter
 public class BuyOrder extends Order implements Comparable<BuyOrder> {
@@ -48,6 +50,7 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
         buyOrder.isBot = isBot;
         return buyOrder;
     }
+  
     public static BuyOrder createLimitBuyOrder(String ticker, Integer userId, Double orderSize,
                                   Double price, LocalDateTime createdAt, Boolean isBot) {
         List<FieldError> errors = new ArrayList<>();

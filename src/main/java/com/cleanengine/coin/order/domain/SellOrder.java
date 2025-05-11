@@ -2,6 +2,7 @@ package com.cleanengine.coin.order.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import java.util.List;
 @Table(name="sell_orders")
 @AttributeOverride(name="id", column=@Column(name="sell_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Setter
 public class SellOrder extends Order implements Comparable<SellOrder> {

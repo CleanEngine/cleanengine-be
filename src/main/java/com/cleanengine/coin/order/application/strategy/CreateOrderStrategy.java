@@ -9,6 +9,7 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
     public S processCreatingOrder(OrderCommand.CreateOrder createOrderCommand){
         T order = createOrder(createOrderCommand);
         saveOrder(order);
+        keepHoldings(order);
         orderQueueManagerPool().addOrder(order.getTicker(), order);
         return extractOrderInfo(order);
     }
@@ -16,5 +17,6 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
     protected abstract void saveOrder(T order);
     protected abstract S extractOrderInfo(T order);
     public abstract boolean supports(Boolean isBuyOrder);
+    protected abstract void keepHoldings(T order) throws RuntimeException;
     protected abstract OrderQueueManagerPool orderQueueManagerPool();
 }

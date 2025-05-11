@@ -1,10 +1,10 @@
 package com.cleanengine.coin.order.application;
 
 import com.cleanengine.coin.order.application.strategy.CreateOrderStrategy;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
@@ -33,4 +33,3 @@ public class OrderService { //facade
         return createOrder(orderCommandWithBot);
     }
 }
-

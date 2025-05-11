@@ -2,6 +2,7 @@ package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.order.application.OrderCommand;
 import com.cleanengine.coin.order.application.OrderInfo;
+import com.cleanengine.coin.order.application.port.AccountUpdatePort;
 import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateBuyOrderDomainService;
@@ -15,6 +16,7 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     private final BuyOrderRepository buyOrderRepository;
     private final CreateBuyOrderDomainService createOrderDomainService;
     private final OrderQueueManagerPool orderQueueManagerPool;
+    private final AccountUpdatePort accountUpdatePort;
 
     // TODO buyOrder만의 검증 내용 포함
     @Override
@@ -37,6 +39,11 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     @Override
     public boolean supports(Boolean isBuyOrder) {
         return isBuyOrder;
+    }
+
+    @Override
+    protected void keepHoldings(BuyOrder order) throws RuntimeException {
+        accountUpdatePort.lockDepositForBuyOrder(order.getUserId(), order.getLockedDeposit());
     }
 
     @Override

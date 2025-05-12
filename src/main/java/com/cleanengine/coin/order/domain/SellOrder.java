@@ -5,50 +5,30 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.validation.FieldError;
+import com.cleanengine.coin.common.error.DomainValidationException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "sell_orders")
 @Table(name="sell_orders")
+@AttributeOverride(name="id", column=@Column(name="sell_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class SellOrder {
-    @Id @Column(name="sell_order_id", nullable = false) @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name="ticker", length = 10, nullable = false, updatable = false)
-    private String ticker;
-
-    @Column(name="user_id", nullable = false, updatable = false)
-    private Integer userId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name="state", nullable = false)
-    private OrderStatus state;
-
-    // TODO size를 VO로 바꾸어야 함
-    @Column(name="order_size", nullable = false)
-    private Double orderSize;
-
-    // TODO price를 VO로 바꾸어야 함
-    @Column(name="price", nullable = true)
-    private Double price;
-
-    @Column(name="created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name="is_marketorder", nullable = false, updatable = false)
-    private Boolean isMarketOrder;
-
-    @Column(name="remaining_size", nullable = true)
-    private Double remainingSize;
-
-    @Column(name="is_bot", nullable = false, updatable = false)
-    private Boolean isBot;
-
+@Setter
+public class SellOrder extends Order implements Comparable<SellOrder> {
     public static SellOrder createMarketSellOrder(String ticker, Integer userId, Double orderSize,
                                                   LocalDateTime createdAt, Boolean isBot) {
+        List<FieldError> errors = new ArrayList<>();
+        if(orderSize == null){
+            errors.add(new FieldError("SellOrder", "orderSize", "orderSize cannot be null"));
+        }
+
+        handleValidationErrors(errors);
+
         SellOrder sellOrder = new SellOrder();
         sellOrder.ticker = ticker;
         sellOrder.userId = userId;
@@ -64,6 +44,16 @@ public class SellOrder {
 
     public static SellOrder createLimitSellOrder(String ticker, Integer userId, Double orderSize,
                                                  Double price, LocalDateTime createdAt, Boolean isBot) {
+        List<FieldError> errors = new ArrayList<>();
+        if(orderSize == null){
+            errors.add(new FieldError("SellOrder", "orderSize", "orderSize cannot be null"));
+        }
+        if(price == null){
+            errors.add(new FieldError("SellOrder", "price", "price cannot be null"));
+        }
+
+        handleValidationErrors(errors);
+
         SellOrder sellOrder = new SellOrder();
         sellOrder.ticker = ticker;
         sellOrder.userId = userId;
@@ -75,5 +65,26 @@ public class SellOrder {
         sellOrder.remainingSize = orderSize;
         sellOrder.isBot = isBot;
         return sellOrder;
+    }
+
+    private static void handleValidationErrors(List<FieldError> errors) {
+        if(errors.size() > 0){
+            throw new DomainValidationException(
+                    "Validation Error occurred Creating SellOrder", errors);
+        }
+    }
+
+    @Override
+    public int compareTo(SellOrder order) {
+        // 지정가 매도 가격 비교
+        if(!this.isMarketOrder){
+            // 매도 가격이 낮다면 음수가 나와야 함
+            int priceCompareResult = Double.compare(this.price, order.price);
+            if(priceCompareResult != 0) return priceCompareResult;
+        }
+        
+        // 생성 시간 비교
+        
+        return this.createdAt.compareTo(order.createdAt);
     }
 }

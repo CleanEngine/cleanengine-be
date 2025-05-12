@@ -16,7 +16,6 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
-    defer-datasource-initialization: true
   security:
     oauth2:
       client:
@@ -25,9 +24,6 @@ spring:
             client-id: ${KAKAO_CLIENT_ID}
     cookie:
       secure: false
-  sql:
-    init:
-      mode: always
 
 frontend:
   url: "http://localhost:3000"

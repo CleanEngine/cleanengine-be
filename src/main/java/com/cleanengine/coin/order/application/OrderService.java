@@ -24,12 +24,12 @@ public class OrderService { //facade
     }
 
     @Transactional
-    public OrderInfo<?> createOrderWithBot(OrderCommand.CreateOrder createOrder){
-        LocalDateTime createdAt = LocalDateTime.now();
-        OrderCommand.CreateOrder orderCommandWithBot =
-                new OrderCommand.CreateOrder(createOrder.ticker(), createOrder.userId(), createOrder.isBuyOrder(),
-                        createOrder.isMarketOrder(), createOrder.orderSize(), createOrder.price(), createdAt, true);
+    public OrderInfo<?> createOrderWithBot(String ticker, Boolean isBuyOrder, Double orderSize, Double price){
+        Integer userId = isBuyOrder? 1 : 2;
 
-        return createOrder(orderCommandWithBot);
+        OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(ticker, userId, isBuyOrder,
+                false, orderSize, price, LocalDateTime.now(), true);
+
+        return createOrder(createOrder);
     }
 }

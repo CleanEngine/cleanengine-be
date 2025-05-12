@@ -25,6 +25,9 @@ spring:
             client-id: ${KAKAO_CLIENT_ID}
     cookie:
       secure: false
+  sql:
+    init:
+      mode: always
 
 frontend:
   url: "http://localhost:3000"

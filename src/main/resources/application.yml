@@ -33,8 +33,5 @@ spring:
       hibernate:
         jdbc:
           time_zone: Asia/Seoul
-  sql:
-    init:
-      mode: always
 order:
   tickers: BTC, TRUMP

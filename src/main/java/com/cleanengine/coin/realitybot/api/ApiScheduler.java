@@ -49,10 +49,6 @@ public class ApiScheduler implements DisposableBean {
                 System.out.println("if = "+ticksQueue.size());
             }
         }
-        System.out.println(ticksQueue.size());
-        tickService.processVWAP();
-        virtualMarketService.getVirtualMarketPrice(ticksQueue);
-    }
 
         //api 값으로 추세(VWAP)와 가상추세(VirtualVWAP) 구하기
         if (ticksQueue.size()>=10){ //10개 이전 작동시 order 에런 발생 (-300~300원 대량주문 / 호가 단위 때문에)
@@ -65,6 +61,7 @@ public class ApiScheduler implements DisposableBean {
 
             //생성 된 vwap으로 주문 로직 실행 TODO 비동기로 전환하기
             orderGenerateService.generateOrder(tickService.getVwap(),(tickService.getTotalVolume()/30)); //1tick 당 매수/매도 3개씩 제작
+            virtualTradeService.matchOrder();//일치하면 체결 진행 TODO 합칠 때 제거
         };
 
     };

@@ -22,6 +22,8 @@ public class ApiScheduler implements DisposableBean {
     private final BithumbAPIClient bithumbAPIClient;
     private final TickService tickService;
     private final VirtualMarketService virtualMarketService;
+    private final OrderGenerateService orderGenerateService;
+    private final OrderQueueManagerService orderQueueManagerService;
     private long lastMaxSequentialId = 1L;
 //    private final Queue<Ticks> ticksQueue = new LinkedList<>();
     private final Queue<Ticks> ticksQueue;
@@ -51,6 +53,21 @@ public class ApiScheduler implements DisposableBean {
         tickService.processVWAP();
         virtualMarketService.getVirtualMarketPrice(ticksQueue);
     }
+
+        //api 값으로 추세(VWAP)와 가상추세(VirtualVWAP) 구하기
+        if (ticksQueue.size()>=10){ //10개 이전 작동시 order 에런 발생 (-300~300원 대량주문 / 호가 단위 때문에)
+
+            tickService.processVWAP();//평균 체결 금액(VWAP) 구하기 (추세)
+
+            /*//모니터링용
+            log.info("generateOrder vwap 확인용 = {}",tickService.getVwap());
+            log.info("generateOrder volume 확인용 = {}",tickService.getTotalVolume());*/
+
+            //생성 된 vwap으로 주문 로직 실행 TODO 비동기로 전환하기
+            orderGenerateService.generateOrder(tickService.getVwap(),(tickService.getTotalVolume()/30)); //1tick 당 매수/매도 3개씩 제작
+        };
+
+    };
     @Override
     public void destroy() throws Exception { //담긴 Queue데이터 확인용
         log.info("종료 전 큐 데이터 출력");

@@ -12,7 +12,6 @@ public final class OrderRequestDto {
 
     public record CreateOrderRequest(
             String ticker,
-            Integer userId,
             @Side
             String side,
             @OrderType
@@ -23,7 +22,7 @@ public final class OrderRequestDto {
         @JsonCreator
         public CreateOrderRequest {}
 
-        public OrderCommand.CreateOrder toOrderCommand(LocalDateTime createdAt) {
+        public OrderCommand.CreateOrder toOrderCommand(Integer userId, LocalDateTime createdAt) {
             boolean isMarketOrder;
             boolean isBuyOrder;
 

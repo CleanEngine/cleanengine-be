@@ -1,44 +1,35 @@
 package com.cleanengine.coin.order.application;
 
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
-import com.cleanengine.coin.order.domain.BuyOrder;
-import com.cleanengine.coin.order.domain.Order;
-import com.cleanengine.coin.order.domain.SellOrder;
-import com.cleanengine.coin.order.domain.domainservice.CreateOrderDomainService;
-import com.cleanengine.coin.order.infra.BuyOrderRepository;
-import com.cleanengine.coin.order.infra.SellOrderRepository;
-import jakarta.transaction.Transactional;
+import com.cleanengine.coin.order.application.strategy.CreateOrderStrategy;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Validated
-public class OrderService {
-    private final BuyOrderRepository buyOrderRepository;
-    private final SellOrderRepository sellOrderRepository;
-    private final CreateOrderDomainService createOrderDomainService;
-    private final OrderQueueManagerPool orderQueueManagerPool;
+public class OrderService { //facade
+    private final List<CreateOrderStrategy<?, ?>> createOrderStrategies;
 
     @Transactional
-    public OrderInfo createOrder(@Valid OrderCommand.CreateOrder createOrder){
-        Order order = createOrderDomainService.createOrder(createOrder.ticker(), createOrder.userId(),
-                createOrder.isBuyOrder(), createOrder.isMarketOrder(), createOrder.orderSize(),
-                createOrder.price(),createOrder.createdAt(),createOrder.isBot());
+    public OrderInfo<?> createOrder(@Valid OrderCommand.CreateOrder createOrder){
+        CreateOrderStrategy<?, ?> createOrderStrategy = createOrderStrategies.stream()
+                .filter(strategy -> strategy.supports(createOrder.isBuyOrder())).findFirst().orElseThrow();
+        return createOrderStrategy.processCreatingOrder(createOrder);
+    }
 
-        if(order instanceof BuyOrder){
-            buyOrderRepository.save((BuyOrder) order);
-        }else{
-            sellOrderRepository.save((SellOrder) order);
-        }
+    @Transactional
+    public OrderInfo<?> createOrderWithBot(String ticker, Boolean isBuyOrder, Double orderSize, Double price){
+        Integer userId = isBuyOrder? 1 : 2;
 
-        orderQueueManagerPool.addOrder(order.getTicker(), order);
+        OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(ticker, userId, isBuyOrder,
+                false, orderSize, price, LocalDateTime.now(), true);
 
-        return OrderInfo.builder()
-                .id(order.getId())
-                .createdAt(order.getCreatedAt()).build();
+        return createOrder(createOrder);
     }
 }
-

@@ -5,29 +5,30 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.validation.FieldError;
+import com.cleanengine.coin.common.error.DomainValidationException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "sell_orders")
 @Table(name="sell_orders")
 @AttributeOverride(name="id", column=@Column(name="sell_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
+@Setter
 public class SellOrder extends Order implements Comparable<SellOrder> {
-    // TODO size를 VO로 바꾸어야 함
-    @Column(name="order_size", nullable = false)
-    private Double orderSize;
-
-    // TODO price를 VO로 바꾸어야 함
-    @Column(name="price", nullable = true)
-    private Double price;
-
-    @Column(name="remaining_size", nullable = true)
-    private Double remainingSize;
-
     public static SellOrder createMarketSellOrder(String ticker, Integer userId, Double orderSize,
                                                   LocalDateTime createdAt, Boolean isBot) {
+        List<FieldError> errors = new ArrayList<>();
+        if(orderSize == null){
+            errors.add(new FieldError("SellOrder", "orderSize", "orderSize cannot be null"));
+        }
+
+        handleValidationErrors(errors);
+
         SellOrder sellOrder = new SellOrder();
         sellOrder.ticker = ticker;
         sellOrder.userId = userId;
@@ -43,6 +44,16 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
 
     public static SellOrder createLimitSellOrder(String ticker, Integer userId, Double orderSize,
                                                  Double price, LocalDateTime createdAt, Boolean isBot) {
+        List<FieldError> errors = new ArrayList<>();
+        if(orderSize == null){
+            errors.add(new FieldError("SellOrder", "orderSize", "orderSize cannot be null"));
+        }
+        if(price == null){
+            errors.add(new FieldError("SellOrder", "price", "price cannot be null"));
+        }
+
+        handleValidationErrors(errors);
+
         SellOrder sellOrder = new SellOrder();
         sellOrder.ticker = ticker;
         sellOrder.userId = userId;
@@ -54,6 +65,13 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
         sellOrder.remainingSize = orderSize;
         sellOrder.isBot = isBot;
         return sellOrder;
+    }
+
+    private static void handleValidationErrors(List<FieldError> errors) {
+        if(errors.size() > 0){
+            throw new DomainValidationException(
+                    "Validation Error occurred Creating SellOrder", errors);
+        }
     }
 
     @Override

@@ -1,0 +1,90 @@
+package com.cleanengine.coin.trade.application;
+
+import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import jakarta.annotation.PreDestroy;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+@Service
+public class TradeBatchProcessor implements ApplicationRunner {
+
+    private final OrderQueueManagerPool orderQueueManagerPool;
+    private final TradeService tradeService;
+    private final List<ExecutorService> executors = new ArrayList<>();
+    private final List<TradeQueueManager> tradeQueueManagers = new ArrayList<>();
+
+    public TradeBatchProcessor(OrderQueueManagerPool orderQueueManagerPool, TradeService tradeService) {
+        this.orderQueueManagerPool = orderQueueManagerPool;
+        this.tradeService = tradeService;
+    }
+
+    // Test용
+    public List<TradeQueueManager> getTradeQueueManagers() {
+        return tradeQueueManagers;
+    }
+
+    @Override
+    public void run(ApplicationArguments args) {
+        processTrades();
+    }
+
+    private void processTrades() {
+        // TODO : @Value("${order.tickers}") 를 통해 지정
+        String[] tickers = {"BTC"};
+
+        for (String ticker : tickers) {
+            TradeQueueManager tradeQueueManager = new TradeQueueManager(orderQueueManagerPool.getOrderQueueManager(ticker),
+                                                                        tradeService);
+            tradeQueueManagers.add(tradeQueueManager); // 정상 종료를 위해 저장
+
+            ExecutorService tradeExecutor = Executors.newSingleThreadExecutor(r -> {
+                Thread thread = new Thread(r);
+                thread.setName("Trade-" + ticker);
+                return thread;
+            });
+            executors.add(tradeExecutor);
+
+            tradeExecutor.submit(() -> {
+                try {
+                    tradeQueueManager.doTrade();
+                } catch (Exception e) {
+                    System.err.println("Error in trade loop for " + ticker + ": " + e.getMessage());
+                }
+            });
+        }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        // 무한루프 종료
+        for (TradeQueueManager manager : tradeQueueManagers) {
+            manager.stop();
+        }
+
+        // 스레드풀 종료
+        for (ExecutorService executor : executors) {
+            try {
+                executor.shutdown();
+
+                // 2초 동안 종료 대기 후 강제 종료
+                if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                    // 추가로 1초 더 대기
+                    if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+                        System.err.println("스레드풀이 완전히 종료되지 않았습니다");
+                    }
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+}

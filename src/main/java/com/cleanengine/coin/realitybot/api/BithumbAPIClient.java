@@ -17,11 +17,11 @@ public class BithumbAPIClient {
     private OkHttpClient client;
     private Gson gson;
 
-    public String get(){
+    public String get(){ //API를 responseBody에 담아 반환
         client = new OkHttpClient();
         gson = new Gson();
         Request request = new Request.Builder()
-                .url("https://api.bithumb.com/v1/trades/ticks?market=krw-trump&count=10")
+                .url("https://api.bithumb.com/v1/trades/ticks?market=krw-TRUMP&count=10")
                 .get()
                 .addHeader("accept", "application/json")
                 .build();

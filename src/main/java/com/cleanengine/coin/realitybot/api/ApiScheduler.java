@@ -1,16 +1,13 @@
 package com.cleanengine.coin.realitybot.api;
 
 import com.cleanengine.coin.realitybot.dto.Ticks;
-import com.cleanengine.coin.realitybot.service.TickService;
-import com.cleanengine.coin.realitybot.service.VirtualMarketService;
+import com.cleanengine.coin.realitybot.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
@@ -25,28 +22,33 @@ public class ApiScheduler implements DisposableBean {
     private final OrderGenerateService orderGenerateService;
     private final OrderQueueManagerService orderQueueManagerService;
     private long lastMaxSequentialId = 1L;
-//    private final Queue<Ticks> ticksQueue = new LinkedList<>();
     private final Queue<Ticks> ticksQueue;
+    private final VirtualTradeService virtualTradeService;
 
-    @Scheduled(fixedRate = 5000)
+
+    @Scheduled(fixedRate = 5000) //5초마다 실행
     public void MarketDataRequest(){
-        String rawJson = bithumbAPIClient.get();
-        List<Ticks> gson = TickService.paraseGson(rawJson);
-//        Queue<Ticks> gsonQueue = (Queue<Ticks>) TickService.paraseGson(rawJson);
-//        for(Ticks ticks : gson){//1차
-        for (int i = gson.size()-1; i >=0 ; i--) {//2차 : 10
+        String rawJson = bithumbAPIClient.get(); //api raw데이터
+        List<Ticks> gson = TickService.paraseGson(rawJson); //json을 list로 변환
+
+        //api 중복검사하여 queue에 저장하기
+        for (int i = gson.size()-1; i >=0 ; i--) {//2차 : 10 - 역순으로 정렬되어 - 순회해야 함.
             Ticks ticks = gson.get(i);
-//            System.out.println("fori = " + gson.size());
-            if (ticks.getSequential_id() > lastMaxSequentialId){
-                //----------------------
-                if (ticksQueue.size()>=10){ //갯수를 20개 까지만으로 제한
+            if (ticks.getSequential_id() > lastMaxSequentialId){ //중복 검증용
+
+                //추세 갯수 지정 및 queue관리
+                if (ticksQueue.size()>=10){ //갯수를 10개 까지만으로 제한
                     ticksQueue.poll();  //queue에서 빼기, 추세를 구현하기만 하면 필요가 있을까? -> 없음
-                }//멀티 쓰레드환경이 아니므로 concurrentlinkedqueue는 나중에 구현
-                //--------------------
-                System.out.println(ticks.getSequential_id());
+                }//sequentialId가 역으로 받아 poll을 먼저해야 add가능
+
+                //중복 검사 후 ticks 추가
                 ticksQueue.add(ticks);
-                lastMaxSequentialId = Math.max(lastMaxSequentialId, ticks.getSequential_id());
+                lastMaxSequentialId = Math.max(lastMaxSequentialId, ticks.getSequential_id()); //중복 id 갱신
+
+                /*모니터링용
+                System.out.println(ticks.getSequential_id());
                 System.out.println("if = "+ticksQueue.size());
+                */
             }
         }
 
@@ -70,7 +72,8 @@ public class ApiScheduler implements DisposableBean {
         log.info("종료 전 큐 데이터 출력");
         ticksQueue.forEach(tick -> log.info(tick.toString())); //
         log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
-//        ticksQueue.clear();
+        orderQueueManagerService.logAllOrders();
+        virtualTradeService.printOrderSummary();
     }
 
 

@@ -63,6 +63,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         UserOAuthDetails userOAuthDetails = new UserOAuthDetails();
+        userOAuthDetails.setUserId(jwtUtil.getUserId(authorizationToken));
         userOAuthDetails.setProvider(jwtUtil.getProvider(authorizationToken));
         userOAuthDetails.setProviderUserId(jwtUtil.getProviderUserId(authorizationToken));
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(userOAuthDetails);

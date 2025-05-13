@@ -72,8 +72,8 @@ public class ApiScheduler implements DisposableBean {
 //        log.info("종료 전 큐 데이터 출력");
         ticksQueue.forEach(tick -> log.info(tick.toString())); //
 //        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
-        orderQueueManagerService.logAllOrders();
-        virtualTradeService.printOrderSummary();
+//        orderQueueManagerService.logAllOrders();
+//        virtualTradeService.printOrderSummary();
     }
 
 

@@ -15,13 +15,15 @@ import java.time.LocalDateTime;
 public class Trade {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer tradeId;
+    @Column(name = "trade_id")
+    private Integer id;
 
     @Column(name = "ticker", nullable = false)
     private String ticker;
 
     @Column(name = "trade_time", nullable = false)
     @CreationTimestamp
+    //생성 타임은 추후 논의 예정
     private LocalDateTime tradeTime;
 
     @Column(name = "buy_user_id", nullable = false)

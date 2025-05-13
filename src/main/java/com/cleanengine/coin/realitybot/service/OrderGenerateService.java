@@ -2,10 +2,12 @@ package com.cleanengine.coin.realitybot.service;
 
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Service
 public class OrderGenerateService {
     private final int[] orderLevels = {1,2,3};
-    private final int unitPrice = 100; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
+    private final int unitPrice = 10; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
     private OrderQueueManagerService queueManager;
     private VirtualMarketService virtualMarketService;
     private PlatformVWAPService platformVWAPService;
@@ -27,9 +29,14 @@ public class OrderGenerateService {
 
         // Platform 기반 가격 , 최초 0.0원
         double platformVWAP = platformVWAPService.getPlatformVWAP(); //order를 넣고 체결한 trade queue 값을 기준으로 계산
+        //todo 0513 이거 체결량 그만큼 채워지는 거 아니면 작동 안되도록 전환 필요
         if(platformVWAP == 0.0){ //최초 실행 시 vwap 계산
             platformVWAP = generateVirtualVWAP(vwap); //0.1% 보정값 랜덤 생성
         }
+
+        //근데 이거 platforVWAP 이 값이 있을 경우 작동해야 함
+        double trendLineRate = (platformVWAP - vwap)/ vwap;
+        boolean isWithinRange = Math.abs(trendLineRate) <= 0.01;
 
         //VWAP 선택기 = 최초1회 API, 이후 Tick기반 todo 제거 대상
 //        double virtualVWAP = virtualMarketService.switcherVWAP(tickService.getTicksQueue(), platformVWAP);
@@ -64,7 +71,38 @@ public class OrderGenerateService {
             //주문 실행
 //            sellPrice = normalizeToUnit(virtualVWAP + priceOffset);//todo : 제거 대상
             double sellVolume = getRandomVolum(avgVolum);
+            double buyVolume = getRandomVolum(avgVolum);
+
+            if (!(platformVWAP==0)){
+                if (isWithinRange){
+                    if (trendLineRate > 0){
+                        sellVolume *=1.5;
+                        buyVolume *= 0.7;
+                    } else {
+                        sellVolume *=0.7;
+                        buyVolume *= 1.5;
+                    }
+                }
+                double correctionRate = 0.1;
+                if (trendLineRate < -0.01) { // platformVWAP이 너무 낮음
+                    sellPrice = normalizeToUnit(sellPrice - (sellPrice * correctionRate)); // 매도 더 싸게 → 체결 유도
+                    buyPrice = normalizeToUnit(buyPrice + (buyPrice * correctionRate)); // 매수 더 비싸게 → 체결 유도
+                } else if (trendLineRate > 0.01) { // platformVWAP이 너무 높음
+                    sellPrice = normalizeToUnit(sellPrice + (sellPrice * correctionRate)); // 매도 더 비싸게
+                    buyPrice = normalizeToUnit(buyPrice - (buyPrice * correctionRate)); // 매수 더 싸게
+                }
+                queueManager.addSellOrder(sellPrice, sellVolume);
+                queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
+            }
+
             queueManager.addSellOrder(sellPrice, sellVolume);
+            queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
+            try {
+                TimeUnit.MICROSECONDS.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
             /*//모니터링용
             System.out.println("sellPrice = " + sellPrice);
             System.out.println("sellVolume = " + sellVolume);

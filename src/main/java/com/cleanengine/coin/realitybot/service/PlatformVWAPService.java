@@ -8,12 +8,15 @@ import java.util.Queue;
 @Service
 public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예정임
     private final Queue<Trade> tradeQueue = new LinkedList<>(); //테스트를 위한 큐 -> 체결 db에서 데이터 조회
-    private int maxQueueSize = 5;
+    private int maxQueueSize = 10;
 
     private double totalPriceVolume = 0;
     private double totalVolume = 0;
 
     public void recordTrade(double price, double volume) {
+
+        if (volume <= 0) return;
+
         if (tradeQueue.size() >= maxQueueSize) {
             Trade removed = tradeQueue.poll();
             totalPriceVolume -= removed.price * removed.volume;

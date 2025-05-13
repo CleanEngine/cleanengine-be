@@ -6,17 +6,23 @@ import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.user.domain.Wallet;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.PriorityBlockingQueue;
 
 public class TradeQueueManager {
 
     private static final Logger logger = LoggerFactory.getLogger(TradeQueueManager.class);
+    private final Object lock = new Object();
 
     private volatile boolean running = true; // 무한루프 종료 플래그
+
+    @Getter
     private final OrderQueueManager orderQueueManager;
+
     private final TradeService tradeService;
 
     public TradeQueueManager(OrderQueueManager orderQueueManager, TradeService tradeService) {
@@ -24,11 +30,7 @@ public class TradeQueueManager {
         this.tradeService = tradeService;
     }
 
-    public OrderQueueManager getOrderQueueManager() {
-        return orderQueueManager;
-    }
-
-    public void doTrade() {
+    public void run() {
         /*
           문제 - 큐가 비어있는데 굳이 일을해야할까?
              - 큐가 안비어있을떄는 특정 스레드를 호출해서 일을 시키고, 아니면 스레드 블락킹(대기큐)
@@ -39,19 +41,31 @@ public class TradeQueueManager {
           비어있을 때가 기준이 아닌, 새로운 주문이 요청되었을 때 한 번 순회하는 게 이상적
          */
         while (running) {
-            logger.debug("Running in method: {}, Thread ID: {}, Thread Name: {}",
+            synchronized (lock) {
+                logger.debug("Running in method: {}, Thread ID: {}, Thread Name: {}",
                         new Object(){}.getClass().getEnclosingMethod().getName(),
                         Thread.currentThread().threadId(),
                         Thread.currentThread().getName());
-            try {
-                matchOrders();
-                Thread.sleep(1); // Test용
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
-            } catch (Exception e) {
-                logger.error("Error processing trades for {}: {}", orderQueueManager.getTicker(), e.getMessage());
-                throw e;
+                try {
+                    Optional<TradePair<Order, Order>> targetTradePair = matchOrders();
+                    if (targetTradePair.isEmpty()) {
+                        lock.wait();
+                    } else {
+                        executeTrade(targetTradePair.get().getBuyOrder(), targetTradePair.get().getSellOrder());
+                    }
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                } catch (Exception e) {
+                    logger.error("Error processing trades for {}: {}", orderQueueManager.getTicker(), e.getMessage());
+                    throw e;
+                }
             }
+        }
+    }
+
+    public void wakeup () {
+        synchronized (lock) {
+            lock.notify();
         }
     }
 
@@ -59,67 +73,48 @@ public class TradeQueueManager {
         this.running = false; // 무한루프 종료 플래그
     }
 
-    private void matchOrders() {
-        logger.debug("=========================================");
-        logger.debug("MarketSellOrderQueue size: {}", orderQueueManager.getMarketSellOrderQueue().size());
-        logger.debug("LimitSellOrderQueue size: {}", orderQueueManager.getLimitSellOrderQueue().size());
-        logger.debug("MarketBuyOrderQueue size: {}", orderQueueManager.getMarketBuyOrderQueue().size());
-        logger.debug("LimitBuyOrderQueue size: {}", orderQueueManager.getLimitBuyOrderQueue().size());
-        logger.debug("=========================================");
+    private Optional<TradePair<Order, Order>> matchOrders() {  // 반환값 : 체결여부
+        logger.debug("시장가매도[{}], 지정가매도[{}], 시장가매수[{}], 지정가매수[{}]",
+                orderQueueManager.getMarketSellOrderQueue().size(),
+                orderQueueManager.getLimitSellOrderQueue().size(),
+                orderQueueManager.getMarketBuyOrderQueue().size(),
+                orderQueueManager.getLimitBuyOrderQueue().size());
+
+        TradePair<Order, Order> targetTradePair = null;
 
         // 시장가 주문을 우선적으로 처리
-        // 1. 시장가 매도 주문, 지정가 매수 주문
-        while (!orderQueueManager.getMarketSellOrderQueue().isEmpty()) {
-            if (orderQueueManager.getLimitBuyOrderQueue().isEmpty()) {
-                break;
-            }
+        // TODO : race condition 방지 방안?
+        if (!orderQueueManager.getMarketSellOrderQueue().isEmpty() && !orderQueueManager.getLimitBuyOrderQueue().isEmpty()) {
+            // 1. 시장가 매도 주문, 지정가 매수 주문
             SellOrder marketSellOrder = orderQueueManager.getMarketSellOrderQueue().peek();
-            matchWithLimitBuyOrder(marketSellOrder);
-        }
-
-        // 2. 시장가 매수 주문, 지정가 매도 주문
-        while (!orderQueueManager.getMarketBuyOrderQueue().isEmpty()) {
-            if (orderQueueManager.getLimitSellOrderQueue().isEmpty()) {
-                break;
-            }
+            BuyOrder limitBuyOrder = orderQueueManager.getLimitBuyOrderQueue().peek();
+            targetTradePair = new TradePair<>(marketSellOrder, limitBuyOrder);
+        } else if (!orderQueueManager.getMarketBuyOrderQueue().isEmpty() && !orderQueueManager.getLimitSellOrderQueue().isEmpty()) {
+            // 2. 시장가 매수 주문, 지정가 매도 주문
             BuyOrder marketBuyOrder = orderQueueManager.getMarketBuyOrderQueue().peek();
-            matchWithLimitSellOrder(marketBuyOrder);
+            SellOrder limitSellOrder = orderQueueManager.getLimitSellOrderQueue().peek();
+            targetTradePair = new TradePair<>(marketBuyOrder, limitSellOrder);
+        } else if (!orderQueueManager.getLimitSellOrderQueue().isEmpty() && !orderQueueManager.getLimitBuyOrderQueue().isEmpty()) {
+            // 3. 지정가 주문
+            targetTradePair = matchBetweenLimitOrders();
         }
-
-        // 3. 지정가 주문
-        matchBetweenLimitOrders();
+        return Optional.ofNullable(targetTradePair);
     }
 
-    private void matchWithLimitBuyOrder(SellOrder sellOrder) {
-        PriorityBlockingQueue<BuyOrder> limitBuyQueue = orderQueueManager.getLimitBuyOrderQueue();
-        if (!limitBuyQueue.isEmpty()) {
-            BuyOrder buyOrder = limitBuyQueue.peek();
-            executeTrade(buyOrder, sellOrder);
-        }
-    }
-
-    private void matchWithLimitSellOrder(BuyOrder buyOrder) {
-        PriorityBlockingQueue<SellOrder> limitSellQueue = orderQueueManager.getLimitSellOrderQueue();
-        if (!limitSellQueue.isEmpty()) {
-            SellOrder sellOrder = limitSellQueue.peek();
-            executeTrade(buyOrder, sellOrder);
-        }
-    }
-
-    private void matchBetweenLimitOrders() {
+    private TradePair<Order, Order> matchBetweenLimitOrders() {
         PriorityBlockingQueue<SellOrder> limitSellQueue = orderQueueManager.getLimitSellOrderQueue();
         PriorityBlockingQueue<BuyOrder> limitBuyQueue = orderQueueManager.getLimitBuyOrderQueue();
 
-        while (!limitSellQueue.isEmpty() && !limitBuyQueue.isEmpty()) {
+        if (!limitSellQueue.isEmpty() && !limitBuyQueue.isEmpty()) {
             SellOrder sellOrder = limitSellQueue.peek();
             BuyOrder buyOrder = limitBuyQueue.peek();
 
-            if (!canMatch(buyOrder, sellOrder)) {
-                break; // 가격 조건 불일치로 매칭 불가
-            }
-
-            executeTrade(buyOrder, sellOrder);
-        }
+            if (canMatch(buyOrder, sellOrder)) {
+                return new TradePair<>(buyOrder, sellOrder);
+            } else
+                return null;
+        } else
+            return null;
     }
 
     private boolean canMatch(BuyOrder buyOrder, SellOrder sellOrder) {
@@ -127,7 +122,7 @@ public class TradeQueueManager {
     }
 
     protected void executeTrade(BuyOrder buyOrder, SellOrder sellOrder) {
-//        System.out.println("Trading... " + buyOrder.getTicker() + " - 구매자:" + buyOrder.getId() + ", 판매자:" + sellOrder.getId());
+        logger.debug("Executing Trade... 종목: {}, 구매자: {}, 판매자: {}", buyOrder.getTicker(), buyOrder.getId(), sellOrder.getId());
         // 주문 관련 처리를 먼저 해서 동기화 이슈 가능성을 최소로 하고,
         // 체결 내역 처리는 별도 스레드로 분리하는 게 낫겠다
         double tradedSize;
@@ -206,8 +201,8 @@ public class TradeQueueManager {
     }
 
     private void removeCompletedBuyOrder(BuyOrder order) {
-        boolean isOrderCompleted = (order.getIsMarketOrder() && order.getRemainingDeposit() <= 0) ||
-                                   (!order.getIsMarketOrder() && order.getRemainingSize() <= 0);
+        boolean isOrderCompleted = (order.getIsMarketOrder() && order.getRemainingDeposit() < 0.00000001) ||
+                                   (!order.getIsMarketOrder() && order.getRemainingSize() < 0.00000001);
 
         if (isOrderCompleted) {
             PriorityBlockingQueue<? extends Order> orderQueue = order.getIsMarketOrder()

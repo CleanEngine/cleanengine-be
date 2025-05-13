@@ -2,12 +2,18 @@ package com.cleanengine.coin.trade.application;
 
 import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import jakarta.annotation.PreDestroy;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -15,19 +21,20 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class TradeBatchProcessor implements ApplicationRunner {
 
+    Logger logger = LoggerFactory.getLogger(TradeBatchProcessor.class);
+
     private final OrderQueueManagerPool orderQueueManagerPool;
     private final TradeService tradeService;
     private final List<ExecutorService> executors = new ArrayList<>();
-    private final List<TradeQueueManager> tradeQueueManagers = new ArrayList<>();
+
+    @Getter
+    private final Map<String, TradeQueueManager> tradeQueueManagers = new HashMap<>();
+
+    @Value("${order.tickers}") String[] tickers;
 
     public TradeBatchProcessor(OrderQueueManagerPool orderQueueManagerPool, TradeService tradeService) {
         this.orderQueueManagerPool = orderQueueManagerPool;
         this.tradeService = tradeService;
-    }
-
-    // Test용
-    public List<TradeQueueManager> getTradeQueueManagers() {
-        return tradeQueueManagers;
     }
 
     @Override
@@ -36,13 +43,10 @@ public class TradeBatchProcessor implements ApplicationRunner {
     }
 
     private void processTrades() {
-        // TODO : @Value("${order.tickers}") 를 통해 지정
-        String[] tickers = {"BTC"};
-
         for (String ticker : tickers) {
             TradeQueueManager tradeQueueManager = new TradeQueueManager(orderQueueManagerPool.getOrderQueueManager(ticker),
                                                                         tradeService);
-            tradeQueueManagers.add(tradeQueueManager); // 정상 종료를 위해 저장
+            tradeQueueManagers.put(ticker, tradeQueueManager); // 정상 종료를 위해 저장
 
             ExecutorService tradeExecutor = Executors.newSingleThreadExecutor(r -> {
                 Thread thread = new Thread(r);
@@ -53,9 +57,9 @@ public class TradeBatchProcessor implements ApplicationRunner {
 
             tradeExecutor.submit(() -> {
                 try {
-                    tradeQueueManager.doTrade();
+                    tradeQueueManager.run();
                 } catch (Exception e) {
-                    System.err.println("Error in trade loop for " + ticker + ": " + e.getMessage());
+                    logger.error("Error in trade loop for {}: {}",ticker, e.getMessage());
                 }
             });
         }
@@ -64,9 +68,7 @@ public class TradeBatchProcessor implements ApplicationRunner {
     @PreDestroy
     public void shutdown() {
         // 무한루프 종료
-        for (TradeQueueManager manager : tradeQueueManagers) {
-            manager.stop();
-        }
+        tradeQueueManagers.forEach((ticker, manager) -> manager.stop());
 
         // 스레드풀 종료
         for (ExecutorService executor : executors) {

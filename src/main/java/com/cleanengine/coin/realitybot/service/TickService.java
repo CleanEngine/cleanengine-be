@@ -33,7 +33,7 @@ public class TickService implements TicketServiceInterface {
         vwap = calculateVWAP(ticksQueue); //vwap 계산 실행
 
 //        log.info("현재 VWAP: {}",vwap);
-        System.out.println("=== 현재 VWAP 가격 "+vwap);
+//        System.out.println("=== 현재 VWAP 가격 "+vwap);
     }
 
     @Override

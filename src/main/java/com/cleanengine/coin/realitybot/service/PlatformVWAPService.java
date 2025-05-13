@@ -26,8 +26,8 @@ public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예�
         tradeQueue.offer(new Trade(price, volume));
         totalPriceVolume += price * volume;
         totalVolume += volume;
-        System.out.println("=== 최신 체결 큐 확인 : " + tradeQueue.peek().toString());
-        System.out.println("=== platformVWAP 변동 : "+getPlatformVWAP());
+//        System.out.println("=== 최신 체결 큐 확인 : " + tradeQueue.peek().toString());
+//        System.out.println("=== platformVWAP 변동 : "+getPlatformVWAP());
     }
 
     public double getPlatformVWAP() {

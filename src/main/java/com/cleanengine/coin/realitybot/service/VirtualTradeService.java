@@ -41,7 +41,7 @@ public class VirtualTradeService {
             //현재 매도가 기준
             double matchedPrice = sellOrder.getPrice();
             double matchedVolume = Math.min(buyOrder.getVolume(), sellOrder.getVolume()); //적은쪽으로 물량 설정
-            System.out.println("=== 체결 진행 - 가격 :"+matchedPrice+", 수량 : "+matchedVolume);
+//            System.out.println("=== 체결 진행 - 가격 :"+matchedPrice+", 수량 : "+matchedVolume);
 
             //잔량 처리
             buyOrder.setVolume(buyOrder.getVolume() - matchedVolume);
@@ -77,7 +77,7 @@ public class VirtualTradeService {
                 if ((int)buyOrder.getPrice() >= (int)sellOrder.getPrice()){
                     double matchVolume = Math.min(buyOrder.getVolume(), sellOrder.getVolume());
                     if (matchVolume <=0) continue;
-                    System.out.printf("=== 체결 완료 : %.1f / %.4f \n",sellOrder.getPrice(),matchVolume);
+//                    System.out.printf("=== 체결 완료 : %.1f / %.4f \n",sellOrder.getPrice(),matchVolume);
                     platformVWAPService.recordTrade(sellOrder.getPrice(),matchVolume);
 
                     buyOrder.setVolume(buyOrder.getVolume() - matchVolume);
@@ -95,7 +95,7 @@ public class VirtualTradeService {
 
             }
         }
-        System.out.println("===exctued 값 buy : "+excutedBuy+"sell"+excutedSell);
+//        System.out.println("===exctued 값 buy : "+excutedBuy+"sell"+excutedSell);
         queueManager.getBuyqueue().removeAll(excutedBuy);
         queueManager.getSellqueue().removeAll(excutedSell);
 

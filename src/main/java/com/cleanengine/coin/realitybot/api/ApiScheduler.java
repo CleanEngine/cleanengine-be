@@ -5,7 +5,6 @@ import com.cleanengine.coin.realitybot.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,7 +25,7 @@ public class ApiScheduler implements DisposableBean {
     private final VirtualTradeService virtualTradeService;
 
 
-    @Scheduled(fixedRate = 5000) //5초마다 실행
+//    @Scheduled(fixedRate = 5000) //5초마다 실행
     public void MarketDataRequest(){
         String rawJson = bithumbAPIClient.get(); //api raw데이터
         List<Ticks> gson = TickService.paraseGson(rawJson); //json을 list로 변환
@@ -70,9 +69,9 @@ public class ApiScheduler implements DisposableBean {
     };
     @Override
     public void destroy() throws Exception { //담긴 Queue데이터 확인용
-        log.info("종료 전 큐 데이터 출력");
+//        log.info("종료 전 큐 데이터 출력");
         ticksQueue.forEach(tick -> log.info(tick.toString())); //
-        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
+//        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
         orderQueueManagerService.logAllOrders();
         virtualTradeService.printOrderSummary();
     }

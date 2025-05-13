@@ -1,7 +1,7 @@
 package com.cleanengine.coin.orderbook.domain;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
@@ -9,10 +9,10 @@ import static com.cleanengine.coin.common.CommonValues.approxEquals;
 
 public class OrderBook {
     private final String ticker;
-    private final ConcurrentSkipListSet<BuyOrderPriceInfo> buyOrderPriceInfoListSet = new ConcurrentSkipListSet<>();
-    private final ConcurrentSkipListSet<SellOrderPriceInfo> sellOrderPriceInfoListSet = new ConcurrentSkipListSet<>();
-    private final ConcurrentHashMap<Double, BuyOrderBookUnit> buyOrderPriceInfoMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Double, SellOrderBookUnit> sellOrderPriceInfoMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Double, BuyOrderBookUnit> buyOrderBookUnitMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Double, SellOrderBookUnit> sellOrderBookUnitMap = new ConcurrentHashMap<>();
+    private final ConcurrentSkipListSet<BuyOrderBookUnit> buyOrderBookUnitListSet = new ConcurrentSkipListSet<>();
+    private final ConcurrentSkipListSet<SellOrderBookUnit> sellOrderBookUnitListSet = new ConcurrentSkipListSet<>();
 
     public OrderBook(String ticker) {
         this.ticker = ticker;
@@ -20,53 +20,53 @@ public class OrderBook {
 
     public void updateOrderBookOnNewOrder(boolean isBuyOrder, Double price, Double orderSize) {
         if(isBuyOrder){
-            BuyOrderPriceInfo buyOrderPriceInfo = buyOrderPriceInfoMap.get(price);
-            if(buyOrderPriceInfo == null){
-                buyOrderPriceInfo = new BuyOrderPriceInfo(price, orderSize);
-                buyOrderPriceInfoMap.put(price, buyOrderPriceInfo);
-                buyOrderPriceInfoListSet.add(buyOrderPriceInfo);
+            BuyOrderBookUnit buyOrderBookUnit = buyOrderBookUnitMap.get(price);
+            if(buyOrderBookUnit == null){
+                buyOrderBookUnit = new BuyOrderBookUnit(price, orderSize);
+                buyOrderBookUnitMap.put(price, buyOrderBookUnit);
+                buyOrderBookUnitListSet.add(buyOrderBookUnit);
             } else {
-                buyOrderPriceInfo.addOrder(orderSize);
+                buyOrderBookUnit.addOrder(orderSize);
             }
         } else {
-            SellOrderPriceInfo sellOrderPriceInfo = sellOrderPriceInfoMap.get(price);
-            if(sellOrderPriceInfo == null){
-                sellOrderPriceInfo = new SellOrderPriceInfo(price, orderSize);
-                sellOrderPriceInfoMap.put(price, sellOrderPriceInfo);
-                sellOrderPriceInfoListSet.add(sellOrderPriceInfo);
+            SellOrderBookUnit sellOrderBookUnit = sellOrderBookUnitMap.get(price);
+            if(sellOrderBookUnit == null){
+                sellOrderBookUnit = new SellOrderBookUnit(price, orderSize);
+                sellOrderBookUnitMap.put(price, sellOrderBookUnit);
+                sellOrderBookUnitListSet.add(sellOrderBookUnit);
             } else {
-                sellOrderPriceInfo.addOrder(orderSize);
+                sellOrderBookUnit.addOrder(orderSize);
             }
         }
     }
 
     public void updateOrderBookOnTradeExecuted(boolean isBuyOrder, Double price, Double orderSize) {
         if(isBuyOrder){
-            BuyOrderPriceInfo buyOrderPriceInfo = buyOrderPriceInfoMap.get(price);
-            buyOrderPriceInfo.executeTrade(orderSize);
-            if(approxEquals(buyOrderPriceInfo.getSize(), 0.0)){
-                buyOrderPriceInfoMap.remove(price);
-                buyOrderPriceInfoListSet.remove(buyOrderPriceInfo);
+            BuyOrderBookUnit buyOrderBookUnit = buyOrderBookUnitMap.get(price);
+            buyOrderBookUnit.executeTrade(orderSize);
+            if(approxEquals(buyOrderBookUnit.getSize(), 0.0)){
+                buyOrderBookUnitMap.remove(price);
+                buyOrderBookUnitListSet.remove(buyOrderBookUnit);
             }
         } else {
-            SellOrderPriceInfo sellOrderPriceInfo = sellOrderPriceInfoMap.get(price);
-            sellOrderPriceInfo.executeTrade(orderSize);
-            if(approxEquals(sellOrderPriceInfo.getSize(), 0.0)){
-                sellOrderPriceInfoMap.remove(price);
-                sellOrderPriceInfoListSet.remove(sellOrderPriceInfo);
+            SellOrderBookUnit sellOrderBookUnit = sellOrderBookUnitMap.get(price);
+            sellOrderBookUnit.executeTrade(orderSize);
+            if(approxEquals(sellOrderBookUnit.getSize(), 0.0)){
+                sellOrderBookUnitMap.remove(price);
+                sellOrderBookUnitListSet.remove(sellOrderBookUnit);
             }
         }
     }
 
-    public List<OrderPriceInfo> getBuyOrderBookList(int size){
-        return buyOrderPriceInfoListSet
+    public List<OrderBookUnit> getBuyOrderBookList(int size){
+        return buyOrderBookUnitListSet
                 .stream()
                 .limit(size)
                 .collect(Collectors.toList());
     }
 
-    public List<OrderPriceInfo> getSellOrderBookList(int size){
-        return sellOrderPriceInfoListSet
+    public List<OrderBookUnit> getSellOrderBookList(int size){
+        return sellOrderBookUnitListSet
                 .stream()
                 .limit(size)
                 .collect(Collectors.toList());

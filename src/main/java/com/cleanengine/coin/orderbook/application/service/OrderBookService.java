@@ -5,7 +5,8 @@ import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.infra.ActiveOrderManagerPool;
 import com.cleanengine.coin.orderbook.domain.OrderBookDomainService;
-import com.cleanengine.coin.orderbook.domain.OrderPriceInfo;
+import com.cleanengine.coin.orderbook.dto.OrderBookInfo;
+import com.cleanengine.coin.orderbook.dto.OrderBookUnitInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,22 +17,21 @@ import static com.cleanengine.coin.common.CommonValues.approxEquals;
 
 @Component
 @RequiredArgsConstructor
-public class OrderBookService implements UpdateOrderBookUsecase {
+public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUsecase {
     private final ActiveOrderManagerPool activeOrderManagerPool;
     private final OrderBookDomainService orderBookDomainService;
-    private final OrderBookUpdatedPort orderBookUpdatedPort;
+    private final OrderBookUpdatedNotifierPort orderBookUpdatedNotifierPort;
 
     @Override
     public void updateOrderBookOnNewOrder(Order order) {
         if(order.getIsMarketOrder()){return;}
-        activeOrderManagerPool.saveOrder(order.getTicker(), order);
+        String ticker = order.getTicker();
+        activeOrderManagerPool.saveOrder(ticker, order);
 
         boolean isBuyOrder = order instanceof BuyOrder;
-        orderBookDomainService.updateOrderBookOnNewOrder(order.getTicker(), isBuyOrder, order.getPrice(), order.getOrderSize());
+        orderBookDomainService.updateOrderBookOnNewOrder(ticker, isBuyOrder, order.getPrice(), order.getOrderSize());
 
-        List<OrderPriceInfo> buyOrderBookList = orderBookDomainService.getBuyOrderBookList(order.getTicker(), 10);
-        List<OrderPriceInfo> sellOrderBookList = orderBookDomainService.getSellOrderBookList(order.getTicker(), 10);
-        orderBookUpdatedPort.sendOrderBooks(buyOrderBookList, sellOrderBookList);
+        sendOrderBookUpdated(ticker);
     }
 
     @Override
@@ -39,9 +39,7 @@ public class OrderBookService implements UpdateOrderBookUsecase {
         updateOrderBookOnTradeExecuted(ticker, buyOrderId, true, orderSize);
         updateOrderBookOnTradeExecuted(ticker, sellOrderId, false, orderSize);
 
-        List<OrderPriceInfo> buyOrderBookList = orderBookDomainService.getBuyOrderBookList(ticker, 10);
-        List<OrderPriceInfo> sellOrderBookList = orderBookDomainService.getSellOrderBookList(ticker, 10);
-        orderBookUpdatedPort.sendOrderBooks(buyOrderBookList, sellOrderBookList);
+        sendOrderBookUpdated(ticker);
     }
 
     private void updateOrderBookOnTradeExecuted(String ticker, Long orderId, boolean isBuyOrder, Double orderSize) {
@@ -54,5 +52,24 @@ public class OrderBookService implements UpdateOrderBookUsecase {
                 activeOrderManagerPool.removeOrder(ticker, orderId, isBuyOrder);
             }
         }
+    }
+
+    private OrderBookInfo extractOrderBookInfo(String ticker){
+        List<OrderBookUnitInfo> buyOrderBookUnitInfos =
+                orderBookDomainService.getBuyOrderBookList(ticker, 10)
+                        .stream().map(OrderBookUnitInfo::new).toList();
+        List<OrderBookUnitInfo> sellOrderBookUnitInfos =
+                orderBookDomainService.getSellOrderBookList(ticker, 10)
+                        .stream().map(OrderBookUnitInfo::new).toList();
+        return new OrderBookInfo(ticker, buyOrderBookUnitInfos, sellOrderBookUnitInfos);
+    }
+
+    private void sendOrderBookUpdated(String ticker){
+        orderBookUpdatedNotifierPort.sendOrderBooks(extractOrderBookInfo(ticker));
+    }
+
+    @Override
+    public OrderBookInfo getOrderBook(String ticker) {
+        return extractOrderBookInfo(ticker);
     }
 }

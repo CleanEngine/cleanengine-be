@@ -28,11 +28,11 @@ public class OrderBookDomainService {
         getOrderBook(ticker).updateOrderBookOnTradeExecuted(isBuyOrder, price, orderSize);
     }
 
-    public List<OrderPriceInfo> getBuyOrderBookList(String ticker, int size) {
+    public List<OrderBookUnit> getBuyOrderBookList(String ticker, int size) {
         return getOrderBook(ticker).getBuyOrderBookList(size);
     }
 
-    public List<OrderPriceInfo> getSellOrderBookList(String ticker, int size) {
+    public List<OrderBookUnit> getSellOrderBookList(String ticker, int size) {
         return getOrderBook(ticker).getSellOrderBookList(size);
     }
 

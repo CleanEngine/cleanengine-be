@@ -4,11 +4,11 @@ import lombok.Getter;
 import lombok.Synchronized;
 
 @Getter
-public abstract class OrderPriceInfo implements Comparable<OrderPriceInfo> {
+public abstract class OrderBookUnit implements Comparable<OrderBookUnit> {
     protected final Double price;
     protected Double size;
 
-    protected OrderPriceInfo(Double price, Double size) {
+    protected OrderBookUnit(Double price, Double size) {
         this.price = price;
         this.size = size;
     }

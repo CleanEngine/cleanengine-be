@@ -1,6 +1,6 @@
 package com.cleanengine.coin.chart.controller;
 
-import com.cleanengine.coin.chart.Dto.RealTimeOhlcDto;
+import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
 import com.cleanengine.coin.chart.service.ChartSubscriptionService;
 import com.cleanengine.coin.chart.service.RealTimeOhlcService;
 import lombok.RequiredArgsConstructor;

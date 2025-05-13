@@ -7,6 +7,7 @@ import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateSellOrderDomainService;
 import com.cleanengine.coin.order.infra.SellOrderRepository;
+import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +18,8 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     private final CreateSellOrderDomainService createSellOrderDomainService;
     private final OrderQueueManagerPool orderQueueManagerPool;
     private final WalletUpdatePort walletUpdatePort;
+    private final UpdateOrderBookUsecase updateOrderBookUsecase;
 
-    // TODO SELL Order만의 검증 내용
     @Override
     public SellOrder createOrder(OrderCommand.CreateOrder createOrderCommand) {
         return createSellOrderDomainService.createOrder(createOrderCommand.ticker(), createOrderCommand.userId(),
@@ -49,5 +50,10 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     @Override
     protected OrderQueueManagerPool orderQueueManagerPool() {
         return orderQueueManagerPool;
+    }
+
+    @Override
+    protected void updateOrderBook(SellOrder order) {
+        updateOrderBookUsecase.updateOrderBookOnNewOrder(order);
     }
 }

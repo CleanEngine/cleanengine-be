@@ -7,6 +7,7 @@ import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateBuyOrderDomainService;
 import com.cleanengine.coin.order.infra.BuyOrderRepository;
+import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +18,8 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     private final CreateBuyOrderDomainService createOrderDomainService;
     private final OrderQueueManagerPool orderQueueManagerPool;
     private final AccountUpdatePort accountUpdatePort;
+    private final UpdateOrderBookUsecase updateOrderBookUsecase;
 
-    // TODO buyOrder만의 검증 내용 포함
     @Override
     public BuyOrder createOrder(OrderCommand.CreateOrder createOrderCommand) {
         return createOrderDomainService.createOrder(createOrderCommand.ticker(), createOrderCommand.userId(),
@@ -49,5 +50,10 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     @Override
     protected OrderQueueManagerPool orderQueueManagerPool() {
         return orderQueueManagerPool;
+    }
+
+    @Override
+    protected void updateOrderBook(BuyOrder order) {
+        updateOrderBookUsecase.updateOrderBookOnNewOrder(order);
     }
 }

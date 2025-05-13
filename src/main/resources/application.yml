@@ -3,7 +3,7 @@ spring:
     name: coin
   web:
     resources:
-      add-mappings: false
+      add-mappings: true
   profiles:
     active: dev
   security:

@@ -4,6 +4,7 @@ import com.cleanengine.coin.common.error.BusinessException;
 import com.cleanengine.coin.common.response.ErrorStatus;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
+import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.infra.BuyOrderRepository;
 import com.cleanengine.coin.order.infra.SellOrderRepository;
@@ -57,8 +58,29 @@ public class TradeService {
         return accountRepository.findByUserId(userId);
     }
 
-    public Wallet findWalletByUserIdAndTicker(Order order, String ticker) {
-        Account account = findAccountByUserId(order.getUserId()).orElseThrow();
+    public void updateWalletAfterTrade(Order order, String ticker, double tradedSize, double totalTradedPrice) {
+        if (order instanceof BuyOrder) {
+            Wallet buyerWallet = this.findWalletByUserIdAndTicker(order.getUserId(), ticker);
+            double updatedBuySize = buyerWallet.getSize() + tradedSize;
+            double currentBuyPrice = buyerWallet.getBuyPrice() == null ? 0.0 : buyerWallet.getBuyPrice();
+            double updatedBuyPrice = ((currentBuyPrice * buyerWallet.getSize()) + totalTradedPrice) / updatedBuySize;
+            buyerWallet.setSize(updatedBuySize);
+            buyerWallet.setBuyPrice(updatedBuyPrice);
+            // TODO : ROI 계산
+            this.saveWallet(buyerWallet);
+        } else if (order instanceof SellOrder) {
+            // 매도 시에는 평단가 변동 없음
+            Wallet sellerWallet = this.findWalletByUserIdAndTicker(order.getUserId(), ticker);
+            double updatedSellSize = sellerWallet.getSize() - tradedSize;
+            sellerWallet.setSize(updatedSellSize);
+            this.saveWallet(sellerWallet);
+        } else {
+            throw new BusinessException("Unsupported order type: " + order.getClass().getName(), ErrorStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public Wallet findWalletByUserIdAndTicker(Integer userId, String ticker) {
+        Account account = findAccountByUserId(userId).orElseThrow();
         return walletRepository.findByAccountIdAndTicker(account.getId(), ticker)
                 .orElseGet(() -> createNewWallet(account.getId(), ticker));
     }
@@ -77,4 +99,18 @@ public class TradeService {
         return walletRepository.save(Wallet);
     }
 
+    public Trade insertNewTrade(String ticker, BuyOrder buyOrder, SellOrder sellOrder, double tradeSize, Double tradePrice) {
+        Trade newTrade = new Trade();
+        newTrade.setTicker(ticker);
+        newTrade.setBuyUserId(buyOrder.getUserId());
+        newTrade.setSellUserId(sellOrder.getUserId());
+        newTrade.setPrice(tradePrice);
+        newTrade.setSize(tradeSize);
+
+        return this.saveTrade(newTrade);
+    }
+
+    public void updateCompletedOrderStatus(Order order) {
+        order.setState(OrderStatus.DONE);
+    }
 }

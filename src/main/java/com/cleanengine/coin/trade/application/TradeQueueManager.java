@@ -4,8 +4,6 @@ import com.cleanengine.coin.order.application.queue.OrderQueueManager;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.user.domain.Wallet;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,17 +16,29 @@ public class TradeQueueManager {
     private static final Logger logger = LoggerFactory.getLogger(TradeQueueManager.class);
     private long lastLogTime = 0;
     private static final long LOG_INTERVAL = 1000;
+    private final double MINIMUM_ORDER_SIZE = 0.00000001;
 
     private volatile boolean running = true; // 무한루프 종료 플래그
 
     @Getter
     private final OrderQueueManager orderQueueManager;
+    private final String ticker;
+    private final PriorityBlockingQueue<SellOrder> marketSellOrderQueue;
+    private final PriorityBlockingQueue<SellOrder> limitSellOrderQueue;
+    private final PriorityBlockingQueue<BuyOrder> marketBuyOrderQueue;
+    private final PriorityBlockingQueue<BuyOrder> limitBuyOrderQueue;
 
     private final TradeService tradeService;
 
     public TradeQueueManager(OrderQueueManager orderQueueManager, TradeService tradeService) {
         this.orderQueueManager = orderQueueManager;
         this.tradeService = tradeService;
+        // TODO : orderQueueManager의 필드를 꺼내서 쓰는 게 맞는 방식인지 고려
+        this.ticker = orderQueueManager.getTicker();
+        this.marketSellOrderQueue = orderQueueManager.getMarketSellOrderQueue();
+        this.limitSellOrderQueue = orderQueueManager.getLimitSellOrderQueue();
+        this.marketBuyOrderQueue = orderQueueManager.getMarketBuyOrderQueue();
+        this.limitBuyOrderQueue = orderQueueManager.getLimitBuyOrderQueue();
     }
 
     public void run() {
@@ -43,16 +53,16 @@ public class TradeQueueManager {
          */
         while (running) {
             try {
-                Optional<TradePair<Order, Order>> targetTradePair = matchOrders();
+                Optional<TradePair<Order, Order>> targetTradePair = this.matchOrders();
                 if (targetTradePair.isEmpty()) {
                     continue;
                 } else {
-                    executeTrade(targetTradePair.get().getBuyOrder(), targetTradePair.get().getSellOrder());
+                    this.executeTrade(targetTradePair.get().getBuyOrder(), targetTradePair.get().getSellOrder());
                 }
 //                Thread.sleep(10);
 //            } catch (InterruptedException e) {
             } catch (Exception e) {
-                logger.error("Error processing trades for {}: {}", orderQueueManager.getTicker(), e.getMessage());
+                logger.error("Error processing trades for {}: {}", this.ticker, e.getMessage());
                 throw e;
             }
         }
@@ -63,46 +73,49 @@ public class TradeQueueManager {
     }
 
     private Optional<TradePair<Order, Order>> matchOrders() {  // 반환값 : 체결여부
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastLogTime > LOG_INTERVAL) {
-            logger.debug("주문 큐 - 시장가매도[{}], 지정가매도[{}], 시장가매수[{}], 지정가매수[{}]",
-                    orderQueueManager.getMarketSellOrderQueue().size(),
-                    orderQueueManager.getLimitSellOrderQueue().size(),
-                    orderQueueManager.getMarketBuyOrderQueue().size(),
-                    orderQueueManager.getLimitBuyOrderQueue().size());
-            lastLogTime = currentTime;
-        }
-
+        this.writeQueueLog();
         TradePair<Order, Order> targetTradePair = null;
 
-        // 시장가 주문을 우선적으로 처리
-        // TODO : race condition 방지 방안?
-        if (!orderQueueManager.getMarketSellOrderQueue().isEmpty() && !orderQueueManager.getLimitBuyOrderQueue().isEmpty()) {
+        // 시장가 주문 우선처리
+        // TODO : race condition 방지 방안? (isEmpty <-> peek 간격 발생)
+        if (hasElement(this.marketSellOrderQueue) && hasElement(this.limitBuyOrderQueue)) {
             // 1. 시장가 매도 주문, 지정가 매수 주문
-            SellOrder marketSellOrder = orderQueueManager.getMarketSellOrderQueue().peek();
-            BuyOrder limitBuyOrder = orderQueueManager.getLimitBuyOrderQueue().peek();
+            SellOrder marketSellOrder = this.marketSellOrderQueue.peek();
+            BuyOrder limitBuyOrder = this.limitBuyOrderQueue.peek();
             targetTradePair = new TradePair<>(marketSellOrder, limitBuyOrder);
-        } else if (!orderQueueManager.getMarketBuyOrderQueue().isEmpty() && !orderQueueManager.getLimitSellOrderQueue().isEmpty()) {
+        } else if (hasElement(this.marketBuyOrderQueue) && hasElement(this.limitSellOrderQueue)) {
             // 2. 시장가 매수 주문, 지정가 매도 주문
-            BuyOrder marketBuyOrder = orderQueueManager.getMarketBuyOrderQueue().peek();
-            SellOrder limitSellOrder = orderQueueManager.getLimitSellOrderQueue().peek();
+            BuyOrder marketBuyOrder = this.marketBuyOrderQueue.peek();
+            SellOrder limitSellOrder = this.limitSellOrderQueue.peek();
             targetTradePair = new TradePair<>(marketBuyOrder, limitSellOrder);
-        } else if (!orderQueueManager.getLimitSellOrderQueue().isEmpty() && !orderQueueManager.getLimitBuyOrderQueue().isEmpty()) {
+        } else if (hasElement(this.limitSellOrderQueue) && hasElement(this.limitBuyOrderQueue)) {
             // 3. 지정가 주문
-            targetTradePair = matchBetweenLimitOrders();
+            targetTradePair = this.matchBetweenLimitOrders();
         }
         return Optional.ofNullable(targetTradePair);
     }
 
-    private TradePair<Order, Order> matchBetweenLimitOrders() {
-        PriorityBlockingQueue<SellOrder> limitSellQueue = orderQueueManager.getLimitSellOrderQueue();
-        PriorityBlockingQueue<BuyOrder> limitBuyQueue = orderQueueManager.getLimitBuyOrderQueue();
+    private void writeQueueLog() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastLogTime > LOG_INTERVAL) {
+            logger.debug("주문 큐 - 시장가매도[{}], 지정가매도[{}], 시장가매수[{}], 지정가매수[{}]",
+                    this.marketSellOrderQueue.size(),
+                    this.limitSellOrderQueue.size(),
+                    this.marketBuyOrderQueue.size(),
+                    this.limitBuyOrderQueue.size());
+            lastLogTime = currentTime;
+        }
+    }
 
-        if (!limitSellQueue.isEmpty() && !limitBuyQueue.isEmpty()) {
+    private TradePair<Order, Order> matchBetweenLimitOrders() {
+        PriorityBlockingQueue<SellOrder> limitSellQueue = this.limitSellOrderQueue;
+        PriorityBlockingQueue<BuyOrder> limitBuyQueue = this.limitBuyOrderQueue;
+
+        if (this.hasElement(limitSellQueue) && this.hasElement(limitBuyQueue)) {
             SellOrder sellOrder = limitSellQueue.peek();
             BuyOrder buyOrder = limitBuyQueue.peek();
 
-            if (canMatch(buyOrder, sellOrder)) {
+            if (this.canMatch(buyOrder, sellOrder)) {
                 return new TradePair<>(buyOrder, sellOrder);
             } else
                 return null;
@@ -110,50 +123,45 @@ public class TradeQueueManager {
             return null;
     }
 
+    private boolean hasElement(PriorityBlockingQueue<? extends Order> queue) {
+        return !queue.isEmpty();
+    }
+
     private boolean canMatch(BuyOrder buyOrder, SellOrder sellOrder) {
+        if (buyOrder == null || sellOrder == null)
+            return false;
         return buyOrder.getPrice() >= sellOrder.getPrice();
     }
 
     protected void executeTrade(BuyOrder buyOrder, SellOrder sellOrder) {
-        logger.debug("Running in method: {}, Thread ID: {}, Thread Name: {}",
-                new Object(){}.getClass().getEnclosingMethod().getName(),
-                Thread.currentThread().threadId(),
-                Thread.currentThread().getName());
-        logger.debug("Executing Trade... 종목: {}, 구매자: {}, 판매자: {}", buyOrder.getTicker(), buyOrder.getId(), sellOrder.getId());
-        // 주문 관련 처리를 먼저 해서 동기화 이슈 가능성을 최소로 하고,
-        // 체결 내역 처리는 별도 스레드로 분리하는 게 낫겠다
-        double tradedSize;
+        this.writeTradingLog(buyOrder, sellOrder);
+        // 주문 관련 처리를 먼저 해서 동기화 이슈 가능성을 최소로 하고, 체결 내역 처리는 별도 스레드로 분리하는 게 낫겠다
         double tradedPrice;
+        double tradedSize;
         double totalTradedPrice;
 
-        if (buyOrder.getIsMarketOrder()) {
-            tradedPrice = sellOrder.getPrice();
-            if (buyOrder.getRemainingDeposit() >= tradedPrice * sellOrder.getRemainingSize()) { // 매수 잔여예수금이 매도 잔여량보다 크거나 같은 경우 (매수 부분체결 or 완전체결, 매도 완전체결)
-                tradedSize = sellOrder.getRemainingSize();
-            } else {
-                tradedSize = buyOrder.getRemainingDeposit() / tradedPrice;
-            }
-        } else if (sellOrder.getIsMarketOrder()) {
-            tradedPrice = buyOrder.getPrice();
-            tradedSize = Math.min(sellOrder.getRemainingSize(), buyOrder.getRemainingSize());
-        } else {
-            tradedPrice = getTradedUnitPrice(buyOrder, sellOrder);
-            tradedSize = Math.min(buyOrder.getRemainingSize(), sellOrder.getRemainingSize());
-        }
-
-        if (tradedSize <= 0) {
+        // 체결 단가, 수량 확정
+        TradeUnitPriceAndSize tradeUnitPriceAndSize = getTradeUnitPriceAndSize(buyOrder, sellOrder);
+        tradedSize = tradeUnitPriceAndSize.tradedSize();
+        tradedPrice = tradeUnitPriceAndSize.tradedPrice();
+        if (tradedSize < MINIMUM_ORDER_SIZE) {
             return;
         }
         totalTradedPrice = tradedPrice * tradedSize;
 
         // 주문 잔여수량, 잔여금액 감소
-        if (buyOrder.getIsMarketOrder())
+        if (isMarketOrder(buyOrder))
             buyOrder.decreaseRemainingDeposit(totalTradedPrice);
         else
             buyOrder.decreaseRemainingSize(tradedSize);
         sellOrder.decreaseRemainingSize(tradedSize);
+
+        // DB 테이블 저장에 걸리는 시간 측정용
+        long beforeTime = System.currentTimeMillis();
         tradeService.saveOrder(buyOrder);
         tradeService.saveOrder(sellOrder);
+        long afterTime = System.currentTimeMillis();
+        logger.debug("주문 테이블에 update하는 데 걸린 시간 : {}ms", afterTime - beforeTime);
 
         // 주문 완전체결 처리(잔여금액 or 잔여수량이 0)
         this.removeCompletedBuyOrder(buyOrder);
@@ -161,12 +169,12 @@ public class TradeQueueManager {
 
         // 예수금 처리
         //   - 매수 잔여금액 반환
-        if (buyOrder.getIsMarketOrder()) {
+        if (isMarketOrder(buyOrder)) {
             ; // TODO : 시장가 거래 시 1원 단위 등 작은 금액이 남을 수도 있는데 처리방안
         } else {
-            if (buyOrder.getPrice() >= tradedPrice) {
+            if (buyOrder.getPrice() >= tradedPrice) { // 매도 호가보다 높은 가격에 매수를 시도한 경우, 차액 반환
                 double totalRefundAmount = (buyOrder.getPrice() - tradedPrice) * tradedSize;
-                if (totalRefundAmount > 0.0)
+                if (totalRefundAmount > MINIMUM_ORDER_SIZE)
                     tradeService.increaseAccountCash(buyOrder, totalRefundAmount);
             }
         }
@@ -175,48 +183,81 @@ public class TradeQueueManager {
         tradeService.increaseAccountCash(sellOrder, totalTradedPrice);
 
         // 지갑 누적계산
-        Wallet buyerWallet = tradeService.findWalletByUserIdAndTicker(buyOrder, orderQueueManager.getTicker());
-        double updatedBuySize = buyerWallet.getSize() + tradedSize;
-        double currentBuyPrice = buyerWallet.getBuyPrice() != null ? buyerWallet.getBuyPrice() : 0.0;
-        double updatedBuyPrice = ((currentBuyPrice * buyerWallet.getSize()) + totalTradedPrice) / updatedBuySize;
-        buyerWallet.setSize(updatedBuySize);
-        buyerWallet.setBuyPrice(updatedBuyPrice);
-        // TODO : ROI 계산
-        tradeService.saveWallet(buyerWallet);
-
-        // 매도 시에는 평단가 변동 없음
-        Wallet sellerWallet = tradeService.findWalletByUserIdAndTicker(sellOrder, orderQueueManager.getTicker());
-        double updatedSellSize = sellerWallet.getSize() - tradedSize;
-        sellerWallet.setSize(updatedSellSize);
-        tradeService.saveWallet(sellerWallet);
+        tradeService.updateWalletAfterTrade(buyOrder, this.ticker, tradedSize, totalTradedPrice);
+        tradeService.updateWalletAfterTrade(sellOrder, this.ticker, tradedSize, totalTradedPrice);
 
         // 체결내역 저장
-        Trade newTrade = createNewTrade(buyOrder, sellOrder, tradedSize, tradedPrice);
-        tradeService.saveTrade(newTrade);
+        tradeService.insertNewTrade(this.ticker, buyOrder, sellOrder, tradedSize, tradedPrice);
 
         // TODO : 호가 조회를 위한 Order Service 메서드 호출
     }
 
+    private static TradeUnitPriceAndSize getTradeUnitPriceAndSize(BuyOrder buyOrder, SellOrder sellOrder) {
+        double tradedPrice;
+        double tradedSize;
+        if (isMarketOrder(buyOrder)) { // 시장가매수-지정가매도
+            tradedPrice = sellOrder.getPrice();
+            if (buyOrder.getRemainingDeposit() >= tradedPrice * sellOrder.getRemainingSize()) { // 매수 잔여예수금이 매도 잔여량보다 크거나 같은 경우 (매수 부분체결 or 완전체결, 매도 완전체결)
+                tradedSize = sellOrder.getRemainingSize();
+            } else {
+                tradedSize = buyOrder.getRemainingDeposit() / tradedPrice;
+            }
+        } else if (isMarketOrder(sellOrder)) { // 시장가매도-지정가매수
+            tradedPrice = buyOrder.getPrice();
+            tradedSize = Math.min(sellOrder.getRemainingSize(), buyOrder.getRemainingSize());
+        } else { // 지정가매수-지정가매도
+            tradedPrice = getTradedUnitPrice(buyOrder, sellOrder);
+            tradedSize = Math.min(buyOrder.getRemainingSize(), sellOrder.getRemainingSize());
+        }
+        TradeUnitPriceAndSize tradeUnitPriceAndSize = new TradeUnitPriceAndSize(tradedSize, tradedPrice);
+        return tradeUnitPriceAndSize;
+    }
+
+    private record TradeUnitPriceAndSize(double tradedSize, double tradedPrice) {
+    }
+
+    private static Boolean isMarketOrder(Order order) {
+        return order.getIsMarketOrder();
+    }
+
+    private static Boolean isLimitOrder(Order order) {
+        return !order.getIsMarketOrder();
+    }
+
+    private void writeTradingLog(BuyOrder buyOrder, SellOrder sellOrder) {
+        logger.debug("[{}] 체결 확정!  종목: {}, ({}: {}가 {}로 {}만큼 매수주문), ({}: {}가 {}로 {}만큼 매도주문)",
+                Thread.currentThread().threadId(),
+                buyOrder.getTicker(),
+                buyOrder.getId(),
+                buyOrder.getUserId(),
+                isMarketOrder(buyOrder) ? "시장가" : "지정가(" + buyOrder.getPrice() + "원)",
+                buyOrder.getRemainingSize() == null ? "0" : buyOrder.getRemainingDeposit(),
+                sellOrder.getId(),
+                sellOrder.getUserId(),
+                isMarketOrder(sellOrder) ? "시장가" : "지정가(" + sellOrder.getPrice() + "원)",
+                sellOrder.getRemainingSize());
+    }
+
     private void removeCompletedBuyOrder(BuyOrder order) {
-        boolean isOrderCompleted = (order.getIsMarketOrder() && order.getRemainingDeposit() < 0.00000001) ||
-                (!order.getIsMarketOrder() && order.getRemainingSize() < 0.00000001);
+        boolean isOrderCompleted = (isMarketOrder(order) && order.getRemainingDeposit() < MINIMUM_ORDER_SIZE) ||
+                (isLimitOrder(order) && order.getRemainingSize() < MINIMUM_ORDER_SIZE);
 
         if (isOrderCompleted) {
-            PriorityBlockingQueue<? extends Order> orderQueue = order.getIsMarketOrder()
-                    ? orderQueueManager.getMarketBuyOrderQueue()
-                    : orderQueueManager.getLimitBuyOrderQueue();
+            PriorityBlockingQueue<? extends Order> orderQueue =
+                    isMarketOrder(order) ? this.marketBuyOrderQueue : this.limitBuyOrderQueue;
             orderQueue.remove(order);
+            tradeService.updateCompletedOrderStatus(order);
         }
     }
 
     private void removeCompletedSellOrder(SellOrder order) {
-        boolean isOrderCompleted = order.getRemainingSize() <= 0;
+        boolean isOrderCompleted = order.getRemainingSize() < MINIMUM_ORDER_SIZE;
 
         if (isOrderCompleted) {
-            PriorityBlockingQueue<? extends Order> orderQueue = order.getIsMarketOrder()
-                    ? orderQueueManager.getMarketSellOrderQueue()
-                    : orderQueueManager.getLimitSellOrderQueue();
+            PriorityBlockingQueue<? extends Order> orderQueue =
+                    order.getIsMarketOrder() ? this.marketSellOrderQueue : this.limitSellOrderQueue;
             orderQueue.remove(order);
+            tradeService.updateCompletedOrderStatus(order);
         }
     }
 
@@ -229,13 +270,4 @@ public class TradeQueueManager {
         }
     }
 
-    private Trade createNewTrade(BuyOrder buyOrder, SellOrder sellOrder, double tradeSize, Double tradePrice) {
-        Trade trade = new Trade();
-        trade.setTicker(orderQueueManager.getTicker());
-        trade.setBuyUserId(buyOrder.getUserId());
-        trade.setSellUserId(sellOrder.getUserId());
-        trade.setPrice(tradePrice);
-        trade.setSize(tradeSize);
-        return trade;
-    }
 }

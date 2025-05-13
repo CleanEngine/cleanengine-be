@@ -32,10 +32,11 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                         Authentication authentication) throws IOException, ServletException {
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
+        Integer userId = customUserDetails.getUserId();
         String provider = customUserDetails.getProvider();
         String providerUserId = customUserDetails.getProviderUserId();
         // TODO : JWT 토큰 만료시간 고려
-        String token = jwtUtil.createJwt(provider, providerUserId, (long) 60 * 60 * 24 * 1000);
+        String token = jwtUtil.createJwt(userId, provider, providerUserId, (long) 60 * 60 * 24 * 1000);
 
         response.addCookie(createCookie("access_token", token));
         response.sendRedirect(frontendUrl);

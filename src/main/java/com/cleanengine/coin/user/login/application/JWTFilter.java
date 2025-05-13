@@ -46,33 +46,53 @@ public class JWTFilter extends OncePerRequestFilter {
         // 쿠키에서 토큰 조회
         String authorizationToken = null;
         Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("access_token")) {
-                authorizationToken = cookie.getValue();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("access_token")) {
+                    authorizationToken = cookie.getValue();
+                }
             }
         }
 
-        // 토큰이 없으면 401 반환
-        if (authorizationToken == null || jwtUtil.isExpired(authorizationToken)) {
+        try {
+            // 토큰이 없는 경우
+            if (authorizationToken == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+
+            // JWT 토큰 검증 및 클레임 파싱 (이 과정에서 서명 검증 실패하면 JwtException 발생)
+            Integer userId = jwtUtil.getUserId(authorizationToken);
+            String provider = jwtUtil.getProvider(authorizationToken);
+            String providerUserId = jwtUtil.getProviderUserId(authorizationToken);
+
+            // 토큰 만료 검증
+            if (jwtUtil.isExpired(authorizationToken)) {
+                throw new IllegalArgumentException("Token is expired");
+            }
+
+            Authentication authToken = getAuthentication(userId, provider, providerUserId);
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
             ErrorResponse err = ErrorResponse.of(ErrorStatus.UNAUTHORIZED_RESOURCE);
             ResponseEntity<ApiResponse<Object>> responseEntity = ApiResponse.fail(err).toResponseEntity();
             ObjectMapper objectMapper = new ObjectMapper();
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write(objectMapper.writeValueAsString(responseEntity.getBody()));
-            return;
         }
+    }
 
+    private static Authentication getAuthentication(Integer userId, String provider, String providerUserId) {
         UserOAuthDetails userOAuthDetails = new UserOAuthDetails();
-        userOAuthDetails.setProvider(jwtUtil.getProvider(authorizationToken));
-        userOAuthDetails.setProviderUserId(jwtUtil.getProviderUserId(authorizationToken));
+        userOAuthDetails.setUserId(userId);
+        userOAuthDetails.setProvider(provider);
+        userOAuthDetails.setProviderUserId(providerUserId);
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(userOAuthDetails);
 
         // 스프링 시큐리티 인증 토큰 생성
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User,
+        return new UsernamePasswordAuthenticationToken(customOAuth2User,
                 null, customOAuth2User.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
-
-        filterChain.doFilter(request, response);
     }
 
 }

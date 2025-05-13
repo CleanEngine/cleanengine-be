@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestControllerAdvice
@@ -53,10 +54,17 @@ public class BaseExceptionHandler {
         return ApiResponse.fail(response).toResponseEntity();
     }
 
+    @ExceptionHandler(DomainValidationException.class)
+    protected ResponseEntity<ApiResponse<Object>> handleDomainValidationException(DomainValidationException e) {
+        final ErrorResponse response = ErrorResponse.of(e.getErrorStatus(), e.getFieldErrors());
+        return ApiResponse.fail(response).toResponseEntity();
+    }
+
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ApiResponse<Object>> handleException(Exception e) {
         final ErrorResponse response = ErrorResponse.of(ErrorStatus.INTERNAL_SERVER_ERROR);
         log.warn("Handling 되지 않는 에러 발생" + e.getMessage());
+        log.warn("Handling 되지 않는 에러 발생" + Arrays.toString(e.getStackTrace()));
         return ApiResponse.fail(response).toResponseEntity();
     }
 }

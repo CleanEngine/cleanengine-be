@@ -12,7 +12,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
   security:
     oauth2:
       client:
@@ -23,4 +26,4 @@ spring:
       secure: false
 
 frontend:
-  url: "http://localhost:3000"
+  url: "http://localhost:5173"

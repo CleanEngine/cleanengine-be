@@ -3,10 +3,7 @@ package com.cleanengine.coin.realitybot.service;
 import com.cleanengine.coin.realitybot.dto.TestOrder;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.TreeMap;
+import java.util.*;
 
 @Service
 public class VirtualTradeService {
@@ -36,7 +33,7 @@ public class VirtualTradeService {
 
             //체결 조건 부여 : 현재 느슨한 체결 (1:1은 문제 발생/어짜피 매서드 호출 힘너무 쓰면 안됨)
             //매수 희망가 >= 매도 희망가
-            if ((long)buyOrder.getPrice() >= (long)sellOrder.getPrice()){ //매도벽이 크게 세워짐..
+            if ((long)buyOrder.getPrice() == (long)sellOrder.getPrice()){ //매도벽이 크게 세워짐..
 
             //체결 가격을 중간값으로 설정
 //            double matchedPrice = (buyOrder.getPrice() + sellOrder.getPrice())/2; // 느슨한 체결 조건 쓰니깐 문제 발생
@@ -54,7 +51,7 @@ public class VirtualTradeService {
             if (buyOrder.getVolume() <= 0) buyQueue.poll();
             if (sellOrder.getVolume() <= 0) sellQueue.poll();
 
-            //VWAP 계산을 위한 거래 기록 TODO
+            //VWAP 계산을 위한 거래 기록 TODO JPA로 받아온 값이 들어가야 함
             platformVWAPService.recordTrade(matchedPrice,matchedVolume);
             } //쌓이긴 하는데 100원따리로 쌓임 , generateorder가 0원 받을 때 해결해야 함.
             else {
@@ -62,6 +59,46 @@ public class VirtualTradeService {
             }
 
         }
+    }
+    public void matchOrderbyIterator(){
+        //queue 를 list로 변환
+        List<TestOrder> buyOrders = new ArrayList<>(queueManager.getBuyqueue());
+        List<TestOrder> sellOrders = new ArrayList<>(queueManager.getSellqueue());
+
+        //
+        buyOrders.sort(Comparator.comparing(TestOrder::getPrice).reversed());
+        sellOrders.sort(Comparator.comparing(TestOrder::getPrice));
+
+        List<TestOrder> excutedBuy = new ArrayList<>();
+        List<TestOrder> excutedSell = new ArrayList<>();
+
+        for (TestOrder buyOrder : buyOrders){
+            for (TestOrder sellOrder : sellOrders){
+                if ((int)buyOrder.getPrice() >= (int)sellOrder.getPrice()){
+                    double matchVolume = Math.min(buyOrder.getVolume(), sellOrder.getVolume());
+                    if (matchVolume <=0) continue;
+                    System.out.printf("=== 체결 완료 : %.1f / %.4f \n",sellOrder.getPrice(),matchVolume);
+                    platformVWAPService.recordTrade(sellOrder.getPrice(),matchVolume);
+
+                    buyOrder.setVolume(buyOrder.getVolume() - matchVolume);
+                    sellOrder.setVolume(sellOrder.getVolume() - matchVolume);
+
+                    if (buyOrder.getVolume() <= 0){
+                        excutedBuy.add(buyOrder);
+                        break;
+                    }
+                    if (sellOrder.getVolume() <= 0){
+                        excutedSell.add(sellOrder);
+//                        break;
+                    }
+                }
+
+            }
+        }
+        System.out.println("===exctued 값 buy : "+excutedBuy+"sell"+excutedSell);
+        queueManager.getBuyqueue().removeAll(excutedBuy);
+        queueManager.getSellqueue().removeAll(excutedSell);
+
     }
 
     //매서드 종료 시 호가창 요약

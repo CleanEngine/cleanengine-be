@@ -26,8 +26,8 @@ public class DBInitRunner implements CommandLineRunner {
     @Transactional
     @Override
     public void run(String... args) throws Exception {
-        initSellBotData();
         initBuyBotData();
+        initSellBotData();
     }
 
     @Transactional

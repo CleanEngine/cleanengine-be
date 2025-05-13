@@ -1,4 +1,4 @@
-package com.cleanengine.coin.chart.Dto;
+package com.cleanengine.coin.chart.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

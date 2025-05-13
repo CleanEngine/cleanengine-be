@@ -1,6 +1,6 @@
 package com.cleanengine.coin.chart.service;
 
-import com.cleanengine.coin.chart.Dto.RealTimeOhlcDto;
+import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import lombok.RequiredArgsConstructor;

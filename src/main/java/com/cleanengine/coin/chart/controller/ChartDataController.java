@@ -1,7 +1,7 @@
 package com.cleanengine.coin.chart.controller;
 
 
-import com.cleanengine.coin.chart.Dto.RealTimeOhlcDto;
+import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
 //import com.cleanengine.coin.chart.Dto.RealTimeTradeDto;
 import com.cleanengine.coin.chart.service.*;
 import com.cleanengine.coin.chart.service.ChartSubscriptionService;

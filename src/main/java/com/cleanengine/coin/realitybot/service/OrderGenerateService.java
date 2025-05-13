@@ -107,10 +107,7 @@ public class OrderGenerateService {
             System.out.println("sellPrice = " + sellPrice);
             System.out.println("sellVolume = " + sellVolume);
 */
-
 //            buyPrice = normalizeToUnit(virtualVWAP - priceOffset);//todo : 제거 대상
-            double buyVolume = getRandomVolum(avgVolum);
-            queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
             /*//모니터링용
             System.out.println("buyPrice = " + buyPrice);
             System.out.println("buyVolume = " + buyVolume);

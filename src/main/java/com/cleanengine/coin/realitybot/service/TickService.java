@@ -28,11 +28,12 @@ public class TickService implements TicketServiceInterface {
     }
 
     public void processVWAP(){ //vwap 구하기 실행
-        System.out.println("매서드 실행 시");
+//        System.out.println("매서드 실행 시");
         if (ticksQueue.size()<10) {return;} //10개 이상일 경우 실행
         vwap = calculateVWAP(ticksQueue); //vwap 계산 실행
 
-        log.info("현재 VWAP: {}",vwap);
+//        log.info("현재 VWAP: {}",vwap);
+        System.out.println("=== 현재 VWAP 가격 "+vwap);
     }
 
     @Override

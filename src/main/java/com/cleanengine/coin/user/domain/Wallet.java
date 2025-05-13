@@ -1,4 +1,4 @@
-package com.cleanengine.coin.user;
+package com.cleanengine.coin.user.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -1,0 +1,7 @@
+spring:
+  security:
+    cookie:
+      secure: true
+
+frontend:
+  url: "https://investfuture.my"

@@ -2,57 +2,98 @@ package com.cleanengine.coin.order.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.validation.FieldError;
+import com.cleanengine.coin.common.error.DomainValidationException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+// TODO AttributeOverride를 통해 Annotation 재지정 필요
 @Entity(name = "buy_orders")
 @Table(name="buy_orders")
+@AttributeOverride(name="id", column=@Column(name="buy_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class BuyOrder {
-    @Id @Column(name="buy_order_id", nullable = false) @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Setter
+public class BuyOrder extends Order implements Comparable<BuyOrder> {
+    @Column(name="locked_deposit", nullable = false, updatable = false)
+    private Double lockedDeposit;
 
-    @Column(name="ticker", length = 10, nullable = false, updatable = false)
-    private String ticker;
+    @Column(name="remaining_deposit", nullable = false)
+    private Double remainingDeposit;
 
-    @Column(name="user_id", nullable = false, updatable = false)
-    private Integer userId;
+    public static BuyOrder createMarketBuyOrder(String ticker, Integer userId, Double price,
+                                                LocalDateTime createdAt, Boolean isBot) {
+        List<FieldError> errors = new ArrayList<>();
+        if(price == null){
+            errors.add(new FieldError("BuyOrder", "price", "price cannot be null"));
+        }
+        handleValidationErrors(errors);
 
-    // TODO size를 VO로 바꾸어야 함
-    @Column(name="size")
-    private Double size;
-
-    // TODO price를 VO로 바꾸어야 함
-    @Column(name="price", nullable = false)
-    private Double price;
-
-    @Column(name="created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name="is_marketorder", nullable = false, updatable = false)
-    private Boolean isMarketOrder;
-
-    @Column(name="is_bot", nullable = false, updatable = false)
-    private Boolean isBot;
-
-    public void buy(Double buySize){
-        if(buySize > this.size) throw new IllegalArgumentException();
-        this.size -= buySize;
-    }
-
-    public static BuyOrder create(String ticker, Integer userId, Double size, Double price, LocalDateTime createdAt,
-                                  Boolean isMarketOrder, Boolean isBot) {
         BuyOrder buyOrder = new BuyOrder();
         buyOrder.ticker = ticker;
         buyOrder.userId = userId;
-        buyOrder.size = size;
-        buyOrder.price = price;
+        buyOrder.state = OrderStatus.WAIT;
+        buyOrder.lockedDeposit = price;
+        buyOrder.orderSize = null;
+        buyOrder.price = null;
         buyOrder.createdAt = createdAt;
-        buyOrder.isMarketOrder = isMarketOrder;
+        buyOrder.isMarketOrder = true;
+        buyOrder.remainingDeposit = buyOrder.lockedDeposit;
+        buyOrder.remainingSize = null;
         buyOrder.isBot = isBot;
         return buyOrder;
+    }
+  
+    public static BuyOrder createLimitBuyOrder(String ticker, Integer userId, Double orderSize,
+                                  Double price, LocalDateTime createdAt, Boolean isBot) {
+        List<FieldError> errors = new ArrayList<>();
+        if(orderSize == null){
+            errors.add(new FieldError("BuyOrder", "orderSize", "orderSize cannot be null"));
+        }
+        if(price == null){
+            errors.add(new FieldError("BuyOrder", "price", "price cannot be null"));
+        }
+        handleValidationErrors(errors);
+
+        BuyOrder buyOrder = new BuyOrder();
+        buyOrder.ticker = ticker;
+        buyOrder.userId = userId;
+        buyOrder.state = OrderStatus.WAIT;
+        buyOrder.lockedDeposit = orderSize * price;
+        buyOrder.orderSize = orderSize;
+        buyOrder.price = price;
+        buyOrder.createdAt = createdAt;
+        buyOrder.isMarketOrder = false;
+        buyOrder.remainingDeposit = buyOrder.lockedDeposit;
+        buyOrder.remainingSize = orderSize;
+        buyOrder.isBot = isBot;
+        return buyOrder;
+    }
+
+    private static void handleValidationErrors(List<FieldError> errors) {
+        if(errors.size() > 0){
+            throw new DomainValidationException(
+                    "Validation Error occurred Creating BuyOrder", errors);
+        }
+    }
+
+    @Override
+    public int compareTo(BuyOrder order) {
+        // 지정가 매수 가격 비교
+        if(!this.isMarketOrder){
+            // 매수 가격이 높다면 음수가 나와야 함
+            int priceCompareResult = -Double.compare(this.price, order.price);
+            if(priceCompareResult != 0) return priceCompareResult;
+        }
+
+        // 생성 시간 비교
+        // 생성 시간이 빠르다면 음수가 나와야 함
+        return this.createdAt.compareTo(order.createdAt);
     }
 }

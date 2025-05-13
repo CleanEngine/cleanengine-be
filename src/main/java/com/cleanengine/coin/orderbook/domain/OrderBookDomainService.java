@@ -1,14 +1,17 @@
 package com.cleanengine.coin.orderbook.domain;
 
+import com.cleanengine.coin.common.error.DomainValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.FieldError;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+// TODO DomainService가 아니라 Repository 아닐까?
 @Slf4j
 @Component
 public class OrderBookDomainService {
@@ -39,8 +42,10 @@ public class OrderBookDomainService {
     private OrderBook getOrderBook(String ticker) {
         Optional<OrderBook> orderBook = Optional.ofNullable(orderBookPool.get(ticker));
         if(orderBook.isEmpty()){
-            log.debug("OrderBook not found. check order.tickers on startup");
-            throw new RuntimeException("OrderBook not found. check order.tickers on startup");
+            String message = "OrderBook not found. Check ticker sent from client or order.tickers on startup";
+            log.debug(message);
+            throw new DomainValidationException(message,
+                    List.of(new FieldError("OrderBook", "ticker", message)));
         }
         return orderBook.get();
     }

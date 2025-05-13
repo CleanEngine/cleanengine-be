@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>웹소켓 테스트</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        #messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+        }
+        .chart-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+<h2>캔들 및 실시간 데이터 웹소켓 테스트</h2>
+<div>
+    <button onclick="connect()">연결</button>
+    <button onclick="disconnect()">연결 끊기</button>
+</div>
+<div>
+    <input type="text" id="symbol" placeholder="종목코드 (예: BTC)" value="BTC"/>
+    <button onclick="subscribeCandles()">캔들 구독</button>
+    <button onclick="subscribeRealTimeTrade()">실시간 거래 구독</button>
+    <button onclick="subscribeRealTimeOhlc()">실시간 OHLC 구독</button>
+</div>
+<h3>상태 및 수신된 메시지:</h3>
+<div id="messages"></div>
+
+<div class="chart-container">
+    <h3>실시간 OHLC 데이터</h3>
+    <div id="ohlc-data">
+        <p>구독 후 실시간 데이터가 여기에 표시됩니다.</p>
+    </div>
+    <table id="ohlc-table" style="display: none;">
+        <thead>
+        <tr>
+            <th>시간</th>
+            <th>시가</th>
+            <th>고가</th>
+            <th>저가</th>
+            <th>종가</th>
+            <th>거래량</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr id="ohlc-row">
+            <td id="ohlc-time">-</td>
+            <td id="ohlc-open">-</td>
+            <td id="ohlc-high">-</td>
+            <td id="ohlc-low">-</td>
+            <td id="ohlc-close">-</td>
+            <td id="ohlc-volume">-</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    let stompClient = null;
+    let candleSubscription = null;
+    let realTimeTradeSubscription = null;
+    let realTimeOhlcSubscription = null; // 새로운 OHLC 구독 변수
+    let lastOhlcData = null; // 마지막으로 받은 OHLC 데이터
+
+    function addMessage(message) {
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML += `<div>${new Date().toLocaleTimeString()} - ${message}</div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function connect() {
+        addMessage("웹소켓 연결 시도 중...");
+        const socket = new SockJS('http://localhost:8080/coin/min');
+        stompClient = Stomp.over(socket);
+
+        // 디버깅 로그 활성화
+        stompClient.debug = function(str) {
+            console.log(str);
+            // addMessage(`<span style="color:blue">${str}</span>`);
+        };
+
+        stompClient.connect({}, frame => {
+            addMessage(`<strong style="color:green">연결 성공: ${frame}</strong>`);
+        }, error => {
+            addMessage(`<strong style="color:red">연결 오류: ${error}</strong>`);
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            if (candleSubscription) {
+                candleSubscription.unsubscribe();
+                candleSubscription = null;
+                addMessage("캔들 구독 취소");
+            }
+            if (realTimeTradeSubscription) {
+                realTimeTradeSubscription.unsubscribe();
+                realTimeTradeSubscription = null;
+                addMessage("실시간 거래 구독 취소");
+            }
+            if (realTimeOhlcSubscription) {
+                realTimeOhlcSubscription.unsubscribe();
+                realTimeOhlcSubscription = null;
+                addMessage("실시간 OHLC 구독 취소");
+                // OHLC 테이블 숨기기
+                document.getElementById('ohlc-table').style.display = 'none';
+                document.getElementById('ohlc-data').innerHTML = '<p>구독 후 실시간 데이터가 여기에 표시됩니다.</p>';
+            }
+            stompClient.disconnect();
+            addMessage("<strong>연결 종료</strong>");
+            stompClient = null;
+        } else {
+            addMessage("연결된 웹소켓이 없습니다");
+        }
+    }
+
+    function subscribeCandles() {
+        if (stompClient !== null && stompClient.connected) {
+            const symbol = document.getElementById('symbol').value;
+            const destination = '/topic/candles/' + symbol;
+
+            if (candleSubscription) {
+                candleSubscription.unsubscribe();
+                addMessage(`이전 캔들 구독 취소`);
+            }
+
+            // 먼저 구독하기 전에 서버에 구독 의사를 알림
+            stompClient.send('/app/subscribe/candles/' + symbol, {}, JSON.stringify({}));
+
+            addMessage(`${destination} 구독 시작...`);
+            candleSubscription = stompClient.subscribe(destination, message => {
+                console.log('Received:', message);
+                try {
+                    const data = JSON.parse(message.body);
+                    addMessage(`<strong>캔들 데이터 수신:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                } catch (e) {
+                    addMessage(`<strong>메시지 파싱 오류:</strong> ${message.body}`);
+                }
+            });
+        } else {
+            addMessage("<strong style='color:red'>먼저 연결 버튼을 클릭하세요</strong>");
+        }
+    }
+
+    function subscribeRealTimeTrade() {
+        if (stompClient !== null && stompClient.connected) {
+            const symbol = document.getElementById('symbol').value;
+            const destination = '/topic/realTimeTrade';  // 올바른 주제 경로
+
+            if (realTimeTradeSubscription) {
+                realTimeTradeSubscription.unsubscribe();
+                addMessage(`이전 실시간 거래 구독 취소`);
+            }
+
+            // 먼저 구독하기 전에 서버에 구독 의사를 알림
+            stompClient.send('/app/subscribe/realTimeTrade', {}, JSON.stringify({ticker: symbol}));
+
+            addMessage(`${destination} 구독 시작...`);
+            realTimeTradeSubscription = stompClient.subscribe(destination, message => {
+                console.log('Received:', message);
+                try {
+                    const data = JSON.parse(message.body);
+                    addMessage(`<strong>실시간 거래 데이터 수신:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                } catch (e) {
+                    addMessage(`<strong>메시지 파싱 오류:</strong> ${message.body}`);
+                }
+            });
+        } else {
+            addMessage("<strong style='color:red'>먼저 연결 버튼을 클릭하세요</strong>");
+        }
+    }
+
+    // 새로 추가된 실시간 OHLC 구독 함수
+    function subscribeRealTimeOhlc() {
+        if (stompClient !== null && stompClient.connected) {
+            const symbol = document.getElementById('symbol').value;
+            const destination = `/topic/realTimeOhlc/${symbol}`;  // 티커별 경로
+
+            if (realTimeOhlcSubscription) {
+                realTimeOhlcSubscription.unsubscribe();
+                addMessage(`이전 실시간 OHLC 구독 취소`);
+            }
+
+            // 먼저 구독하기 전에 서버에 구독 의사를 알림
+            stompClient.send('/app/subscribe/realTimeOhlc', {}, JSON.stringify({ticker: symbol}));
+
+            addMessage(`${destination} 구독 시작...`);
+            realTimeOhlcSubscription = stompClient.subscribe(destination, message => {
+                console.log('Received OHLC:', message);
+                try {
+                    const data = JSON.parse(message.body);
+                    lastOhlcData = data;
+
+                    // OHLC 테이블 업데이트
+                    updateOhlcTable(data);
+
+                    // 로그에도 표시
+                    addMessage(`<strong>실시간 OHLC 데이터 수신:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                } catch (e) {
+                    addMessage(`<strong>메시지 파싱 오류:</strong> ${message.body}`);
+                }
+            });
+
+            // 테이블 보이기
+            document.getElementById('ohlc-table').style.display = 'table';
+            document.getElementById('ohlc-data').innerHTML = '';
+        } else {
+            addMessage("<strong style='color:red'>먼저 연결 버튼을 클릭하세요</strong>");
+        }
+    }
+
+    // OHLC 테이블 업데이트 함수
+    function updateOhlcTable(data) {
+        document.getElementById('ohlc-time').textContent = formatDateTime(data.timestamp);
+        document.getElementById('ohlc-open').textContent = formatNumber(data.open);
+        document.getElementById('ohlc-high').textContent = formatNumber(data.high);
+        document.getElementById('ohlc-low').textContent = formatNumber(data.low);
+        document.getElementById('ohlc-close').textContent = formatNumber(data.close);
+        document.getElementById('ohlc-volume').textContent = formatNumber(data.volume);
+    }
+
+    // 숫자 포맷팅 함수
+    function formatNumber(num) {
+        return num ? num.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }) : '-';
+    }
+
+    // 날짜 포맷팅 함수
+    function formatDateTime(dateTimeStr) {
+        if (!dateTimeStr) return '-';
+        const date = new Date(dateTimeStr);
+        return date.toLocaleTimeString();
+    }
+</script>
+</body>
+</html>

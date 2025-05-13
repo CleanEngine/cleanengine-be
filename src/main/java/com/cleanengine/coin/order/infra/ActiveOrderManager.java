@@ -5,14 +5,14 @@ import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
 import lombok.Getter;
 
-import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ActiveOrderManager {
     @Getter
     private final String ticker;
-    private final HashMap<Long, BuyOrder> activeBuyOrders = new HashMap<>();
-    private final HashMap<Long, SellOrder> activeSellOrders = new HashMap<>();
+    private final ConcurrentHashMap<Long, BuyOrder> activeBuyOrders = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, SellOrder> activeSellOrders = new ConcurrentHashMap<>();
 
     public ActiveOrderManager(String ticker) {
         this.ticker = ticker;

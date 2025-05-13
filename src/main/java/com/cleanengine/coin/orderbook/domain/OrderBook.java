@@ -9,10 +9,10 @@ import static com.cleanengine.coin.common.CommonValues.approxEquals;
 
 public class OrderBook {
     private final String ticker;
-    private final HashMap<Double, BuyOrderPriceInfo> buyOrderPriceInfoMap = new HashMap<>();
-    private final HashMap<Double, SellOrderPriceInfo> sellOrderPriceInfoMap = new HashMap<>();
     private final ConcurrentSkipListSet<BuyOrderPriceInfo> buyOrderPriceInfoListSet = new ConcurrentSkipListSet<>();
     private final ConcurrentSkipListSet<SellOrderPriceInfo> sellOrderPriceInfoListSet = new ConcurrentSkipListSet<>();
+    private final ConcurrentHashMap<Double, BuyOrderBookUnit> buyOrderPriceInfoMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Double, SellOrderBookUnit> sellOrderPriceInfoMap = new ConcurrentHashMap<>();
 
     public OrderBook(String ticker) {
         this.ticker = ticker;

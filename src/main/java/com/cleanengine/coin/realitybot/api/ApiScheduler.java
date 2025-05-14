@@ -1,7 +1,9 @@
 package com.cleanengine.coin.realitybot.api;
 
 import com.cleanengine.coin.realitybot.dto.Ticks;
-import com.cleanengine.coin.realitybot.service.*;
+import com.cleanengine.coin.realitybot.service.OrderGenerateService;
+import com.cleanengine.coin.realitybot.service.TickService;
+import com.cleanengine.coin.realitybot.service.VirtualTradeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
@@ -17,9 +19,7 @@ public class ApiScheduler implements DisposableBean {
 
     private final BithumbAPIClient bithumbAPIClient;
     private final TickService tickService;
-    private final VirtualMarketService virtualMarketService;
     private final OrderGenerateService orderGenerateService;
-    private final OrderQueueManagerService orderQueueManagerService;
     private long lastMaxSequentialId = 1L;
     private final Queue<Ticks> ticksQueue;
     private final VirtualTradeService virtualTradeService;

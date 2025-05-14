@@ -19,9 +19,7 @@ public class ApiScheduler implements DisposableBean {
 
     private final BithumbAPIClient bithumbAPIClient;
     private final TickService tickService;
-    private final VirtualMarketService virtualMarketService;
     private final OrderGenerateService orderGenerateService;
-    private final OrderQueueManagerService orderQueueManagerService;
     private long lastMaxSequentialId = 1L;
     private final Queue<Ticks> ticksQueue;
     private final VirtualTradeService virtualTradeService;

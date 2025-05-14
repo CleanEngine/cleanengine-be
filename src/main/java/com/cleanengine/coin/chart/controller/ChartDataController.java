@@ -28,18 +28,18 @@ public class ChartDataController {
     @Scheduled(fixedRate = 1000)
     public void publishRealTimeOhlc() {
         try {
-            log.info("△ 실시간 OHLC 데이터 스케줄러 실행");
+//            log.debug("△ 실시간 OHLC 데이터 스케줄러 실행");
 
             // 구독된 티커가 없으면 조기 종료
             if (subscriptionService.getAllRealTimeOhlcSubscribedTickers().isEmpty()) {
-                log.info("실시간 OHLC 구독된 티커 없음, 전송 생략");
+//                log.debug("실시간 OHLC 구독된 티커 없음, 전송 생략");
                 return;
             }
 
             // 모든 구독된 티커에 대해 데이터 전송
             for (String ticker : subscriptionService.getAllRealTimeOhlcSubscribedTickers()) {
                 try {
-                    log.info("티커 {} 실시간 OHLC 데이터 전송 중...", ticker);
+//                    log.debug("티커 {} 실시간 OHLC 데이터 전송 중...", ticker);
 
                     // 티커별 최신 OHLC 데이터 조회 및 전송
                     RealTimeOhlcDto ohlcData = realTimeOhlcService.getRealTimeOhlc(ticker);
@@ -59,7 +59,7 @@ public class ChartDataController {
                     } else {
                         // 조회된 실시간 OHLC 데이터 전송
                         messagingTemplate.convertAndSend("/topic/realTimeOhlc/" + ticker, ohlcData);
-                        log.info("실시간 OHLC 데이터 전송: {}", ohlcData);
+//                        log.debug("실시간 OHLC 데이터 전송: {}", ohlcData);
                     }
                 } catch (Exception e) {
                     log.error("티커 {} 실시간 OHLC 데이터 처리 중 오류: {}", ticker, e.getMessage(), e);

@@ -156,6 +156,10 @@ public class TradeQueueManager {
             buyOrder.decreaseRemainingSize(tradedSize);
         sellOrder.decreaseRemainingSize(tradedSize);
 
+        // 주문 완전체결 처리(잔여금액 or 잔여수량이 0)
+        this.removeCompletedBuyOrder(buyOrder);
+        this.removeCompletedSellOrder(sellOrder);
+
         // DB 테이블 저장에 걸리는 시간 측정용
         long beforeTime = System.currentTimeMillis();
         tradeService.saveOrder(buyOrder);
@@ -163,16 +167,12 @@ public class TradeQueueManager {
         long afterTime = System.currentTimeMillis();
         logger.debug("주문 테이블에 update하는 데 걸린 시간 : {}ms", afterTime - beforeTime);
 
-        // 주문 완전체결 처리(잔여금액 or 잔여수량이 0)
-        this.removeCompletedBuyOrder(buyOrder);
-        this.removeCompletedSellOrder(sellOrder);
-
         // 예수금 처리
         //   - 매수 잔여금액 반환
         if (isMarketOrder(buyOrder)) {
             ; // TODO : 시장가 거래 시 1원 단위 등 작은 금액이 남을 수도 있는데 처리방안
         } else {
-            if (buyOrder.getPrice() >= tradedPrice) { // 매도 호가보다 높은 가격에 매수를 시도한 경우, 차액 반환
+            if (buyOrder.getPrice() - tradedPrice > MINIMUM_ORDER_SIZE) { // 매도 호가보다 높은 가격에 매수를 시도한 경우, 차액 반환
                 double totalRefundAmount = (buyOrder.getPrice() - tradedPrice) * tradedSize;
                 if (totalRefundAmount > MINIMUM_ORDER_SIZE)
                     tradeService.increaseAccountCash(buyOrder, totalRefundAmount);
@@ -231,7 +231,7 @@ public class TradeQueueManager {
                 buyOrder.getId(),
                 buyOrder.getUserId(),
                 isMarketOrder(buyOrder) ? "시장가" : "지정가(" + buyOrder.getPrice() + "원)",
-                buyOrder.getRemainingSize() == null ? "0" : buyOrder.getRemainingDeposit(),
+                buyOrder.getRemainingSize() == null ? buyOrder.getRemainingDeposit() : buyOrder.getRemainingSize(),
                 sellOrder.getId(),
                 sellOrder.getUserId(),
                 isMarketOrder(sellOrder) ? "시장가" : "지정가(" + sellOrder.getPrice() + "원)",

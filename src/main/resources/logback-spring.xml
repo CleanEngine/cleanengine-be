@@ -1,0 +1,27 @@
+<configuration>
+    <!-- DML 전용 파일 로그 -->
+    <appender name="DML_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/dml-sql.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+        <!-- SELECT 제외 -->
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator>
+                <expression>!message.toLowerCase().contains("select")</expression>
+            </evaluator>
+            <OnMatch>ACCEPT</OnMatch>
+            <OnMismatch>DENY</OnMismatch>
+        </filter>
+    </appender>
+
+    <!-- Hibernate SQL 로그를 DML_FILE로만 출력 -->
+    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+        <appender-ref ref="DML_FILE"/>
+    </logger>
+
+    <logger name="org.hibernate.orm.jdbc.bind" level="TRACE" additivity="false">
+        <appender-ref ref="DML_FILE"/>
+    </logger>
+</configuration>

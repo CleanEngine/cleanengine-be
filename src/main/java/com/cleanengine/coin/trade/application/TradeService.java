@@ -71,8 +71,6 @@ public class TradeService {
         } else if (order instanceof SellOrder) {
             // 매도 시에는 평단가 변동 없음
             Wallet sellerWallet = this.findWalletByUserIdAndTicker(order.getUserId(), ticker);
-            double updatedSellSize = sellerWallet.getSize() - tradedSize;
-            sellerWallet.setSize(updatedSellSize);
             this.saveWallet(sellerWallet);
         } else {
             throw new BusinessException("Unsupported order type: " + order.getClass().getName(), ErrorStatus.INTERNAL_SERVER_ERROR);

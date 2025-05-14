@@ -8,7 +8,7 @@ import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.infra.BuyOrderRepository;
 import com.cleanengine.coin.order.infra.SellOrderRepository;
 import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.infra.TradeRepository;
+import com.cleanengine.coin.trade.repository.TradeRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -129,8 +129,8 @@ public class TradeQueueManagerTest {
         assertEquals(1, tradeOfSell.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
         assertEquals(
-                tradeOfBuy.getFirst().getTradeId(),
-                tradeOfSell.getFirst().getTradeId(),
+                tradeOfBuy.getFirst().getId(),
+                tradeOfSell.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
@@ -175,8 +175,8 @@ public class TradeQueueManagerTest {
         assertNotNull(bySellUserIdAndTicker, "매도인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, bySellUserIdAndTicker.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
-        assertEquals(byBuyUserIdAndTicker.getFirst().getTradeId(),
-                bySellUserIdAndTicker.getFirst().getTradeId(),
+        assertEquals(byBuyUserIdAndTicker.getFirst().getId(),
+                bySellUserIdAndTicker.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
@@ -215,8 +215,8 @@ public class TradeQueueManagerTest {
         assertNotNull(bySellUserIdAndTicker, "매도인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, bySellUserIdAndTicker.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
-        assertEquals(byBuyUserIdAndTicker.getFirst().getTradeId(),
-                bySellUserIdAndTicker.getFirst().getTradeId(),
+        assertEquals(byBuyUserIdAndTicker.getFirst().getId(),
+                bySellUserIdAndTicker.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
@@ -255,8 +255,8 @@ public class TradeQueueManagerTest {
         assertNotNull(bySellUserIdAndTicker, "매도인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, bySellUserIdAndTicker.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
-        assertEquals(byBuyUserIdAndTicker.getFirst().getTradeId(),
-                bySellUserIdAndTicker.getFirst().getTradeId(),
+        assertEquals(byBuyUserIdAndTicker.getFirst().getId(),
+                bySellUserIdAndTicker.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
@@ -295,8 +295,8 @@ public class TradeQueueManagerTest {
         assertNotNull(bySellUserIdAndTicker, "매도인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, bySellUserIdAndTicker.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
-        assertEquals(byBuyUserIdAndTicker.getFirst().getTradeId(),
-                bySellUserIdAndTicker.getFirst().getTradeId(),
+        assertEquals(byBuyUserIdAndTicker.getFirst().getId(),
+                bySellUserIdAndTicker.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
@@ -335,8 +335,8 @@ public class TradeQueueManagerTest {
         assertNotNull(bySellUserIdAndTicker, "매도인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, bySellUserIdAndTicker.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
-        assertEquals(byBuyUserIdAndTicker.getFirst().getTradeId(),
-                bySellUserIdAndTicker.getFirst().getTradeId(),
+        assertEquals(byBuyUserIdAndTicker.getFirst().getId(),
+                bySellUserIdAndTicker.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
@@ -375,8 +375,8 @@ public class TradeQueueManagerTest {
         assertNotNull(bySellUserIdAndTicker, "매도인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, bySellUserIdAndTicker.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
-        assertEquals(byBuyUserIdAndTicker.getFirst().getTradeId(),
-                bySellUserIdAndTicker.getFirst().getTradeId(),
+        assertEquals(byBuyUserIdAndTicker.getFirst().getId(),
+                bySellUserIdAndTicker.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
@@ -421,8 +421,8 @@ public class TradeQueueManagerTest {
         assertNotNull(bySellUserIdAndTicker, "매도인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, bySellUserIdAndTicker.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
-        assertEquals(byBuyUserIdAndTicker.getFirst().getTradeId(),
-                bySellUserIdAndTicker.getFirst().getTradeId(),
+        assertEquals(byBuyUserIdAndTicker.getFirst().getId(),
+                bySellUserIdAndTicker.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
@@ -461,8 +461,8 @@ public class TradeQueueManagerTest {
         assertNotNull(bySellUserIdAndTicker, "매도인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, bySellUserIdAndTicker.size(), "매도인의 거래 내역이 정확히 1개여야 합니다");
 
-        assertEquals(byBuyUserIdAndTicker.getFirst().getTradeId(),
-                bySellUserIdAndTicker.getFirst().getTradeId(),
+        assertEquals(byBuyUserIdAndTicker.getFirst().getId(),
+                bySellUserIdAndTicker.getFirst().getId(),
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 

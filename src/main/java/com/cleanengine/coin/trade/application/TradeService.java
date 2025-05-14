@@ -9,7 +9,7 @@ import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.infra.BuyOrderRepository;
 import com.cleanengine.coin.order.infra.SellOrderRepository;
 import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.infra.TradeRepository;
+import com.cleanengine.coin.trade.repository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.infra.AccountRepository;

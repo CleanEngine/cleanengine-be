@@ -20,5 +20,7 @@ public interface TradeRepository extends JpaRepository<Trade, Integer> {
             LocalDateTime endTime
     );
 
+    List<Trade> findByBuyUserIdAndTicker(Integer buyUserId, String ticker);
+    List<Trade> findBySellUserIdAndTicker(Integer sellUserId, String ticker);
 
 }

@@ -96,4 +96,21 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
         // 생성 시간이 빠르다면 음수가 나와야 함
         return this.createdAt.compareTo(order.createdAt);
     }
+
+    public void decreaseRemainingDeposit(Double amount) {
+        if (remainingDeposit >= amount) {
+            remainingDeposit -= amount;
+        } else {
+            throw new IllegalArgumentException("주문의 잔여 예수금은 0 이상이어야 합니다.");
+        }
+    }
+
+    public void decreaseRemainingSize(Double amount) {
+        if (remainingSize >= amount) {
+            remainingSize -= amount;
+        } else {
+            throw new IllegalArgumentException("주문의 잔여 수량은 0 이상이어야 합니다.");
+        }
+    }
+
 }

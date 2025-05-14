@@ -1,7 +1,9 @@
 package com.cleanengine.coin.realitybot.api;
 
 import com.cleanengine.coin.realitybot.dto.Ticks;
-import com.cleanengine.coin.realitybot.service.*;
+import com.cleanengine.coin.realitybot.service.OrderGenerateService;
+import com.cleanengine.coin.realitybot.service.TickService;
+import com.cleanengine.coin.realitybot.service.VirtualTradeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;

@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.service;
 
+import com.cleanengine.coin.order.application.OrderService;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -9,18 +10,16 @@ public class OrderGenerateService {
     private final int[] orderLevels = {1,2,3};
     private final int unitPrice = 10; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
     private OrderQueueManagerService queueManager;
-    private VirtualMarketService virtualMarketService;
     private PlatformVWAPService platformVWAPService;
-    private TickService tickService;
+    private OrderService orderService;
 
 //    private final TradeRepository tradeRepository;
 
-    public OrderGenerateService(OrderQueueManagerService queueManager, VirtualMarketService virtualMarketService,
-                                PlatformVWAPService platformVWAPService, TickService tickService/*,TradeRepository tradeRepository*/) {
+    public OrderGenerateService(OrderQueueManagerService queueManager,
+                                PlatformVWAPService platformVWAPService, OrderService orderService /*,TradeRepository tradeRepository*/) {
         this.queueManager = queueManager;
-        this.virtualMarketService = virtualMarketService;
         this.platformVWAPService = platformVWAPService;
-        this.tickService = tickService;
+        this.orderService = orderService;
 //        this.tradeRepository = tradeRepository;
     }
 
@@ -91,12 +90,20 @@ public class OrderGenerateService {
                     sellPrice = normalizeToUnit(sellPrice + (sellPrice * correctionRate)); // 매도 더 비싸게
                     buyPrice = normalizeToUnit(buyPrice - (buyPrice * correctionRate)); // 매수 더 싸게
                 }
-                queueManager.addSellOrder(sellPrice, sellVolume);
-                queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
+                //추세선 벗어나면 작동하는 주문
+//                orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
+//                orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
+//
+//                queueManager.addSellOrder(sellPrice, sellVolume);
+//                queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
             }
 
-            queueManager.addSellOrder(sellPrice, sellVolume);
-            queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
+            orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
+            orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
+
+            //가상 주문 체결
+//            queueManager.addSellOrder(sellPrice, sellVolume);
+//            queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
             try {
                 TimeUnit.MICROSECONDS.sleep(100);
             } catch (InterruptedException e) {

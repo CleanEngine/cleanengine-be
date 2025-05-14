@@ -23,12 +23,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .addEndpoint("/coin/min") //endPoint 지정
                 //추후 cors url추가
                 .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://127.0.0.1:5500")
-                .withSockJS();
+                        .withSockJS();
 
         registry
                 .addEndpoint("/coin/realtime")
                 .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://127.0.0.1:5500")
-                    .withSockJS();
+                .withSockJS();
+
     }
 
 

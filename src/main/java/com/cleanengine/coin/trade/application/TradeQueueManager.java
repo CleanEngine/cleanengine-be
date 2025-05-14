@@ -59,8 +59,8 @@ public class TradeQueueManager {
                 } else {
                     this.executeTrade(targetTradePair.get().getBuyOrder(), targetTradePair.get().getSellOrder());
                 }
-//                Thread.sleep(10);
-//            } catch (InterruptedException e) {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
             } catch (Exception e) {
                 logger.error("Error processing trades for {}: {}", this.ticker, e.getMessage());
                 throw e;

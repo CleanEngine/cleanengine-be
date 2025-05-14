@@ -32,7 +32,41 @@ public class DBInitRunner implements CommandLineRunner {
     public void run(String... args) throws Exception {
         initSellBotData();
         initBuyBotData();
+        initSellUserData();
+        initBuyUserData();
         initAssetData();
+    }
+
+    private void initBuyUserData() {
+        User user = new User();
+        userRepository.save(user);
+
+        Account account = new Account();
+        account.setUserId(user.getId());
+        account.setCash(50_000_000.0);
+        accountRepository.save(account);
+
+    }
+
+    private void initSellUserData() {
+        User user = new User();
+        userRepository.save(user);
+
+        Account account = new Account();
+        account.setUserId(user.getId());
+        account.setCash(0.0);
+        accountRepository.save(account);
+
+        Wallet wallet = new Wallet();
+        wallet.setTicker("BTC");
+        wallet.setAccountId(account.getId());
+        wallet.setSize(50_000_000.0);
+
+        Wallet wallet2 = new Wallet();
+        wallet2.setTicker("TRUMP");
+        wallet2.setAccountId(account.getId());
+        wallet2.setSize(50_000_000.0);
+        walletExternalRepository.saveAll(List.of(wallet, wallet2));
     }
 
     @Transactional

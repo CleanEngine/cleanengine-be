@@ -1,5 +1,6 @@
 package com.cleanengine.coin.trade.application;
 
+import com.cleanengine.coin.chart.dto.TradeEventDto;
 import com.cleanengine.coin.common.error.BusinessException;
 import com.cleanengine.coin.common.response.ErrorStatus;
 import com.cleanengine.coin.order.domain.BuyOrder;
@@ -16,6 +17,7 @@ import com.cleanengine.coin.user.info.infra.AccountRepository;
 import com.cleanengine.coin.user.info.infra.WalletRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -27,12 +29,15 @@ public class TradeService {
     private final AccountRepository accountRepository;
     private final WalletRepository walletRepository;
 
-    public TradeService(TradeRepository tradeRepository, BuyOrderRepository buyOrderRepository, SellOrderRepository sellOrderRepository, AccountRepository accountRepository, WalletRepository walletRepository) {
+    private final TradeBatchProcessor tradeBatchProcessor;
+
+    public TradeService(TradeRepository tradeRepository, BuyOrderRepository buyOrderRepository, SellOrderRepository sellOrderRepository, AccountRepository accountRepository, WalletRepository walletRepository, TradeBatchProcessor tradeBatchProcessor) {
         this.tradeRepository = tradeRepository;
         this.buyOrderRepository = buyOrderRepository;
         this.sellOrderRepository = sellOrderRepository;
         this.accountRepository = accountRepository;
         this.walletRepository = walletRepository;
+        this.tradeBatchProcessor = tradeBatchProcessor;
     }
 
     public Trade saveTrade(Trade trade) {
@@ -111,4 +116,17 @@ public class TradeService {
     public void updateCompletedOrderStatus(Order order) {
         order.setState(OrderStatus.DONE);
     }
+
+    public TradeEventDto retrieveTradeEventDto(String ticker) {
+        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
+        TradeQueueManager tradeQueueManager = tradeQueueManagers.get(ticker);
+        TradeEventDto lastTradeEventDto = tradeQueueManager.getLastTradeEventDto();
+
+        // 서비스 시작 후 체결 내역이 없으면 null 반환
+        if (lastTradeEventDto.getSize() == 0.0 || lastTradeEventDto.getPrice() == 0.0) {
+            return null;
+        }
+        return lastTradeEventDto;
+    }
+
 }

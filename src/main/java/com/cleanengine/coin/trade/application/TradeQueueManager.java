@@ -1,5 +1,6 @@
 package com.cleanengine.coin.trade.application;
 
+import com.cleanengine.coin.chart.dto.TradeEventDto;
 import com.cleanengine.coin.order.application.queue.OrderQueueManager;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -30,6 +32,9 @@ public class TradeQueueManager {
 
     private final TradeService tradeService;
 
+    @Getter
+    private final TradeEventDto lastTradeEventDto;
+
     public TradeQueueManager(OrderQueueManager orderQueueManager, TradeService tradeService) {
         this.orderQueueManager = orderQueueManager;
         this.tradeService = tradeService;
@@ -39,6 +44,9 @@ public class TradeQueueManager {
         this.limitSellOrderQueue = orderQueueManager.getLimitSellOrderQueue();
         this.marketBuyOrderQueue = orderQueueManager.getMarketBuyOrderQueue();
         this.limitBuyOrderQueue = orderQueueManager.getLimitBuyOrderQueue();
+
+        lastTradeEventDto = new TradeEventDto();
+        lastTradeEventDto.setTicker(ticker);
     }
 
     public void run() {
@@ -185,6 +193,11 @@ public class TradeQueueManager {
         // 지갑 누적계산
         tradeService.updateWalletAfterTrade(buyOrder, this.ticker, tradedSize, totalTradedPrice);
         tradeService.updateWalletAfterTrade(sellOrder, this.ticker, tradedSize, totalTradedPrice);
+
+        // 마지막 체결내역 임시 보관(웹소켓 전송용)
+        lastTradeEventDto.setSize(tradedSize);
+        lastTradeEventDto.setPrice(tradedPrice);
+        lastTradeEventDto.setTimestamp(LocalDateTime.now());
 
         // 체결내역 저장
         tradeService.insertNewTrade(this.ticker, buyOrder, sellOrder, tradedSize, tradedPrice);

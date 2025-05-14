@@ -94,16 +94,16 @@ public class OrderGenerateService {
 //                orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
 //                orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
 //
-//                queueManager.addSellOrder(sellPrice, sellVolume);
-//                queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
+                queueManager.addSellOrder(sellPrice, sellVolume);
+                queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
             }
 
             orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
             orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
 
             //가상 주문 체결
-//            queueManager.addSellOrder(sellPrice, sellVolume);
-//            queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
+            queueManager.addSellOrder(sellPrice, sellVolume);
+            queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
             try {
                 TimeUnit.MICROSECONDS.sleep(100);
             } catch (InterruptedException e) {

@@ -14,8 +14,8 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
-        show_sql: true
+        format_sql: false #true 변경예정
+        show_sql: false #true 변경예정
   security:
     oauth2:
       client:
@@ -27,3 +27,7 @@ spring:
 
 frontend:
   url: "http://localhost:5173"
+logging: #제거필요
+  level:
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF

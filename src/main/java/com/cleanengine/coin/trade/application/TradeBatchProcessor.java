@@ -2,6 +2,7 @@ package com.cleanengine.coin.trade.application;
 
 import com.cleanengine.coin.chart.dto.TradeEventDto;
 import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -30,12 +31,14 @@ public class TradeBatchProcessor implements ApplicationRunner {
 
     @Getter
     private final Map<String, TradeQueueManager> tradeQueueManagers = new HashMap<>();
+    private final UpdateOrderBookUsecase updateOrderBookUsecase;
 
     @Value("${order.tickers}") String[] tickers;
 
-    public TradeBatchProcessor(OrderQueueManagerPool orderQueueManagerPool, TradeService tradeService) {
+    public TradeBatchProcessor(OrderQueueManagerPool orderQueueManagerPool, TradeService tradeService, UpdateOrderBookUsecase updateOrderBookUsecase) {
         this.orderQueueManagerPool = orderQueueManagerPool;
         this.tradeService = tradeService;
+        this.updateOrderBookUsecase = updateOrderBookUsecase;
     }
 
     @Override
@@ -46,6 +49,7 @@ public class TradeBatchProcessor implements ApplicationRunner {
     private void processTrades() {
         for (String ticker : tickers) {
             TradeQueueManager tradeQueueManager = new TradeQueueManager(orderQueueManagerPool.getOrderQueueManager(ticker),
+                    updateOrderBookUsecase,
                     tradeService);
             tradeQueueManagers.put(ticker, tradeQueueManager); // 정상 종료를 위해 저장
 

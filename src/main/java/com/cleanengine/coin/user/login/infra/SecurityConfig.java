@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(Collections.singletonList(frontendUrl));
+                    configuration.setAllowedOrigins(Collections.singletonList(frontendBaseUrl));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -73,7 +73,6 @@ public class SecurityConfig {
                                         .baseUri("/api/login/oauth2/code/*")
                                 )
                 )
-                //API swagger로직 추가
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/v3/api-docs/**",

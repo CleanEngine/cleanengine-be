@@ -31,11 +31,11 @@ public class SellOrderIntegrationTest {
     @Sql("classpath:db/user/user_enough_holdings.sql")
     @Test
     void givenEnoughMoneyUser_WhenCreateMarketSellOrder_ThenSellOrderIsCreated() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 1,
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, true, 30.0, null, LocalDateTime.now(),false);
 
         OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(command);
-        Wallet wallet = walletRepository.findWalletBy(1, "BTC").orElseThrow();
+        Wallet wallet = walletRepository.findWalletBy(3, "BTC").orElseThrow();
 
         assertNotNull(sellOrderInfo.getId());
         assertEquals(200000-30.0, wallet.getSize());
@@ -45,11 +45,11 @@ public class SellOrderIntegrationTest {
     @Sql("classpath:db/user/user_enough_holdings.sql")
     @Test
     void givenEnoughMoneyUser_WhenCreateLimitSellOrder_ThenSellOrderIsCreated() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 1,
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, false, 30.0, 40.0, LocalDateTime.now(),false);
 
         OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(command);
-        Wallet wallet = walletRepository.findWalletBy(1, "BTC").orElseThrow();
+        Wallet wallet = walletRepository.findWalletBy(3, "BTC").orElseThrow();
 
         assertNotNull(sellOrderInfo.getId());
         assertEquals(200000-30.0, wallet.getSize());
@@ -59,7 +59,7 @@ public class SellOrderIntegrationTest {
     @Sql("classpath:db/user/user_zero_holdings.sql")
     @Test
     void givenZeroMoneyUser_WhenCreateMarketSellOrder_ThenExceptionIsThrown() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 1,
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, true, 30.0, null, LocalDateTime.now(),false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
@@ -69,7 +69,7 @@ public class SellOrderIntegrationTest {
     @Sql("classpath:db/user/user_zero_holdings.sql")
     @Test
     void givenZeroMoneyUser_WhenCreateLimitSellOrder_ThenExceptionIsThrown() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 1,
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, false, 30.0, 40.0, LocalDateTime.now(),false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
@@ -78,7 +78,7 @@ public class SellOrderIntegrationTest {
     @DisplayName("orderSize를 누락한 시장가 매도주문이 들어올 경우 DomainValidationException을 반환함.")
     @Test
     void givenCommandWithoutOrderSize_WhenCreateMarketSellOrder_ThenExceptionIsThrown() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 1,
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, true, null, null, LocalDateTime.now(),false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
@@ -87,7 +87,7 @@ public class SellOrderIntegrationTest {
     @DisplayName("price를 누락한 지정가 매도주문이 들어올 경우 DomainValidationException을 반환함.")
     @Test
     void givenCommandWithoutPrice_WhenCreateLimitSellOrder_ThenExceptionIsThrown() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 1,
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, false, 30.0, null, LocalDateTime.now(),false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
@@ -96,9 +96,27 @@ public class SellOrderIntegrationTest {
     @DisplayName("orderSize를 누락한 지정가 매도주문이 들어올 경우 DomainValidationException을 반환함.")
     @Test
     void givenCommandWithoutOrderSize_WhenCreateLimitSellOrder_ThenExceptionIsThrown() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 1,
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, false, null, 40.0, LocalDateTime.now(),false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
+    }
+
+    @DisplayName("Wallet이 없는 사용자가 주문 요청을 할 경우 Wallet이 생성된다.")
+    @Sql("classpath:db/user/user_without_wallet.sql")
+    @Test
+    void givenUserWithoutWallet_WhenCreateOrder_ThenWalletIsCreated() {
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
+                false, false, 30.0, 40.0, LocalDateTime.now(),false);
+
+        try{
+            orderService.createOrder(command);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        Wallet wallet = walletRepository.findWalletBy(3, "BTC").orElseThrow();
+        assertNotNull(wallet);
+        assertEquals("BTC", wallet.getTicker());
     }
 }

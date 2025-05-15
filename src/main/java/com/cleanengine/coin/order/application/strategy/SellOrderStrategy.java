@@ -3,10 +3,15 @@ package com.cleanengine.coin.order.application.strategy;
 import com.cleanengine.coin.order.application.OrderCommand;
 import com.cleanengine.coin.order.application.OrderInfo;
 import com.cleanengine.coin.order.application.port.WalletUpdatePort;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateSellOrderDomainService;
+import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
+import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
 import com.cleanengine.coin.order.infra.SellOrderRepository;
+import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
+import com.cleanengine.coin.user.domain.Account;
+import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,10 +20,11 @@ import org.springframework.stereotype.Component;
 public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.SellOrderInfo> {
     private final SellOrderRepository sellOrderRepository;
     private final CreateSellOrderDomainService createSellOrderDomainService;
-    private final OrderQueueManagerPool orderQueueManagerPool;
     private final WalletUpdatePort walletUpdatePort;
+    private final UpdateOrderBookUsecase updateOrderBookUsecase;
+    private final WalletExternalRepository walletRepository;
+    private final AccountExternalRepository accountRepository;
 
-    // TODO SELL Order만의 검증 내용
     @Override
     public SellOrder createOrder(OrderCommand.CreateOrder createOrderCommand) {
         return createSellOrderDomainService.createOrder(createOrderCommand.ticker(), createOrderCommand.userId(),
@@ -32,8 +38,17 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     }
 
     @Override
-    public OrderInfo.SellOrderInfo extractOrderInfo(SellOrder order) {
-        return new OrderInfo.SellOrderInfo(order);
+    protected void createWallet(Integer userId, String ticker) {
+        if(walletRepository.findWalletBy(userId, ticker).isEmpty()){
+            Account account = accountRepository.findByUserId(userId).orElseThrow();
+            Wallet wallet = new Wallet(null, ticker, account.getId(), 0.0, 0.0, 0.0);
+            walletRepository.save(wallet);
+        }
+    }
+
+    @Override
+    public OrderInfo.SellOrderInfo extractOrderInfo(Order order) {
+        return new OrderInfo.SellOrderInfo((SellOrder) order);
     }
 
     @Override
@@ -47,7 +62,7 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     }
 
     @Override
-    protected OrderQueueManagerPool orderQueueManagerPool() {
-        return orderQueueManagerPool;
+    protected void updateOrderBook(SellOrder order) {
+        updateOrderBookUsecase.updateOrderBookOnNewOrder(order);
     }
 }

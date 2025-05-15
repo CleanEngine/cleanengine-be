@@ -3,7 +3,7 @@ package com.cleanengine.coin.order.application.strategy;
 import com.cleanengine.coin.order.application.OrderCommand;
 import com.cleanengine.coin.order.application.OrderInfo;
 import com.cleanengine.coin.order.application.port.WalletUpdatePort;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateSellOrderDomainService;
 import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.SellOrderInfo> {
     private final SellOrderRepository sellOrderRepository;
     private final CreateSellOrderDomainService createSellOrderDomainService;
-    private final OrderQueueManagerPool orderQueueManagerPool;
     private final WalletUpdatePort walletUpdatePort;
     private final UpdateOrderBookUsecase updateOrderBookUsecase;
     private final WalletExternalRepository walletRepository;
@@ -48,8 +47,8 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     }
 
     @Override
-    public OrderInfo.SellOrderInfo extractOrderInfo(SellOrder order) {
-        return new OrderInfo.SellOrderInfo(order);
+    public OrderInfo.SellOrderInfo extractOrderInfo(Order order) {
+        return new OrderInfo.SellOrderInfo((SellOrder) order);
     }
 
     @Override
@@ -60,11 +59,6 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     @Override
     protected void keepHoldings(SellOrder order) throws RuntimeException {
         walletUpdatePort.lockAssetForSellOrder(order.getUserId(), order.getTicker(), order.getOrderSize());
-    }
-
-    @Override
-    protected OrderQueueManagerPool orderQueueManagerPool() {
-        return orderQueueManagerPool;
     }
 
     @Override

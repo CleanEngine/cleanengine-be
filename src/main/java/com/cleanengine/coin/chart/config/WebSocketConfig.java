@@ -13,7 +13,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic","topic/coin"); //메세지 브로커로 라우팅 되어야한다
+        config.enableSimpleBroker("/topic"); //메세지 브로커로 라우팅 되어야한다
         config.setApplicationDestinationPrefixes("/app"); //app으로 시작되는 메세지가 message-handling 라우팅 되어야한다
     }
 
@@ -29,7 +29,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .addEndpoint("/coin/realtime")
                 .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://127.0.0.1:5500")
                 .withSockJS();
-
     }
 
 

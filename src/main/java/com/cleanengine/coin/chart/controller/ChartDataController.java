@@ -25,7 +25,7 @@ public class ChartDataController {
     /**
      * 1초마다 실행 - 실시간 OHLC 데이터 전송
      */
-    @Scheduled(fixedRate = 1000)
+//    @Scheduled(fixedRate = 1000)
     public void publishRealTimeOhlc() {
         try {
             log.info("△ 실시간 OHLC 데이터 스케줄러 실행");

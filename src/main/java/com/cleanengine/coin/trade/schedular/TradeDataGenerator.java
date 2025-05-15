@@ -14,7 +14,7 @@ public class TradeDataGenerator {
 
     private final TradeServiceImpl tradeService;
 
-    @Scheduled(fixedDelay = 300) // 0.5초마다 실행
+//    @Scheduled(fixedDelay = 300) // 0.5초마다 실행
     public void generateTradeData() {
         tradeService.generateRandomTrade();
         log.info("Random trade generated successfully.");

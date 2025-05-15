@@ -1,6 +1,5 @@
 package com.cleanengine.coin.trade.schedular;
 
-import com.cleanengine.coin.trade.service.TradeService;
 import com.cleanengine.coin.trade.service.TradeServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +16,6 @@ public class TradeDataGenerator {
     @Scheduled(fixedDelay = 300) // 0.5초마다 실행
     public void generateTradeData() {
         tradeService.generateRandomTrade();
-        log.info("Random trade generated successfully.");
+//        log.info("Random trade generated successfully.");
     }
 }

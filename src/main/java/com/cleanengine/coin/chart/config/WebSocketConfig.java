@@ -22,16 +22,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry
                 .addEndpoint("/coin/min") //endPoint 지정
                 //추후 cors url추가
-                .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://127.0.0.1:5500")
-                        .withSockJS();
-
+    .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
         registry
                 .addEndpoint("/coin/realtime")
-                .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://127.0.0.1:5500")
-                .withSockJS();
+                .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
+        registry
+                .addEndpoint("/coin/orderbook")
+                .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
     }
-
-
 }
-
-

@@ -22,5 +22,5 @@ public interface TradeRepository extends JpaRepository<Trade, Integer> {
 
     List<Trade> findByBuyUserIdAndTicker(Integer buyUserId, String ticker);
     List<Trade> findBySellUserIdAndTicker(Integer sellUserId, String ticker);
-
+    List<Trade> findTop10ByTickerOrderByTradeTimeDesc(String ticker);
 }

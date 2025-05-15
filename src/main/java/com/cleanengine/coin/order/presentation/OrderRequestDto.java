@@ -27,7 +27,7 @@ public final class OrderRequestDto {
             boolean isBuyOrder;
 
             // TODO 나중에 검증 로직 Bean Validation + Custom Annotation으로 깔끔하게 정리
-            isBuyOrder = side.equals("ask");
+            isBuyOrder = side.equals("bid");
             isMarketOrder = orderType.equals("market");
 
             return new OrderCommand.CreateOrder(ticker, userId, isBuyOrder, isMarketOrder,

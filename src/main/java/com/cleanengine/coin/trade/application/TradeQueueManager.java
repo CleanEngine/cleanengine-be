@@ -5,6 +5,7 @@ import com.cleanengine.coin.order.application.queue.OrderQueueManager;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
+import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,13 +31,16 @@ public class TradeQueueManager {
     private final PriorityBlockingQueue<BuyOrder> marketBuyOrderQueue;
     private final PriorityBlockingQueue<BuyOrder> limitBuyOrderQueue;
 
+    private final UpdateOrderBookUsecase updateOrderBookUsecase;
+
     private final TradeService tradeService;
 
     @Getter
     private final TradeEventDto lastTradeEventDto;
 
-    public TradeQueueManager(OrderQueueManager orderQueueManager, TradeService tradeService) {
+    public TradeQueueManager(OrderQueueManager orderQueueManager, UpdateOrderBookUsecase updateOrderBookUsecase, TradeService tradeService) {
         this.orderQueueManager = orderQueueManager;
+        this.updateOrderBookUsecase = updateOrderBookUsecase;
         this.tradeService = tradeService;
         // TODO : orderQueueManager의 필드를 꺼내서 쓰는 게 맞는 방식인지 고려
         this.ticker = orderQueueManager.getTicker();
@@ -202,7 +206,10 @@ public class TradeQueueManager {
         // 체결내역 저장
         tradeService.insertNewTrade(this.ticker, buyOrder, sellOrder, tradedSize, tradedPrice);
 
-        // TODO : 호가 조회를 위한 Order Service 메서드 호출
+        // 호가 조회를 위한 Order Service 메서드 호출
+        updateOrderBookUsecase.updateOrderBookOnTradeExecuted(ticker, buyOrder.getId(), sellOrder.getId(), tradedSize);
+
+        // TODO: DB처리는 트랜잭션 묶고, 이후 큐 보상 트랜잭션 처리 코드 작성
     }
 
     private static TradeUnitPriceAndSize getTradeUnitPriceAndSize(BuyOrder buyOrder, SellOrder sellOrder) {

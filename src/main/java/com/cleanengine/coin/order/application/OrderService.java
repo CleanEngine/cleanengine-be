@@ -4,7 +4,6 @@ import com.cleanengine.coin.order.application.strategy.CreateOrderStrategy;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -21,12 +20,14 @@ public class OrderService { //facade
     public OrderInfo<?> createOrder(@Valid OrderCommand.CreateOrder createOrder){
         CreateOrderStrategy<?, ?> createOrderStrategy = createOrderStrategies.stream()
                 .filter(strategy -> strategy.supports(createOrder.isBuyOrder())).findFirst().orElseThrow();
-        return createOrderStrategy.processCreatingOrder(createOrder);
+        Order order  = createOrderStrategy.processCreatingOrder(createOrder);
+        applicationEventPublisher.publishEvent(new OrderCreated(order));
+        return createOrderStrategy.extractOrderInfo(order);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public OrderInfo<?> createOrderWithBot(String ticker, Boolean isBuyOrder, Double orderSize, Double price){
-        Integer userId = isBuyOrder? 2 : 1;
+        Integer userId = isBuyOrder? BUY_ORDER_BOT_ID : SELL_ORDER_BOT_ID;
 
         OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(ticker, userId, isBuyOrder,
                 false, orderSize, price, LocalDateTime.now(), true);

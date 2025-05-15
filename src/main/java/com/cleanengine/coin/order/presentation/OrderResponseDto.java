@@ -38,13 +38,13 @@ public final class OrderResponseDto {
 
         private static CreateOrder from(OrderInfo.BuyOrderInfo buyOrderInfo){
             return new CreateOrder(buyOrderInfo.getId(), buyOrderInfo.getTicker(), buyOrderInfo.getState(),
-                    buyOrderInfo.getUserId(), "ask", getOrderType(buyOrderInfo.getIsMarketOrder()),
+                    buyOrderInfo.getUserId(), "bid", getOrderType(buyOrderInfo.getIsMarketOrder()),
                     buyOrderInfo.getLockedDeposit(), buyOrderInfo.getOrderSize(), buyOrderInfo.getPrice(), buyOrderInfo.getCreatedAt());
         }
 
         private static CreateOrder from(OrderInfo.SellOrderInfo sellOrderInfo){
             return new CreateOrder(sellOrderInfo.getId(), sellOrderInfo.getTicker(), sellOrderInfo.getState(),
-                    sellOrderInfo.getUserId(), "bid", getOrderType(sellOrderInfo.getIsMarketOrder()),
+                    sellOrderInfo.getUserId(), "ask", getOrderType(sellOrderInfo.getIsMarketOrder()),
                     null, sellOrderInfo.getOrderSize(), sellOrderInfo.getPrice(), sellOrderInfo.getCreatedAt());
         }
 

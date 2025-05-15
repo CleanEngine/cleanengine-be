@@ -78,7 +78,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html",
+                                "/swagger-ui.html/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/coin/min/**", // 웹소켓 엔드포인트 추가
+                                "/coin/realtime/**" // 웹소켓 엔드포인트 추가
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/coin/min/info"

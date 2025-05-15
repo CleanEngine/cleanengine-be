@@ -29,15 +29,12 @@ public class TradeService {
     private final AccountRepository accountRepository;
     private final WalletRepository walletRepository;
 
-    private final TradeBatchProcessor tradeBatchProcessor;
-
-    public TradeService(TradeRepository tradeRepository, BuyOrderRepository buyOrderRepository, SellOrderRepository sellOrderRepository, AccountRepository accountRepository, WalletRepository walletRepository, TradeBatchProcessor tradeBatchProcessor) {
+    public TradeService(TradeRepository tradeRepository, BuyOrderRepository buyOrderRepository, SellOrderRepository sellOrderRepository, AccountRepository accountRepository, WalletRepository walletRepository) {
         this.tradeRepository = tradeRepository;
         this.buyOrderRepository = buyOrderRepository;
         this.sellOrderRepository = sellOrderRepository;
         this.accountRepository = accountRepository;
         this.walletRepository = walletRepository;
-        this.tradeBatchProcessor = tradeBatchProcessor;
     }
 
     public Trade saveTrade(Trade trade) {
@@ -115,18 +112,6 @@ public class TradeService {
 
     public void updateCompletedOrderStatus(Order order) {
         order.setState(OrderStatus.DONE);
-    }
-
-    public TradeEventDto retrieveTradeEventDto(String ticker) {
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        TradeQueueManager tradeQueueManager = tradeQueueManagers.get(ticker);
-        TradeEventDto lastTradeEventDto = tradeQueueManager.getLastTradeEventDto();
-
-        // 서비스 시작 후 체결 내역이 없으면 null 반환
-        if (lastTradeEventDto.getSize() == 0.0 || lastTradeEventDto.getPrice() == 0.0) {
-            return null;
-        }
-        return lastTradeEventDto;
     }
 
 }

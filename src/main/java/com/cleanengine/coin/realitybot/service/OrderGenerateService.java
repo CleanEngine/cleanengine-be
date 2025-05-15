@@ -138,7 +138,7 @@ public class OrderGenerateService {
                 throw new RuntimeException(e);
             }
 
-            //모니터링용
+/*            //모니터링용
             System.out.println("sellPrice = " + sellPrice);
             System.out.println("sellVolume = " + sellVolume);
 //            buyPrice = normalizeToUnit(virtualVWAP - priceOffset);//todo : 제거 대상
@@ -148,15 +148,14 @@ public class OrderGenerateService {
 
             System.out.println("====================================");
             System.out.println("현재 시장 vwap "+apiVWAP+"  현재 플랫폼 vwap"+platformVWAP);
-
-            System.out.println("====================================");
+            System.out.println("====================================");*/
 //            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
         }
-        System.out.println("📦 [체결 기록 Top 10]");
+/*        System.out.println("📦 [체결 기록 Top 10]");
         trades.forEach(t ->
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.2f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
-        );
+        );*/
     }
 
     //todo VirtualMarketService 여기에도 있는데 공통화 필요? , 계수는 조금 다른긴함 -> vms 제거 대상

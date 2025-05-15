@@ -4,4 +4,4 @@ spring:
       secure: true
 
 frontend:
-  url: "https://investfuture.my"
+  url: "https://investfuture.my/callback"

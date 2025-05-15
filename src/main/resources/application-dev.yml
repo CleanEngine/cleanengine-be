@@ -36,4 +36,4 @@ logging:
     com.cleanengine.coin: DEBUG
 
 frontend:
-  url: "http://localhost:5173"
+  url: "http://localhost:5173/callback"

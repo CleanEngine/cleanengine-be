@@ -1,27 +1,26 @@
 package com.cleanengine.coin.realitybot.service;
 
+import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.configuration.bootstrap.DBInitRunner;
 import com.cleanengine.coin.order.application.OrderService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrderGenerateService {
     private final int[] orderLevels = {1,2,3};
     private final int unitPrice = 10; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
-    private OrderQueueManagerService queueManager;
-    private PlatformVWAPService platformVWAPService;
-    private OrderService orderService;
-
+    private final OrderQueueManagerService queueManager;
+    private final PlatformVWAPService platformVWAPService;
+    private final OrderService orderService;
+    private final DBInitRunner dbInitRunner;
 //    private final TradeRepository tradeRepository;
 
-    public OrderGenerateService(OrderQueueManagerService queueManager,
-                                PlatformVWAPService platformVWAPService, OrderService orderService /*,TradeRepository tradeRepository*/) {
-        this.queueManager = queueManager;
-        this.platformVWAPService = platformVWAPService;
-        this.orderService = orderService;
-//        this.tradeRepository = tradeRepository;
-    }
 
         //TODO 비동기 처리로 전환 필요 + 시장 확인 후 주문량에 따른 오더 조절 필요
     public void generateOrder(double vwap, double avgVolum) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
@@ -90,16 +89,42 @@ public class OrderGenerateService {
                     sellPrice = normalizeToUnit(sellPrice + (sellPrice * correctionRate)); // 매도 더 비싸게
                     buyPrice = normalizeToUnit(buyPrice - (buyPrice * correctionRate)); // 매수 더 싸게
                 }
-                //추세선 벗어나면 작동하는 주문
-//                orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
-//                orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
+                try{
+//                추세선 벗어나면 작동하는 주문
+                orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
+                orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
 //
+                } catch (DomainValidationException e) {
+                    log.warn("매수금 잔량 부족 {}",e.getMessage());
+                    try {
+                        dbInitRunner.run();
+                        //주문 재시도
+                        orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
+                        orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
+                    } catch (Exception e1) {
+                        log.error("init 초기화 중 예외 발생",e1);
+                    }
+                }
+
                 queueManager.addSellOrder(sellPrice, sellVolume);
                 queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
             }
 
+            try{
             orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
             orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
+            } catch (DomainValidationException e) {
+                log.warn("매수금 잔량 부족 {}",e.getMessage());
+                try {
+                    dbInitRunner.run();
+
+                    //주문 재시도
+                    orderService.createOrderWithBot("TRUMP",false, sellVolume,sellPrice);
+                    orderService.createOrderWithBot("TRUMP",true, buyVolume,buyPrice);
+                } catch (Exception e1) {
+                    log.error("init 초기화 중 예외 발생",e1);
+                }
+            }
 
             //가상 주문 체결
             queueManager.addSellOrder(sellPrice, sellVolume);

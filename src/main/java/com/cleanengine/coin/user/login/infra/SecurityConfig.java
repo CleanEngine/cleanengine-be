@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationF
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,11 +41,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        URI uri = new URI(frontendUrl);
+        String frontendBaseUrl = uri.getScheme() + "://" + uri.getHost() + (uri.getPort() == -1 ? "" : ":" + uri.getPort());
+
         http
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(Collections.singletonList(frontendUrl));
+                    configuration.setAllowedOrigins(List.of(frontendBaseUrl, "http://localhost:5173"));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -58,19 +62,27 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class)
                 .oauth2Login(oauth -> oauth
-                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
-                                .userService(customOAuth2UserService))
-                        .successHandler(customSuccessHandler)
+                                .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
+                                        .userService(customOAuth2UserService))
+                                .successHandler(customSuccessHandler)
 //                        .failureHandler(customFailureHandler) // TODO 로그인 실패 처리
-                        .authorizationEndpoint(endpoint -> endpoint
-                                .baseUri("/api/oauth2/authorization")
-                        )
-                        .redirectionEndpoint(endpoint -> endpoint
-                                .baseUri("/api/login/oauth2/code/*")
-                        )
+                                .authorizationEndpoint(endpoint -> endpoint
+                                        .baseUri("/api/oauth2/authorization")
+                                )
+                                .redirectionEndpoint(endpoint -> endpoint
+                                        .baseUri("/api/login/oauth2/code/*")
+                                )
                 )
+                //API swagger로직 추가
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/coin/**"
+                        ).permitAll().requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/healthcheck", "/api/oauth2/**", "/api/login/**", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )

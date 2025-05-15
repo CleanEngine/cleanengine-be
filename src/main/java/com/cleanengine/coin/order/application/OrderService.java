@@ -11,6 +11,9 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
+import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
+
 @Service
 @RequiredArgsConstructor
 @Validated
@@ -26,7 +29,7 @@ public class OrderService { //facade
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public OrderInfo<?> createOrderWithBot(String ticker, Boolean isBuyOrder, Double orderSize, Double price){
-        Integer userId = isBuyOrder? 2 : 1;
+        Integer userId = isBuyOrder? 1 : 2;
 
         OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(ticker, userId, isBuyOrder,
                 false, orderSize, price, LocalDateTime.now(), true);

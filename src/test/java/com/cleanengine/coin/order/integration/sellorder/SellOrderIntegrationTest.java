@@ -101,4 +101,22 @@ public class SellOrderIntegrationTest {
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
     }
+
+    @DisplayName("Wallet이 없는 사용자가 주문 요청을 할 경우 Wallet이 생성된다.")
+    @Sql("classpath:db/user/user_without_wallet.sql")
+    @Test
+    void givenUserWithoutWallet_WhenCreateOrder_ThenWalletIsCreated() {
+        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
+                false, false, 30.0, 40.0, LocalDateTime.now(),false);
+
+        try{
+            orderService.createOrder(command);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        Wallet wallet = walletRepository.findWalletBy(3, "BTC").orElseThrow();
+        assertNotNull(wallet);
+        assertEquals("BTC", wallet.getTicker());
+    }
 }

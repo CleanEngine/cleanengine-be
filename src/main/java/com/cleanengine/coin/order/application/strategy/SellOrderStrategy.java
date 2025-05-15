@@ -6,8 +6,12 @@ import com.cleanengine.coin.order.application.port.WalletUpdatePort;
 import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateSellOrderDomainService;
+import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
+import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
 import com.cleanengine.coin.order.infra.SellOrderRepository;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
+import com.cleanengine.coin.user.domain.Account;
+import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +23,8 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     private final OrderQueueManagerPool orderQueueManagerPool;
     private final WalletUpdatePort walletUpdatePort;
     private final UpdateOrderBookUsecase updateOrderBookUsecase;
+    private final WalletExternalRepository walletRepository;
+    private final AccountExternalRepository accountRepository;
 
     @Override
     public SellOrder createOrder(OrderCommand.CreateOrder createOrderCommand) {
@@ -30,6 +36,15 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     @Override
     public void saveOrder(SellOrder order) {
         sellOrderRepository.save(order);
+    }
+
+    @Override
+    protected void createWallet(Integer userId, String ticker) {
+        if(walletRepository.findWalletBy(userId, ticker).isEmpty()){
+            Account account = accountRepository.findByUserId(userId).orElseThrow();
+            Wallet wallet = new Wallet(null, ticker, account.getId(), 0.0, 0.0, 0.0);
+            walletRepository.save(wallet);
+        }
     }
 
     @Override

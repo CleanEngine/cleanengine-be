@@ -15,6 +15,7 @@ import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.infra.AccountRepository;
 import com.cleanengine.coin.user.info.infra.WalletRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -39,6 +40,7 @@ public class TradeService {
         return tradeRepository.save(trade);
     }
 
+    @Transactional
     public Order saveOrder(Order order) {
         if (order instanceof BuyOrder) {
             return buyOrderRepository.save((BuyOrder) order);

@@ -30,7 +30,7 @@ public class TradeServiceImpl implements TradeService {
     @Override
     public Trade generateRandomTrade() {
         // 임의의 티커 목록
-        String[] tickers = {"BTC", "OPTICAL_TRUMP"};
+        String[] tickers = {"BTC", "TRUMP"};
         String ticker = tickers[random.nextInt(tickers.length)];
 
         // 가격: 1000 ~ 50000 (소수점 2자리로 반올림)

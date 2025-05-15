@@ -28,11 +28,9 @@ public class ChartDataController {
     @Scheduled(fixedRate = 1000)
     public void publishRealTimeOhlc() {
         try {
-//            log.debug("△ 실시간 OHLC 데이터 스케줄러 실행");
-
             // 구독된 티커가 없으면 조기 종료
             if (subscriptionService.getAllRealTimeOhlcSubscribedTickers().isEmpty()) {
-//                log.debug("실시간 OHLC 구독된 티커 없음, 전송 생략");
+//                log.info("실시간 OHLC 구독된 티커 없음, 전송 생략");
                 return;
             }
 

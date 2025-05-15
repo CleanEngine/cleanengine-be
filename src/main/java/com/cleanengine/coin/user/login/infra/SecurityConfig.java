@@ -1,9 +1,9 @@
 package com.cleanengine.coin.user.login.infra;
 
+import com.cleanengine.coin.user.login.application.CustomOAuth2UserService;
 import com.cleanengine.coin.user.login.application.CustomSuccessHandler;
 import com.cleanengine.coin.user.login.application.JWTFilter;
 import com.cleanengine.coin.user.login.application.JWTUtil;
-import com.cleanengine.coin.user.login.application.CustomOAuth2UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -80,7 +80,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/coin/min/info"
                         ).permitAll().requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/healthcheck", "/api/oauth2/**", "/api/login/**", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()

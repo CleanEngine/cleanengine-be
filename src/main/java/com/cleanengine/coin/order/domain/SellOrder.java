@@ -87,4 +87,13 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
         
         return this.createdAt.compareTo(order.createdAt);
     }
+
+    public void decreaseRemainingSize(Double amount) {
+        if (remainingSize >= amount) {
+            remainingSize -= amount;
+        } else {
+            throw new IllegalArgumentException("주문의 잔여 수량은 0 이상이어야 합니다.");
+        }
+    }
+
 }

@@ -67,7 +67,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             Account newAccount = new Account();
             newAccount.setUserId(newUser.getId());
-            newAccount.setCash((double) 50_000_000);
+            newAccount.setCash((double) 50_000_000_000L);
             accountRepository.save(newAccount);
 
             UserOAuthDetails userOAuthDetails = new UserOAuthDetails(newUser, newOAuth);

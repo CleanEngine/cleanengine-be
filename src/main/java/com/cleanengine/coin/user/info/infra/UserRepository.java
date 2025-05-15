@@ -31,14 +31,13 @@ public interface UserRepository extends JpaRepository<User, Integer> {
                 o.email,
                 o.nickname,
                 o.provider,
-                a.cash
+                a.cash,
+                null
             )
         FROM User u
         JOIN OAuth o ON u.id = o.userId
         LEFT JOIN Account a ON a.userId = u.id
-        WHERE o.provider = :provider
-          AND o.providerUserId = :providerUserId
+        WHERE u.id = :userId
     """)
-    UserInfoDTO findUserInfoByProviderAndProviderId(@Param("provider") String provider, @Param("providerUserId") String providerUserId);
-
+    UserInfoDTO retrieveUserInfoByUserId(Integer userId);
 }

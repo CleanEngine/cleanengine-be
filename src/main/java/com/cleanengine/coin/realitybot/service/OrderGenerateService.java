@@ -3,14 +3,21 @@ package com.cleanengine.coin.realitybot.service;
 import com.cleanengine.coin.common.error.DomainValidationException;
 import com.cleanengine.coin.configuration.bootstrap.DBInitRunner;
 import com.cleanengine.coin.order.application.OrderService;
+import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
+import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.user.domain.Account;
+import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
+import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 
 @Slf4j
 @Service
@@ -24,6 +31,8 @@ public class OrderGenerateService {
     private final DBInitRunner dbInitRunner;
     private final TradeRepository tradeRepository;
     private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
+    private final WalletExternalRepository walletExternalRepository;
+    private final AccountExternalRepository accountExternalRepository;
 
 
         //TODO 비동기 처리로 전환 필요 + 시장 확인 후 주문량에 따른 오더 조절 필요
@@ -176,12 +185,28 @@ public class OrderGenerateService {
         } catch (DomainValidationException e) {
             log.warn("잔량 부족: {}", e.getMessage());
             try {
-                dbInitRunner.run();
+                resetBot();
                 orderService.createOrderWithBot(ticker, isBuy, volume, price);
             } catch (Exception e1) {
                 log.error("주문 재시도 실패", e1);
             }
         }
+    }
+
+    protected void resetBot(){
+        Wallet wallet = walletExternalRepository.findWalletBy(SELL_ORDER_BOT_ID,"TRUMP").get();
+        wallet.setSize(500_000_000.0);
+        Wallet wallet2 = walletExternalRepository.findWalletBy(BUY_ORDER_BOT_ID,"TRUMP").get();
+        wallet2.setSize(0.0);
+        walletExternalRepository.save(wallet);
+        walletExternalRepository.save(wallet2);
+
+        Account account = accountExternalRepository.findByUserId(SELL_ORDER_BOT_ID).get();
+        account.setCash(0.0);
+        Account account2 = accountExternalRepository.findByUserId(BUY_ORDER_BOT_ID).get();
+        account2.setCash(500_000_000.0);
+        accountExternalRepository.save(account);
+        accountExternalRepository.save(account2);
     }
 
     //==================================order 정규화용 ============================================

@@ -1,9 +1,9 @@
 package com.cleanengine.coin.user.login.infra;
 
-import com.cleanengine.coin.user.login.application.CustomOAuth2UserService;
 import com.cleanengine.coin.user.login.application.CustomSuccessHandler;
 import com.cleanengine.coin.user.login.application.JWTFilter;
 import com.cleanengine.coin.user.login.application.JWTUtil;
+import com.cleanengine.coin.user.login.application.CustomOAuth2UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(Collections.singletonList(frontendBaseUrl));
+                    configuration.setAllowedOrigins(Collections.singletonList(frontendUrl));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -81,11 +81,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
+                                "/coin/min/info",
                                 "/coin/min/**", // 웹소켓 엔드포인트 추가
                                 "/coin/realtime/**" // 웹소켓 엔드포인트 추가
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                "/coin/min/info"
                         ).permitAll().requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/healthcheck", "/api/oauth2/**", "/api/login/**", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()

@@ -1,5 +1,6 @@
 package com.cleanengine.coin.trade.application;
 
+import com.cleanengine.coin.chart.dto.TradeEventDto;
 import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
@@ -89,4 +90,16 @@ public class TradeBatchProcessor implements ApplicationRunner {
             }
         }
     }
+
+    public TradeEventDto retrieveTradeEventDto(String ticker) {
+        TradeQueueManager tradeQueueManager = this.tradeQueueManagers.get(ticker);
+        TradeEventDto lastTradeEventDto = tradeQueueManager.getLastTradeEventDto();
+
+        // 서비스 시작 후 체결 내역이 없으면 null 반환
+        if (lastTradeEventDto.getSize() == 0.0 || lastTradeEventDto.getPrice() == 0.0) {
+            return null;
+        }
+        return lastTradeEventDto;
+    }
+
 }

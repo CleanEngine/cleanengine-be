@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,7 +31,7 @@ public class RealTimeTradeService {
         // 거래 데이터가 없는 경우 처리
         if(tradeEventDto == null){
             log.warn("실시간 거래 데이터가 존재하지않습니다: {}", ticker);
-            return new RealTimeDataDto(ticker, 0, 0, 0, LocalDateTime.now());
+            return new RealTimeDataDto(ticker, 0, 0, 0, LocalDateTime.now(), UUID.randomUUID().toString());
         }
 
         // 현재 가격 및 시간 정보 추출
@@ -60,7 +62,8 @@ public class RealTimeTradeService {
                 currentSize,
                 currentPrice,
                 changeRate,
-                currentTime
+                currentTime,
+                UUID.randomUUID().toString()
         );
     }
 }

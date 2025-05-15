@@ -36,6 +36,7 @@ public class JWTFilter extends OncePerRequestFilter {
         if (requestUri.startsWith("/api/login") ||
                 requestUri.startsWith("/api/oauth2") ||
                 requestUri.startsWith("/api/healthcheck") ||
+                requestUri.startsWith("/coin/min/info") ||
                 requestUri.startsWith("/h2-console") ||
                 requestUri.startsWith("/favicon.ico")) {
 

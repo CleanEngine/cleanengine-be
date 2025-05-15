@@ -15,4 +15,5 @@ public class RealTimeDataDto {
     private double price;
     private double changeRate;
     private LocalDateTime timestamp;
+    private String transactionId;
 }

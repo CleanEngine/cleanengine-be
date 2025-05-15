@@ -5,6 +5,7 @@ import com.cleanengine.coin.order.application.OrderInfo;
 import com.cleanengine.coin.order.application.port.AccountUpdatePort;
 import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.BuyOrder;
+import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.domainservice.CreateBuyOrderDomainService;
 import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
 import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
@@ -48,8 +49,8 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     }
 
     @Override
-    public OrderInfo.BuyOrderInfo extractOrderInfo(BuyOrder order) {
-        return new OrderInfo.BuyOrderInfo(order);
+    public OrderInfo.BuyOrderInfo extractOrderInfo(Order order) {
+        return new OrderInfo.BuyOrderInfo((BuyOrder) order);
     }
 
     @Override
@@ -60,11 +61,6 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     @Override
     protected void keepHoldings(BuyOrder order) throws RuntimeException {
         accountUpdatePort.lockDepositForBuyOrder(order.getUserId(), order.getLockedDeposit());
-    }
-
-    @Override
-    protected OrderQueueManagerPool orderQueueManagerPool() {
-        return orderQueueManagerPool;
     }
 
     @Override

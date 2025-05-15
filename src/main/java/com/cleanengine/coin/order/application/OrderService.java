@@ -1,8 +1,10 @@
 package com.cleanengine.coin.order.application;
 
 import com.cleanengine.coin.order.application.strategy.CreateOrderStrategy;
+import com.cleanengine.coin.order.domain.Order;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,12 +21,15 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 @Validated
 public class OrderService { //facade
     private final List<CreateOrderStrategy<?, ?>> createOrderStrategies;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public OrderInfo<?> createOrder(@Valid OrderCommand.CreateOrder createOrder){
         CreateOrderStrategy<?, ?> createOrderStrategy = createOrderStrategies.stream()
                 .filter(strategy -> strategy.supports(createOrder.isBuyOrder())).findFirst().orElseThrow();
-        return createOrderStrategy.processCreatingOrder(createOrder);
+        Order order  = createOrderStrategy.processCreatingOrder(createOrder);
+        applicationEventPublisher.publishEvent(new OrderCreated(order));
+        return createOrderStrategy.extractOrderInfo(order);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

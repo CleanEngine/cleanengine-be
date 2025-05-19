@@ -39,7 +39,7 @@ public class RealTimeDataPrevRateService {
         Trade currentTrade = tradeRepository.findFirstByTickerOrderByTradeTimeDesc(ticker);
 
         if (yesterdayLastTrade == null || currentTrade == null) {
-            log.warn("전일 또는 현재 거래 데이터가 없습니다: {}", ticker);
+//            log.warn("전일 또는 현재 거래 데이터가 없습니다: {}", ticker);
             return new PrevRateDto(ticker, 0.0, 0.0, 0.0, LocalDateTime.now());
         }
 

@@ -23,7 +23,7 @@ public class RealTimeTradeController {
      */
     @MessageMapping("/subscribe/realTimeTradeRate/{ticker}")
     public void realTimeTradeRate(@DestinationVariable String ticker) {
-        log.info("티커 {} 실시간 구독 요청", ticker);
+//        log.info("티커 {} 실시간 구독 요청", ticker);
 
         // 서비스로부터 DTO 생성
         RealTimeDataDto data = realTimeTradeService.generateRealTimeData(ticker);

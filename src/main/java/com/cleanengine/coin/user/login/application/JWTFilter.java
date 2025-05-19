@@ -42,7 +42,8 @@ public class JWTFilter extends OncePerRequestFilter {
                 requestUri.startsWith("/coin/realtime") ||
                 requestUri.startsWith("/coin/min/info") ||
                 requestUri.startsWith("/h2-console") ||
-                requestUri.startsWith("/favicon.ico")) {
+                requestUri.startsWith("/favicon.ico") ||
+                requestUri.startsWith("/api/minute-ohlc")) {
 
             filterChain.doFilter(request, response);
             return;

@@ -82,7 +82,8 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/coin/min/info",
                                 "/coin/min/**", // 웹소켓 엔드포인트 추가
-                                "/coin/realtime/**" // 웹소켓 엔드포인트 추가
+                                "/coin/realtime/**", // 웹소켓 엔드포인트 추가
+                                "/api/minute-ohlc" //차트 과거 데이터
                         ).permitAll().requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/healthcheck", "/api/oauth2/**", "/api/login/**", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()

@@ -39,8 +39,9 @@ public class JWTFilter extends OncePerRequestFilter {
                 requestUri.startsWith("/v3/api-docs") ||
                 requestUri.startsWith("/swagger") ||
                 requestUri.startsWith("/webjars") ||
-                requestUri.startsWith("/coin/realtime") ||
-                requestUri.startsWith("/coin/min/info") ||
+                requestUri.startsWith("/api/coin/realtime") ||
+                requestUri.startsWith("/api/coin/min/info") ||
+                requestUri.startsWith("/api/coin/min") ||
                 requestUri.startsWith("/h2-console") ||
                 requestUri.startsWith("/favicon.ico") ||
                 requestUri.startsWith("/api/minute-ohlc")) {

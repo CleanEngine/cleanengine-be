@@ -4,6 +4,7 @@ import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;
 import com.cleanengine.coin.realitybot.service.TickService;
 import com.cleanengine.coin.realitybot.service.VirtualTradeService;
+import com.cleanengine.coin.realitybot.vo.APITicker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
@@ -24,11 +25,24 @@ public class ApiScheduler implements DisposableBean {
     private long lastMaxSequentialId = 1L;
     private final Queue<Ticks> ticksQueue;
     private final VirtualTradeService virtualTradeService;
+//    private final APITicker apiTicker;
+    private String ticker;
 
 
-    @Scheduled(fixedRate = 5000) //5초마다 실행
-    public void MarketDataRequest(){
-        String rawJson = bithumbAPIClient.get(); //api raw데이터
+    @Scheduled(fixedRate = 5000)
+    public void MarketAllRequest() throws InterruptedException {
+        for (APITicker tickers : APITicker.values()){
+            ticker = tickers.getName();
+            MarketDataRequest(ticker);
+            Thread.sleep(100);
+            System.out.println("==================="+ticker+"실행");
+        }
+    }
+
+//    @Scheduled(fixedRate = 5000) //5초마다 실행
+    public void MarketDataRequest(String ticker){
+        this.ticker = ticker;
+        String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
         List<Ticks> gson = TickService.paraseGson(rawJson); //json을 list로 변환
 
         //api 중복검사하여 queue에 저장하기

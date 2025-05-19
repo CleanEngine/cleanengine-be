@@ -1,7 +1,6 @@
 package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.configuration.bootstrap.DBInitRunner;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
 import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
@@ -28,7 +27,6 @@ public class OrderGenerateService {
     private final OrderQueueManagerService queueManager;
     private final PlatformVWAPService platformVWAPService;
     private final OrderService orderService;
-    private final DBInitRunner dbInitRunner;
     private final TradeRepository tradeRepository;
     private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
     private final WalletExternalRepository walletExternalRepository;
@@ -183,12 +181,12 @@ public class OrderGenerateService {
         try {
             orderService.createOrderWithBot(ticker, isBuy, volume, price);
         } catch (DomainValidationException e) {
-            log.warn("잔량 부족: {}", e.getMessage());
+//            log.warn("잔량 부족: {}", e.getMessage());
             try {
                 resetBot();
                 orderService.createOrderWithBot(ticker, isBuy, volume, price);
             } catch (Exception e1) {
-                log.error("주문 재시도 실패", e1);
+//                log.error("주문 재시도 실패", e1);
             }
         }
     }

@@ -11,6 +11,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    private static final String[] ALLOWED_ORIGINS = {
+            "http://localhost:63342",
+            "http://localhost:8080",
+            "http://localhost:5500",
+            "http://localhost:5173",
+            "https://investfuture.my"
+    };
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic"); //메세지 브로커로 라우팅 되어야한다
@@ -19,18 +27,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry
-                .addEndpoint("/api/coin/min") //endPoint 지정
-                //추후 cors url추가
-    .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
-        registry
-                .addEndpoint("/api/coin/realtime")
-                .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
-        registry
-                .addEndpoint("/api/coin/orderbook")
-                .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
+        registerEndpoint(registry, "/api/coin/min");
+        registerEndpoint(registry, "/api/coin/realtime");
+        registerEndpoint(registry, "/api/coin/orderbook");
     }
 
+    private void registerEndpoint(StompEndpointRegistry registry, String endpoint) {
+        registry.addEndpoint(endpoint)
+                .setAllowedOrigins(ALLOWED_ORIGINS);
+    }
 
 }
 

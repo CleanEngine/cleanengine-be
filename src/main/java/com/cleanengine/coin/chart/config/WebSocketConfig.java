@@ -20,14 +20,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
-                .addEndpoint("/coin/min") //endPoint 지정
+                .addEndpoint("/api/coin/min") //endPoint 지정
                 //추후 cors url추가
     .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
         registry
-                .addEndpoint("/coin/realtime")
+                .addEndpoint("/api/coin/realtime")
                 .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
         registry
-                .addEndpoint("/coin/orderbook")
+                .addEndpoint("/api/coin/orderbook")
                 .setAllowedOrigins("http://localhost:63342", "http://localhost:8080", "http://localhost:5500", "http://localhost:5173");
     }
 

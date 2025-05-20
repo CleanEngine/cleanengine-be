@@ -65,13 +65,13 @@ public class ApiScheduler implements DisposableBean {
             orderGenerateService.generateOrder(tickService.getVwap(),(tickService.getTotalVolume()/30)); //1tick 당 매수/매도 3개씩 제작
 //            virtualTradeService.matchOrder();//일치하면 체결 진행 TODO 합칠 때 제거
             virtualTradeService.matchOrderbyIterator();//일치하면 체결 진행 TODO 합칠 때 제거
-        };
+        }
 
-    };
+    }
     @Override
     public void destroy() throws Exception { //담긴 Queue데이터 확인용
 //        log.info("종료 전 큐 데이터 출력");
-        ticksQueue.forEach(tick -> log.info(tick.toString())); //
+        ticksQueue.forEach(tick -> log.debug(tick.toString())); //
 //        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
 //        orderQueueManagerService.logAllOrders();
 //        virtualTradeService.printOrderSummary();

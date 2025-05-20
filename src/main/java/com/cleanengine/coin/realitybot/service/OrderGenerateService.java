@@ -28,7 +28,6 @@ public class OrderGenerateService {
     private final OrderQueueManagerService queueManager;
     private final PlatformVWAPService platformVWAPService;
     private final OrderService orderService;
-    private final DBInitRunner dbInitRunner;
     private final TradeRepository tradeRepository;
     private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
     private final WalletExternalRepository walletExternalRepository;

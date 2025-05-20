@@ -52,7 +52,7 @@ public class VirtualTradeService {
             if (sellOrder.getVolume() <= 0) sellQueue.poll();
 
             //VWAP 계산을 위한 거래 기록 TODO JPA로 받아온 값이 들어가야 함
-            platformVWAPService.recordTrade(matchedPrice,matchedVolume);
+//            platformVWAPService.recordTrade(matchedPrice,matchedVolume);
             } //쌓이긴 하는데 100원따리로 쌓임 , generateorder가 0원 받을 때 해결해야 함.
             else {
                 break;
@@ -78,7 +78,7 @@ public class VirtualTradeService {
                     double matchVolume = Math.min(buyOrder.getVolume(), sellOrder.getVolume());
                     if (matchVolume <=0) continue;
 //                    System.out.printf("=== 체결 완료 : %.1f / %.4f \n",sellOrder.getPrice(),matchVolume);
-                    platformVWAPService.recordTrade(sellOrder.getPrice(),matchVolume);
+//                    platformVWAPService.recordTrade(sellOrder.getPrice(),matchVolume);
 
                     buyOrder.setVolume(buyOrder.getVolume() - matchVolume);
                     sellOrder.setVolume(sellOrder.getVolume() - matchVolume);

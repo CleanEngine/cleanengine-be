@@ -31,18 +31,18 @@ public class OrderGenerateService {
     private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
     private final WalletExternalRepository walletExternalRepository;
     private final AccountExternalRepository accountExternalRepository;
-
+    private String ticker;
 
         //TODO 비동기 처리로 전환 필요 + 시장 확인 후 주문량에 따른 오더 조절 필요
-    public void generateOrder(double apiVWAP, double avgVolum) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
-
+    public void generateOrder(String ticker, double apiVWAP, double avgVolum) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
+        this.ticker = ticker;
         //todo 여기에 recordTrade를 불러 올 예정
         //불러와서 vwap을 넣어야 함
-        List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc("TRUMP");
+        List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
 
         // Platform 기반 가격 , 최초 0.0원
 //        double platformVWAP = platformVWAPService.getPlatformVWAP(); //order를 넣고 체결한 trade queue 값을 기준으로 계산
-        double platformVWAP = platformVWAPService.calculateVWAPbyTrades(trades);
+        double platformVWAP = platformVWAPService.calculateVWAPbyTrades(ticker,trades);
         //todo 0513 이거 체결량 그만큼 채워지는 거 아니면 작동 안되도록 전환 필요
         if(platformVWAP == 0.0){ //최초 실행 시 vwap 계산
             platformVWAP = generateVirtualVWAP(apiVWAP); //0.1% 보정값 랜덤 생성
@@ -121,19 +121,19 @@ public class OrderGenerateService {
                         sellPrice = normalizeToUnit(apiVWAP * (1 - 0.002 * power)); // -0.6%
                     }
                 }
-                createOrderWithFallback("TRUMP",false, sellVolume,sellPrice);
-                createOrderWithFallback("TRUMP",true, buyVolume,buyPrice);
+                createOrderWithFallback(ticker,false, sellVolume,sellPrice);
+                createOrderWithFallback(ticker,true, buyVolume,buyPrice);
 
-                queueManager.addSellOrder(sellPrice, sellVolume);
-                queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
+//                queueManager.addSellOrder(sellPrice, sellVolume);
+//                queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
             } else {
 
                 //스위치 시켜야 할까?
-                createOrderWithFallback("TRUMP",false, sellVolume,sellPrice);
-                createOrderWithFallback("TRUMP",true, buyVolume,buyPrice);
+                createOrderWithFallback(ticker,false, sellVolume,sellPrice);
+                createOrderWithFallback(ticker,true, buyVolume,buyPrice);
 
-                queueManager.addSellOrder(sellPrice, sellVolume);
-                queueManager.addBuyOrder(buyPrice, buyVolume);
+//                queueManager.addSellOrder(sellPrice, sellVolume);
+//                queueManager.addBuyOrder(buyPrice, buyVolume);
 
             }
 
@@ -156,13 +156,14 @@ public class OrderGenerateService {
             System.out.println("====================================");
             System.out.println("현재 시장 vwap "+apiVWAP+"  현재 플랫폼 vwap"+platformVWAP);
             System.out.println("====================================");*/
+            System.out.println(ticker+"의 현재 시장 vwap "+apiVWAP+"  현재 플랫폼 vwap"+platformVWAP);
 //            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
         }
-/*        System.out.println("📦 [체결 기록 Top 10]");
+        System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.2f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
-        );*/
+        );
     }
 
     //todo VirtualMarketService 여기에도 있는데 공통화 필요? , 계수는 조금 다른긴함 -> vms 제거 대상
@@ -183,7 +184,7 @@ public class OrderGenerateService {
         } catch (DomainValidationException e) {
 //            log.warn("잔량 부족: {}", e.getMessage());
             try {
-                resetBot();
+                resetBot(ticker);
                 orderService.createOrderWithBot(ticker, isBuy, volume, price);
             } catch (Exception e1) {
 //                log.error("주문 재시도 실패", e1);
@@ -191,10 +192,11 @@ public class OrderGenerateService {
         }
     }
 
-    protected void resetBot(){
-        Wallet wallet = walletExternalRepository.findWalletBy(SELL_ORDER_BOT_ID,"TRUMP").get();
+    protected void resetBot(String ticker){
+        this.ticker = ticker;
+        Wallet wallet = walletExternalRepository.findWalletBy(SELL_ORDER_BOT_ID,ticker).get();
         wallet.setSize(500_000_000.0);
-        Wallet wallet2 = walletExternalRepository.findWalletBy(BUY_ORDER_BOT_ID,"TRUMP").get();
+        Wallet wallet2 = walletExternalRepository.findWalletBy(BUY_ORDER_BOT_ID,ticker).get();
         wallet2.setSize(0.0);
         walletExternalRepository.save(wallet);
         walletExternalRepository.save(wallet2);

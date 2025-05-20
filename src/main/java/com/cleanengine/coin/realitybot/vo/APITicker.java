@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum APITicker {
-    TRUMP("trump"), BTC("btc");
+    TRUMP("TRUMP"), BTC("BTC");
 
     private final String name;
      APITicker(String name) {

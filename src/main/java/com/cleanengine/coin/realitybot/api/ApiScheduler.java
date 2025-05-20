@@ -1,10 +1,11 @@
 package com.cleanengine.coin.realitybot.api;
 
+import com.cleanengine.coin.order.domain.Asset;
+import com.cleanengine.coin.order.infra.AssetRepository;
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;
 import com.cleanengine.coin.realitybot.service.TickService;
 import com.cleanengine.coin.realitybot.service.VirtualTradeService;
-import com.cleanengine.coin.realitybot.vo.APITicker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
@@ -26,20 +27,20 @@ public class ApiScheduler implements DisposableBean {
     private final Queue<Ticks> ticksQueue;
     private final VirtualTradeService virtualTradeService;
 //    private final APITicker apiTicker;
+    private final AssetRepository assetRepository;
     private String ticker;
 
 
     @Scheduled(fixedRate = 5000)
     public void MarketAllRequest() throws InterruptedException {
-        for (APITicker tickers : APITicker.values()){
-            ticker = tickers.getName();
-            MarketDataRequest(ticker);
+        List<Asset> tickers = assetRepository.findAll();
+        for (Asset ticker : tickers){
+            String tickerName = ticker.getTicker();
+            MarketDataRequest(tickerName);
             Thread.sleep(100);
-            System.out.println("==================="+ticker+"실행");
         }
     }
 
-//    @Scheduled(fixedRate = 5000) //5초마다 실행
     public void MarketDataRequest(String ticker){
         this.ticker = ticker;
         String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
@@ -59,10 +60,6 @@ public class ApiScheduler implements DisposableBean {
                 ticksQueue.add(ticks);
                 lastMaxSequentialId = Math.max(lastMaxSequentialId, ticks.getSequential_id()); //중복 id 갱신
 
-                /*모니터링용
-                System.out.println(ticks.getSequential_id());
-                System.out.println("if = "+ticksQueue.size());
-                */
             }
         }
 
@@ -71,22 +68,18 @@ public class ApiScheduler implements DisposableBean {
 
             tickService.processVWAP();//평균 체결 금액(VWAP) 구하기 (추세)
 
-            /*//모니터링용
-            log.info("generateOrder vwap 확인용 = {}",tickService.getVwap());
-            log.info("generateOrder volume 확인용 = {}",tickService.getTotalVolume());*/
-
             //생성 된 vwap으로 주문 로직 실행 TODO 비동기로 전환하기
-            orderGenerateService.generateOrder(tickService.getVwap(),(tickService.getTotalVolume()/30)); //1tick 당 매수/매도 3개씩 제작
+            orderGenerateService.generateOrder(ticker,tickService.getVwap(),(tickService.getTotalVolume()/30)); //1tick 당 매수/매도 3개씩 제작
 //            virtualTradeService.matchOrder();//일치하면 체결 진행 TODO 합칠 때 제거
-            virtualTradeService.matchOrderbyIterator();//일치하면 체결 진행 TODO 합칠 때 제거
+//            virtualTradeService.matchOrderbyIterator();//일치하면 체결 진행 TODO 합칠 때 제거
         };
 
     };
     @Override
     public void destroy() throws Exception { //담긴 Queue데이터 확인용
-//        log.info("종료 전 큐 데이터 출력");
+        log.info("종료 전 큐 데이터 출력");
         ticksQueue.forEach(tick -> log.info(tick.toString())); //
-//        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
+        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
 //        orderQueueManagerService.logAllOrders();
 //        virtualTradeService.printOrderSummary();
     }

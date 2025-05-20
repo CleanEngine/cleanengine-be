@@ -19,7 +19,7 @@ public class PrevRateController {
 
     @MessageMapping("/subscribe/prevRate/{ticker}")
     public void subscribePrevRate(@DestinationVariable String ticker) {
-        log.info("티커 {} 전일 대비 변동률 구독 요청", ticker);
+        log.debug("티커 {} 전일 대비 변동률 구독 요청", ticker);
 
         // 서비스를 통해 전일 대비 변동률 데이터 얻기
         PrevRateDto data = prevRateService.generatePrevRateData(ticker);

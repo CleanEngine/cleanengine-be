@@ -25,7 +25,7 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
   jwt:
-    secret: my-super-secret-key-for-jwt-generation-in-investfuture-project
+    secret: ${JWT_SECRET}
   jackson:
     time-zone: Asia/Seoul
   jpa:

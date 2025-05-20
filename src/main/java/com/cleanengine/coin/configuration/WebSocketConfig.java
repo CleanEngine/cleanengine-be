@@ -1,23 +1,26 @@
-package com.cleanengine.coin.chart.config;
+package com.cleanengine.coin.configuration;
 
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import com.cleanengine.coin.configuration.SecurityEndpoints.EndpointConfig;
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private static final String[] ALLOWED_ORIGINS = {
-            "http://localhost:63342",
-            "http://localhost:8080",
-            "http://localhost:5500",
-            "http://localhost:5173",
-            "https://investfuture.my"
-    };
+    private final EndpointConfig endpointConfig;
+
+    @Value("${spring.security.allowed-origins}")
+    private String[] allowedOrigins;
+
+    public WebSocketConfig(EndpointConfig endpointConfig) {
+        this.endpointConfig = endpointConfig;
+    }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -27,14 +30,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registerEndpoint(registry, "/api/coin/min");
-        registerEndpoint(registry, "/api/coin/realtime");
-        registerEndpoint(registry, "/api/coin/orderbook");
+        endpointConfig.getWebsocketEndpoints()
+                .forEach(endpoint -> registerEndpoint(registry, endpoint));
+
     }
 
     private void registerEndpoint(StompEndpointRegistry registry, String endpoint) {
         registry.addEndpoint(endpoint)
-                .setAllowedOrigins(ALLOWED_ORIGINS);
+                .setAllowedOrigins(allowedOrigins);
     }
 
 }

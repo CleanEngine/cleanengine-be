@@ -36,7 +36,7 @@ public class WebSocketMessageController {
         RealTimeOhlcDto latestOhlcData = realTimeOhlcService.getRealTimeOhlc(ticker);
 
         if (latestOhlcData == null) {
-            log.warn("티커 {}의 실시간 OHLC 데이터가 없습니다.", ticker);
+            log.debug("티커 {}의 실시간 OHLC 데이터가 없습니다.", ticker);
             // 데이터가 없으면 빈 데이터 전송
             messagingTemplate.convertAndSend("/topic/realTimeOhlc/" + ticker, createEmptyRealTimeOhlcDto(ticker));
         } else {

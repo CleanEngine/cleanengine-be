@@ -30,7 +30,7 @@ public class RealTimeTradeService {
 
         // 거래 데이터가 없는 경우 처리
         if(tradeEventDto == null){
-            log.warn("실시간 거래 데이터가 존재하지않습니다: {}", ticker);
+            log.debug("실시간 거래 데이터가 존재하지않습니다: {}", ticker);
             return new RealTimeDataDto(ticker, 0, 0, 0, LocalDateTime.now(), UUID.randomUUID().toString());
         }
 

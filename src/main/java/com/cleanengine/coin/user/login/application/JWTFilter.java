@@ -3,6 +3,7 @@ package com.cleanengine.coin.user.login.application;
 import com.cleanengine.coin.common.response.ApiResponse;
 import com.cleanengine.coin.common.response.ErrorResponse;
 import com.cleanengine.coin.common.response.ErrorStatus;
+import com.cleanengine.coin.configuration.SecurityEndpoints.EndpointConfig;
 import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
 import com.cleanengine.coin.user.login.infra.UserOAuthDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,8 +25,11 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
 
-    public JWTFilter(JWTUtil jwtUtil) {
+    private final EndpointConfig endpointConfig;
+
+    public JWTFilter(JWTUtil jwtUtil, EndpointConfig endpointConfig) {
         this.jwtUtil = jwtUtil;
+        this.endpointConfig = endpointConfig;
     }
 
     @Override
@@ -33,19 +37,7 @@ public class JWTFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
 
-        if (requestUri.startsWith("/api/login") ||
-                requestUri.startsWith("/api/oauth2") ||
-                requestUri.startsWith("/api/healthcheck") ||
-                requestUri.startsWith("/v3/api-docs") ||
-                requestUri.startsWith("/swagger") ||
-                requestUri.startsWith("/webjars") ||
-                requestUri.startsWith("/api/coin/realtime") ||
-                requestUri.startsWith("/api/coin/min/info") ||
-                requestUri.startsWith("/api/coin/min") ||
-                requestUri.startsWith("/h2-console") ||
-                requestUri.startsWith("/favicon.ico") ||
-                requestUri.startsWith("/api/minute-ohlc")) {
-
+        if (endpointConfig.isPublicPath(requestUri)) {
             filterChain.doFilter(request, response);
             return;
         }

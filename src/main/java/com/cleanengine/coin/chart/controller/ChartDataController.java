@@ -45,7 +45,7 @@ public class ChartDataController {
                     RealTimeOhlcDto ohlcData = realTimeOhlcService.getRealTimeOhlc(ticker);
 
                     if (ohlcData == null) {
-                        log.warn("티커 {}의 실시간 OHLC 데이터가 없습니다. 빈 데이터 전송", ticker);
+                        log.debug("티커 {}의 실시간 OHLC 데이터가 없습니다. 빈 데이터 전송", ticker);
                         RealTimeOhlcDto emptyData = new RealTimeOhlcDto();
                         emptyData.setTicker(ticker);
                         emptyData.setTimestamp(LocalDateTime.now());

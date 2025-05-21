@@ -12,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,8 +34,8 @@ public class JWTFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response,
+                                    @NotNull FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
 
         if (endpointConfig.isPublicPath(requestUri)) {
@@ -61,15 +62,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
             // JWT 토큰 검증 및 클레임 파싱 (이 과정에서 서명 검증 실패하면 JwtException 발생)
             Integer userId = jwtUtil.getUserId(authorizationToken);
-            String provider = jwtUtil.getProvider(authorizationToken);
-            String providerUserId = jwtUtil.getProviderUserId(authorizationToken);
 
             // 토큰 만료 검증
             if (jwtUtil.isExpired(authorizationToken)) {
                 throw new IllegalArgumentException("Token is expired");
             }
 
-            Authentication authToken = getAuthentication(userId, provider, providerUserId);
+            Authentication authToken = getAuthentication(userId);
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
             filterChain.doFilter(request, response);
@@ -82,11 +81,9 @@ public class JWTFilter extends OncePerRequestFilter {
         }
     }
 
-    private static Authentication getAuthentication(Integer userId, String provider, String providerUserId) {
+    private static Authentication getAuthentication(Integer userId) {
         UserOAuthDetails userOAuthDetails = new UserOAuthDetails();
         userOAuthDetails.setUserId(userId);
-        userOAuthDetails.setProvider(provider);
-        userOAuthDetails.setProviderUserId(providerUserId);
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(userOAuthDetails);
 
         // 스프링 시큐리티 인증 토큰 생성

@@ -5,8 +5,14 @@ import com.cleanengine.coin.order.application.OrderInfo;
 import com.cleanengine.coin.order.application.port.AccountUpdatePort;
 import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.BuyOrder;
+import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.domainservice.CreateBuyOrderDomainService;
+import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
+import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
 import com.cleanengine.coin.order.infra.BuyOrderRepository;
+import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
+import com.cleanengine.coin.user.domain.Account;
+import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +23,10 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     private final CreateBuyOrderDomainService createOrderDomainService;
     private final OrderQueueManagerPool orderQueueManagerPool;
     private final AccountUpdatePort accountUpdatePort;
+    private final UpdateOrderBookUsecase updateOrderBookUsecase;
+    private final WalletExternalRepository walletRepository;
+    private final AccountExternalRepository accountRepository;
 
-    // TODO buyOrder만의 검증 내용 포함
     @Override
     public BuyOrder createOrder(OrderCommand.CreateOrder createOrderCommand) {
         return createOrderDomainService.createOrder(createOrderCommand.ticker(), createOrderCommand.userId(),
@@ -32,8 +40,17 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     }
 
     @Override
-    public OrderInfo.BuyOrderInfo extractOrderInfo(BuyOrder order) {
-        return new OrderInfo.BuyOrderInfo(order);
+    protected void createWallet(Integer userId, String ticker) {
+        if(walletRepository.findWalletBy(userId, ticker).isEmpty()){
+            Account account = accountRepository.findByUserId(userId).orElseThrow();
+            Wallet wallet = new Wallet(null, ticker, account.getId(), 0.0, 0.0, 0.0);
+            walletRepository.save(wallet);
+        }
+    }
+
+    @Override
+    public OrderInfo.BuyOrderInfo extractOrderInfo(Order order) {
+        return new OrderInfo.BuyOrderInfo((BuyOrder) order);
     }
 
     @Override
@@ -47,7 +64,7 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
     }
 
     @Override
-    protected OrderQueueManagerPool orderQueueManagerPool() {
-        return orderQueueManagerPool;
+    protected void updateOrderBook(BuyOrder order) {
+        updateOrderBookUsecase.updateOrderBookOnNewOrder(order);
     }
 }

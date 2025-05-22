@@ -25,26 +25,14 @@ public class JWTUtil {
 
     }
 
-    public String getProvider(String token) {
-
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("provider", String.class);
-    }
-
-    public String getProviderUserId(String token) {
-
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("providerUserId", String.class);
-    }
-
     public Boolean isExpired(String token) {
 
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
-    public String createJwt(Integer userId, String provider, String providerUserId, Long expiredMs) {
+    public String createJwt(Integer userId, Long expiredMs) {
         return Jwts.builder()
                 .claim("userId", userId)
-                .claim("provider", provider)
-                .claim("providerUserId", providerUserId)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(secretKey)

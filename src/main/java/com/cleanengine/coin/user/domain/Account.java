@@ -25,4 +25,25 @@ public class Account {
     @Column(name = "cash", nullable = false)
     private Double cash;
 
+    // Cash 증가
+    public Account increaseCash(Double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Increase amount must be greater than zero.");
+        }
+        this.cash += amount;
+        return this;
+    }
+
+    // Cash 감소
+    public Account decreaseCash(Double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Decrease amount must be greater than zero.");
+        }
+        if (this.cash < amount) {
+            throw new IllegalArgumentException("Cannot decrease cash. Available cash: " + this.cash + ", requested: " + amount);
+        }
+        this.cash -= amount;
+        return this;
+    }
+
 }

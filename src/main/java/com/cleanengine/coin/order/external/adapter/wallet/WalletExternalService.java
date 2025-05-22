@@ -21,12 +21,17 @@ public class WalletExternalService implements WalletUpdatePort {
             throw new DomainValidationException("orderSize must be positive",
                     List.of(new FieldError("SellOrder", "orderSize", "orderSize must be positive")));
         }
+        Wallet wallet = findWalletBy(userId, ticker);
+        lockAssetService.lockAsset(wallet, orderSize);
+    }
+
+    private Wallet findWalletBy(Integer userId, String ticker) {
         Wallet wallet = walletRepository
                 .findWalletBy(userId, ticker)
                 .orElseThrow(()->
                         new DomainValidationException("Wallet not found",
                                 List.of(new FieldError("wallet", "userId", "user might not exist"),
                                         new FieldError("wallet", "ticker", "ticker might be wrong"))));
-        lockAssetService.lockAsset(wallet, orderSize);
+        return wallet;
     }
 }

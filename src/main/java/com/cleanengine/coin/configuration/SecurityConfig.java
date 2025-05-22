@@ -1,5 +1,6 @@
-package com.cleanengine.coin.user.login.infra;
+package com.cleanengine.coin.configuration;
 
+import com.cleanengine.coin.configuration.SecurityEndpoints.EndpointConfig;
 import com.cleanengine.coin.user.login.application.CustomSuccessHandler;
 import com.cleanengine.coin.user.login.application.JWTFilter;
 import com.cleanengine.coin.user.login.application.JWTUtil;
@@ -17,6 +18,7 @@ import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationF
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,24 +29,28 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final JWTUtil jwtUtil;
+    private final EndpointConfig endpointConfig;
 
     @Value("${frontend.url}")
     private String frontendUrl;
 
     public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
-                          CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil) {
+                          CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil, EndpointConfig endpointConfig) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customSuccessHandler = customSuccessHandler;
         this.jwtUtil = jwtUtil;
+        this.endpointConfig = endpointConfig;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        String frontendBaseUrl = buildBaseUrl(new URI(frontendUrl));
+
         http
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(Collections.singletonList(frontendUrl));
+                    configuration.setAllowedOrigins(Collections.singletonList(frontendBaseUrl));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -56,22 +62,22 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .addFilterAfter(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class)
+                .addFilterBefore(new JWTFilter(jwtUtil, endpointConfig), OAuth2LoginAuthenticationFilter.class)
                 .oauth2Login(oauth -> oauth
-                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
-                                .userService(customOAuth2UserService))
-                        .successHandler(customSuccessHandler)
+                                .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
+                                        .userService(customOAuth2UserService))
+                                .successHandler(customSuccessHandler)
 //                        .failureHandler(customFailureHandler) // TODO 로그인 실패 처리
-                        .authorizationEndpoint(endpoint -> endpoint
-                                .baseUri("/api/oauth2/authorization")
-                        )
-                        .redirectionEndpoint(endpoint -> endpoint
-                                .baseUri("/api/login/oauth2/code/*")
-                        )
+                                .authorizationEndpoint(endpoint -> endpoint
+                                        .baseUri("/api/oauth2/authorization")
+                                )
+                                .redirectionEndpoint(endpoint -> endpoint
+                                        .baseUri("/api/login/oauth2/code/*")
+                                )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/healthcheck", "/api/oauth2/**", "/api/login/**", "/h2-console/**").permitAll()
+                        .requestMatchers(endpointConfig.getPublicPathPatterns()).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // pre-flight 허용
                         .anyRequest().authenticated()
                 )
                 .sessionManagement((session) -> session
@@ -83,6 +89,14 @@ public class SecurityConfig {
         // TODO : OAuth 플랫폼 API의 access_token, refresh_token 관리
 
         return http.build();
+    }
+
+    private String buildBaseUrl(URI uri) {
+        return String.format("%s://%s%s", 
+            uri.getScheme(), 
+            uri.getHost(), 
+            uri.getPort() == -1 ? "" : ":" + uri.getPort()
+        );
     }
 
 }

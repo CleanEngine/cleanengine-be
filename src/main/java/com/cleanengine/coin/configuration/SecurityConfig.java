@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(Collections.singletonList(frontendBaseUrl));
+                    configuration.setAllowedOrigins(List.of(frontendBaseUrl,"http://localhost:63343"));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));

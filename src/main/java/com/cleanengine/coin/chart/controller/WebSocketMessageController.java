@@ -3,7 +3,9 @@ package com.cleanengine.coin.chart.controller;
 import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
 import com.cleanengine.coin.chart.service.ChartSubscriptionService;
 import com.cleanengine.coin.chart.service.RealTimeOhlcService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -60,15 +62,10 @@ public class WebSocketMessageController {
     /**
      * WebSocket 매핑용 DTO
      */
+    @Setter
+    @Getter
     public static class RealTimeTradeMappingDto {
         private String ticker;
 
-        public String getTicker() {
-            return ticker;
-        }
-
-        public void setTicker(String ticker) {
-            this.ticker = ticker;
-        }
     }
 }

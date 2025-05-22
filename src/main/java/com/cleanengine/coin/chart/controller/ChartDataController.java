@@ -2,9 +2,9 @@ package com.cleanengine.coin.chart.controller;
 
 
 import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
-//import com.cleanengine.coin.chart.Dto.RealTimeTradeDto;
-import com.cleanengine.coin.chart.service.*;
 import com.cleanengine.coin.chart.service.ChartSubscriptionService;
+import com.cleanengine.coin.chart.service.RealTimeOhlcService;
+import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
+@WorkingServerProfile
 @RequiredArgsConstructor
 @Slf4j
 public class ChartDataController {

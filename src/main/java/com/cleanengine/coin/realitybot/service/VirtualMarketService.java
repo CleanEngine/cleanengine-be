@@ -9,14 +9,14 @@ import java.util.Random;
 @Slf4j
 public class VirtualMarketService {//이거 안씀이젬
     private final Random random = new Random();
-    private final TickService tickService;
+    private final TickParser tickParser;
 
     //1회용 으로 전환
     private boolean initialized = false;
     private double initialVWAP;
 
-    public VirtualMarketService(TickService tickService) {
-        this.tickService = tickService;
+    public VirtualMarketService(TickParser tickParser) {
+        this.tickParser = tickParser;
     }
 
 //    public double switcherVWAP(Queue<Ticks> ticksQueue, double platformVWAP){

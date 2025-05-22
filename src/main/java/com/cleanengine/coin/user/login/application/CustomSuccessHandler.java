@@ -1,7 +1,6 @@
 package com.cleanengine.coin.user.login.application;
 
 import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,21 +28,18 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                        Authentication authentication) throws IOException {
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
         Integer userId = customUserDetails.getUserId();
-        String provider = customUserDetails.getProvider();
-        String providerUserId = customUserDetails.getProviderUserId();
         // TODO : JWT 토큰 만료시간 고려
-        String token = jwtUtil.createJwt(userId, provider, providerUserId, (long) 60 * 60 * 24 * 1000);
+        String token = jwtUtil.createJwt(userId, (long) 60 * 60 * 24 * 1000);
 
         response.addCookie(createCookie("access_token", token));
         response.sendRedirect(frontendUrl);
     }
 
     private Cookie createCookie(String key, String value) {
-
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(60 * 60 * 24);
         cookie.setPath("/");

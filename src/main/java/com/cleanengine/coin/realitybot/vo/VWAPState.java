@@ -22,6 +22,8 @@ public class VWAPState {
 
     private double totalPriceVolume = 0;
     private double totalVolume = 0;
+    private double vwap = 0;
+
 
     public void recordTrade(double price, double volume) {
 
@@ -38,7 +40,8 @@ public class VWAPState {
     }
 
     public double getVWAP() {
-        return totalVolume == 0 ? 0.0 : totalPriceVolume / totalVolume;
+            vwap = totalVolume == 0 ? 0.0 : totalPriceVolume / totalVolume;
+        return vwap;
     }
 
     public double calculateVWAPbyTrades(List<Trade> trades) {

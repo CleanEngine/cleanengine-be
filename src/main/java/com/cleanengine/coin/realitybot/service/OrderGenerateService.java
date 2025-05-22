@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
@@ -31,6 +32,7 @@ public class OrderGenerateService {
     private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
     private final WalletExternalRepository walletExternalRepository;
     private final AccountExternalRepository accountExternalRepository;
+    private final ConcurrentHashMap<String,Double> virtualVWAPMap = new ConcurrentHashMap<>();
     private String ticker;
 
         //TODO 비동기 처리로 전환 필요 + 시장 확인 후 주문량에 따른 오더 조절 필요
@@ -42,10 +44,12 @@ public class OrderGenerateService {
 
         // Platform 기반 가격 , 최초 0.0원
 //        double platformVWAP = platformVWAPService.getPlatformVWAP(); //order를 넣고 체결한 trade queue 값을 기준으로 계산
-        double platformVWAP = platformVWAPService.calculateVWAPbyTrades(ticker,trades);
+        double platformVWAP = platformVWAPService.calculateVWAPbyTrades(ticker,trades,apiVWAP);
         //todo 0513 이거 체결량 그만큼 채워지는 거 아니면 작동 안되도록 전환 필요
         if(platformVWAP == 0.0){ //최초 실행 시 vwap 계산
-            platformVWAP = generateVirtualVWAP(apiVWAP); //0.1% 보정값 랜덤 생성
+//            platformVWAP = getOrCreateVirtualVWAP(ticker, apiVWAP); //0.1% 보정값 랜덤 생성
+//            platformVWAP = generateVirtualVWAP(apiVWAP); //0.1% 보정값 랜덤 생성
+            log.info("generateorder의 vwap은 {}",platformVWAP);
         }
 
         //근데 이거 platforVWAP 이 값이 있을 경우 작동해야 함
@@ -164,6 +168,12 @@ public class OrderGenerateService {
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.2f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
         );
+    }
+
+    private double getOrCreateVirtualVWAP(String ticker, double apiVWAP){
+        double vwap = generateVirtualVWAP(apiVWAP);
+        log.info("{} 의 apivwap {}",ticker,apiVWAP);
+        return virtualVWAPMap.computeIfAbsent(ticker, key -> vwap);
     }
 
     //todo VirtualMarketService 여기에도 있는데 공통화 필요? , 계수는 조금 다른긴함 -> vms 제거 대상

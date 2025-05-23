@@ -83,7 +83,7 @@ public class DBInitRunner implements CommandLineRunner {
     protected void initAssetData() {
         assetRepository.saveAll(List.of(
                 new Asset("BTC", "비트코인"),
-                new Asset("TRUMP", "트럼프")
+                new Asset("TRUMP", "오피셜 트럼프")
         ));
     }
 }

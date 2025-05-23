@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.api;
 
+import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;
 import com.cleanengine.coin.realitybot.service.TickService;
@@ -15,6 +16,7 @@ import java.util.Queue;
 
 @Slf4j
 @Component
+@WorkingServerProfile
 @RequiredArgsConstructor
 public class ApiScheduler implements DisposableBean {
 

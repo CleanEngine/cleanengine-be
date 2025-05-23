@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@WorkingServerProfile
+//@WorkingServerProfile
 @RequiredArgsConstructor
 @Slf4j
 public class ChartDataController {

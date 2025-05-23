@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -106,9 +107,9 @@ public class OrderGenerateService {
                 double correctionRate = 0.1;
                 if (trendLineRate < -0.01) { // platformVWAP이 너무 낮음
                     sellPrice = normalizeToUnit(sellPrice - (apiVWAP * correctionRate)); // 매도 더 싸게 → 체결 유도
-                    buyPrice = normalizeToUnit(buyPrice + (apiVWAP * correctionRate)); // 매수 더 비싸게 → 체결 유도
+//                    buyPrice = normalizeToUnit(buyPrice + (apiVWAP * correctionRate)); // 매수 더 비싸게 → 체결 유도
                 } else if (trendLineRate > 0.01) { // platformVWAP이 너무 높음
-                    sellPrice = normalizeToUnit(sellPrice + (apiVWAP * correctionRate)); // 매도 더 비싸게
+//                    sellPrice = normalizeToUnit(sellPrice + (apiVWAP * correctionRate)); // 매도 더 비싸게
                     buyPrice = normalizeToUnit(buyPrice - (apiVWAP * correctionRate)); // 매수 더 싸게
                     //platform vwap -> vwap으로 변환
                 }
@@ -160,12 +161,13 @@ public class OrderGenerateService {
             System.out.println("====================================");
             System.out.println("현재 시장 vwap "+apiVWAP+"  현재 플랫폼 vwap"+platformVWAP);
             System.out.println("====================================");*/
-            System.out.println(ticker+"의 현재 시장 vwap "+apiVWAP+"  현재 플랫폼 vwap"+platformVWAP);
-//            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
+            DecimalFormat df = new DecimalFormat("#,##0.00");
+            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
+            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
         }
         System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
-                System.out.printf("🕒 %s | 가격: %.0f | 수량: %.2f | 매수: #%d ↔ 매도: #%d%n",
+                System.out.printf("🕒 %s | 가격: %.0f | 수량: %.8f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
         );
     }

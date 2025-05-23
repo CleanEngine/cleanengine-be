@@ -44,7 +44,7 @@ public class VWAPState {
         return vwap;
     }
 
-    public double calculateVWAPbyTrades(List<Trade> trades) {
+    public void calculateVWAPbyTrades(List<Trade> trades) {
         for (Trade trade : trades) {
             double price = trade.getPrice();
             double volume = trade.getSize();
@@ -53,7 +53,7 @@ public class VWAPState {
             totalVolume += volume;
 
         }
-        return getVWAP();
+        getVWAP();
     }
 
     private static class Vwap { //원래 trade였는데 가상 계산 떄문에 냅두기

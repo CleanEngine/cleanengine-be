@@ -34,6 +34,11 @@
             </rollingPolicy>
         </appender>
 
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+
         <logger name="com.cleanengine.coin" level="${LOG_LEVEL}">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
@@ -42,6 +47,10 @@
 
     <!-- local, dev 환경: 콘솔만 출력 -->
     <springProfile name="local,dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
         <logger name="com.cleanengine.coin" level="${LOG_LEVEL}">
             <appender-ref ref="CONSOLE"/>
         </logger>

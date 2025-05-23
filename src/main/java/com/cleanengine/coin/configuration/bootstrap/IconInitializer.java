@@ -33,7 +33,7 @@ public class IconInitializer implements ApplicationRunner {
 
         for(Asset asset : assets){
             if(asset.getIcon() != null) continue;
-            byte[] encodedIconBytes = convertToBytes(asset.getTicker());
+            byte[] encodedIconBytes = loadEncodedIcon(asset.getTicker());
             asset.setIcon(encodedIconBytes);
             assetRepository.save(asset);
         }
@@ -43,7 +43,7 @@ public class IconInitializer implements ApplicationRunner {
         return assetRepository.findAll();
     }
 
-    private byte[] convertToBytes(String ticker){
+    public byte[] loadEncodedIcon(String ticker){
         Resource resource = getResource(ticker);
         String svgContent = convertToStr(resource);
         String base64Str = convertToBase64(svgContent);

@@ -1,13 +1,7 @@
 package com.cleanengine.coin.order.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "asset")
@@ -18,4 +12,11 @@ public class Asset {
     private String ticker;
     @Column(name = "name", length = 100)
     private String name;
+    @Column(name = "icon") @Lob @Setter
+    private byte[] icon;
+
+    public Asset(String ticker, String name){
+        this.ticker = ticker;
+        this.name = name;
+    }
 }

@@ -1,4 +1,4 @@
-package com.cleanengine.coin.chart.config;
+package com.cleanengine.coin.configuration;
 
 
 import org.springframework.context.annotation.Configuration;

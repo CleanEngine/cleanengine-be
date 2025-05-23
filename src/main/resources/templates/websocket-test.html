@@ -1,361 +1,489 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>전일 대비 변동률 테스트</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <title>코인 데이터 종합 테스트</title>
     <style>
-        #messages {
-            height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-top: 10px;
-            font-family: monospace;
-        }
-        button {
-            margin: 5px;
-            padding: 8px 15px;
-        }
-        .chart-container {
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            padding: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .tab-container {
-            display: flex;
-            border-bottom: 1px solid #ccc;
-            margin-bottom: 10px;
-        }
-        .tab {
-            padding: 10px 15px;
-            cursor: pointer;
-            background-color: #f1f1f1;
-            border: 1px solid #ccc;
-            border-bottom: none;
-            margin-right: 5px;
-            border-radius: 5px 5px 0 0;
-        }
-        .tab.active {
-            background-color: white;
-            border-bottom: 1px solid white;
-            margin-bottom: -1px;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
+        .card { border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 15px; }
+        button { padding: 8px 15px; margin-right: 5px; cursor: pointer; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; max-height: 200px; overflow: auto; }
+        .status { font-weight: bold; margin: 10px 0; }
+        .log { background: #333; color: #fff; padding: 10px; border-radius: 5px; height: 200px; overflow: auto; margin-top: 10px; font-family: monospace; }
+        .tab-container { display: flex; margin-bottom: 10px; }
+        .tab { padding: 8px 15px; border: 1px solid #ddd; cursor: pointer; background: #f4f4f4; }
+        .tab.active { background: #4a89dc; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .columns { display: flex; gap: 15px; }
+        .column { flex: 1; }
+        .data-comparison { background: #f8f8f8; padding: 10px; border: 1px dashed #ddd; margin-top: 15px; }
     </style>
 </head>
 <body>
-<h2>코인 실시간 데이터 테스트</h2>
-<div>
-    <button onclick="connect()">연결</button>
-    <button onclick="disconnect()">연결 끊기</button>
+<h1>코인 데이터 종합 테스트</h1>
+
+<div class="card">
+    <h3>연결 설정</h3>
+    <div class="columns">
+        <div class="column">
+            <label>호스트: <input id="host" value="localhost" /></label>
+            <label>포트: <input id="port" value="8080" /></label>
+            <label>엔드포인트:
+                <select id="endpoint">
+                    <option value="/api/coin/realtime">/api/coin/realtime</option>
+                    <option value="/api/coin/min">/api/coin/min</option>
+                    <option value="/api/coin/orderbook">/api/coin/orderbook</option>
+                </select>
+            </label>
+        </div>
+        <div class="column">
+            <label>티커: <input id="ticker" value="TRUMP" /></label>
+            <div>
+                <p style="color: #ff6b6b; font-weight: bold;">중요: SockJS를 사용하지 않고 기본 WebSocket으로 연결합니다.</p>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 10px;">
+        <button id="connect">연결</button>
+        <button id="disconnect" disabled>연결 끊기</button>
+    </div>
+    <div id="status" class="status">상태: 연결 안됨</div>
 </div>
 
-<div class="tab-container">
-    <div class="tab active" onclick="showTab('realtime-tab')">실시간 변동률</div>
-    <div class="tab" onclick="showTab('prevday-tab')">전일 대비 변동률</div>
-</div>
-
-<div id="realtime-tab" class="tab-content active">
-    <div>
-        <input type="text" id="realtime-symbol" placeholder="종목코드 (예: BTC)" value="BTC"/>
-        <button onclick="subscribeRealTimeTradeRate()">실시간 거래 변동률 구독</button>
+<div class="card">
+    <div class="tab-container">
+        <div class="tab active" data-tab="realtime">실시간 거래</div>
+        <div class="tab" data-tab="prev">전일 대비</div>
+        <div class="tab" data-tab="ohlc">OHLC 차트</div>
+        <div class="tab" data-tab="debug">디버그 로그</div>
     </div>
 
-    <div class="chart-container">
+    <div class="tab-content active" id="realtime-tab">
         <h3>실시간 거래 데이터</h3>
-        <div id="realtime-data">
-            <p>구독 후 실시간 데이터가 여기에 표시됩니다.</p>
+        <button id="subscribe-trade" disabled>구독</button>
+        <button id="unsubscribe-trade" disabled>구독 해제</button>
+        <pre id="trade-output">구독하면 여기에 데이터가 표시됩니다.</pre>
+    </div>
+
+    <div class="tab-content" id="prev-tab">
+        <h3>전일 대비 데이터</h3>
+        <button id="subscribe-prev" disabled>구독</button>
+        <button id="unsubscribe-prev" disabled>구독 해제</button>
+        <pre id="prev-output">구독하면 여기에 데이터가 표시됩니다.</pre>
+
+        <div class="data-comparison" id="prev-issue">
+            <h4>데이터 문제 원인 분석</h4>
+            <p>전일 대비 데이터가 모두 0.0으로 표시되는 이유:</p>
+            <ol>
+                <li>데이터베이스에 어제 및 현재 거래 데이터가 없음</li>
+                <li>RealTimeDataPrevRateService.java의 generatePrevRateData 메서드에서 DB 쿼리 결과가 null</li>
+                <li>그 결과 데이터 모두 0.0으로 초기화된 PrevRateDto 객체 반환</li>
+            </ol>
+            <p>해결 방법: 실시간 거래 데이터(price 값이 있음)를 활용하여 전일 대비 데이터 대체</p>
         </div>
-        <table id="realtime-table" style="display: none;">
-            <thead>
-            <tr>
-                <th>시간</th>
-                <th>티커</th>
-                <th>현재가</th>
-                <th>거래량</th>
-                <th>변동률(%)</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr id="realtime-row">
-                <td id="realtime-time">-</td>
-                <td id="realtime-ticker">-</td>
-                <td id="realtime-price">-</td>
-                <td id="realtime-size">-</td>
-                <td id="realtime-rate">-</td>
-            </tr>
-            </tbody>
-        </table>
+    </div>
+
+    <div class="tab-content" id="ohlc-tab">
+        <h3>OHLC 차트 데이터</h3>
+        <button id="subscribe-ohlc" disabled>구독</button>
+        <button id="unsubscribe-ohlc" disabled>구독 해제</button>
+        <pre id="ohlc-output">구독하면 여기에 데이터가 표시됩니다.</pre>
+    </div>
+
+    <div class="tab-content" id="debug-tab">
+        <h3>디버그 로그</h3>
+        <div id="log" class="log"></div>
     </div>
 </div>
 
-<div id="prevday-tab" class="tab-content">
-    <div>
-        <input type="text" id="prevday-symbol" placeholder="종목코드 (예: BTC)" value="BTC"/>
-        <button onclick="subscribePrevDayRate()">전일 대비 변동률 구독</button>
-    </div>
-
-    <div class="chart-container">
-        <h3>전일 대비 변동률 데이터</h3>
-        <div id="prevday-data">
-            <p>구독 후 전일 대비 변동률 데이터가 여기에 표시됩니다.</p>
-        </div>
-        <table id="prevday-table" style="display: none;">
-            <thead>
-            <tr>
-                <th>시간</th>
-                <th>티커</th>
-                <th>전일 종가</th>
-                <th>현재가</th>
-                <th>변동률(%)</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr id="prevday-row">
-                <td id="prevday-time">-</td>
-                <td id="prevday-ticker">-</td>
-                <td id="prevday-close">-</td>
-                <td id="prevday-current">-</td>
-                <td id="prevday-rate">-</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<h3>상태 및 수신된 메시지:</h3>
-<div id="messages"></div>
+<!-- STOMP 라이브러리만 사용 (SockJS 없음) -->
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 
 <script>
+    // 탭 전환 기능
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            tab.classList.add('active');
+            document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+        });
+    });
+
+    // 로깅 함수
+    function log(message, isError = false) {
+        const logEl = document.getElementById('log');
+        const entry = document.createElement('div');
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        if (isError) entry.style.color = '#ff6b6b';
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+
+        if (isError) {
+            console.error(message);
+        } else {
+            console.log(message);
+        }
+    }
+
+    // UI 요소 참조
+    const hostEl = document.getElementById('host');
+    const portEl = document.getElementById('port');
+    const endpointEl = document.getElementById('endpoint');
+    const tickerEl = document.getElementById('ticker');
+    const statusEl = document.getElementById('status');
+
+    const connectBtn = document.getElementById('connect');
+    const disconnectBtn = document.getElementById('disconnect');
+
+    const subscribeTrade = document.getElementById('subscribe-trade');
+    const unsubscribeTrade = document.getElementById('unsubscribe-trade');
+    const tradeOutput = document.getElementById('trade-output');
+
+    const subscribePrev = document.getElementById('subscribe-prev');
+    const unsubscribePrev = document.getElementById('unsubscribe-prev');
+    const prevOutput = document.getElementById('prev-output');
+
+    const subscribeOhlc = document.getElementById('subscribe-ohlc');
+    const unsubscribeOhlc = document.getElementById('unsubscribe-ohlc');
+    const ohlcOutput = document.getElementById('ohlc-output');
+
+    // WebSocket 및 STOMP 관련 변수
+    let socket = null;
     let stompClient = null;
-    let realtimeSubscription = null;
-    let prevdaySubscription = null;
+    let subscriptions = {};
+
+    // 데이터 비교용 변수
     let lastTradeData = null;
-    let lastPrevDayData = null;
+    let lastPrevData = null;
+    let lastOhlcData = null;
 
-    function showTab(tabId) {
-        // 모든 탭 컨텐츠 숨기기
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
+    // 연결 버튼 이벤트
+    connectBtn.addEventListener('click', function() {
+        try {
+            const host = hostEl.value || 'localhost';
+            const port = portEl.value || '8080';
+            const endpoint = endpointEl.value;
 
-        // 모든 탭 버튼 비활성화
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
+            // WebSocket URL 생성 (ws:// 프로토콜 사용)
+            const url = `ws://${host}:${port}${endpoint}`;
+            log(`WebSocket 연결 시도 (기본 WebSocket): ${url}`);
 
-        // 선택한 탭 컨텐츠 표시
-        document.getElementById(tabId).classList.add('active');
+            statusEl.textContent = '상태: 연결 중...';
 
-        // 선택한 탭 버튼 활성화
-        const tabButtons = document.querySelectorAll('.tab');
-        for (let i = 0; i < tabButtons.length; i++) {
-            if (tabButtons[i].textContent.toLowerCase().includes(tabId.split('-')[0])) {
-                tabButtons[i].classList.add('active');
-                break;
-            }
+            // 웹소켓 생성
+            socket = new WebSocket(url);
+            log('WebSocket 객체 생성됨');
+
+            // 웹소켓 이벤트 핸들러
+            socket.onopen = function() {
+                log('WebSocket 연결 성공');
+            };
+
+            socket.onclose = function(event) {
+                log(`WebSocket 연결 종료 (코드: ${event.code}, 이유: ${event.reason || '알 수 없음'})`, event.code !== 1000);
+                if (event.code === 1006) {
+                    log('비정상 종료 (1006): 서버가 갑자기 연결을 끊었거나 네트워크 문제가 있습니다', true);
+                }
+                resetUI();
+            };
+
+            socket.onerror = function(error) {
+                log(`WebSocket 오류: ${error}`, true);
+            };
+
+            // STOMP 클라이언트 생성
+            stompClient = Stomp.over(socket);
+            log('STOMP 클라이언트 생성됨');
+
+            // 디버그 메시지 출력
+            stompClient.debug = function(str) {
+                // 메시지 양을 줄이기 위해 일부 메시지만 표시
+                if (str.includes("CONNECTED") ||
+                    str.includes("DISCONNECT") ||
+                    str.includes("Error") ||
+                    str.includes("MESSAGE destination:/topic/realTimeOhlc") ||
+                    str.includes("MESSAGE destination:/topic/prevRate")) {
+                    log(`STOMP: ${str}`);
+                }
+            };
+
+            // STOMP 연결
+            stompClient.connect({},
+                // 성공 콜백
+                function(frame) {
+                    log(`STOMP 연결 성공: ${frame}`);
+                    statusEl.textContent = '상태: 연결됨';
+
+                    // 버튼 활성화
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    subscribeTrade.disabled = false;
+                    subscribePrev.disabled = false;
+                    subscribeOhlc.disabled = false;
+                },
+                // 에러 콜백
+                function(error) {
+                    log(`STOMP 연결 오류: ${error}`, true);
+                    statusEl.textContent = '상태: 연결 오류';
+                    resetUI();
+                }
+            );
+        } catch (e) {
+            log(`연결 시도 중 예외: ${e.message}`, true);
+            statusEl.textContent = '상태: 연결 시도 중 오류';
+            resetUI();
         }
-    }
+    });
 
-    function addMessage(message) {
-        const messagesDiv = document.getElementById('messages');
-        messagesDiv.innerHTML += `<div>${new Date().toLocaleTimeString()} - ${message}</div>`;
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
+    // 연결 끊기 버튼 이벤트
+    disconnectBtn.addEventListener('click', function() {
+        disconnectStomp();
+    });
 
-    function connect() {
-        addMessage("웹소켓 연결 시도 중...");
-        // 실제 사용할 엔드포인트를 지정 - WebSocketConfig에 설정된 값과 일치해야 함
-        const socket = new SockJS('http://localhost:8080/coin/min');
-        stompClient = Stomp.over(socket);
+    // 연결 끊기 처리
+    function disconnectStomp() {
+        try {
+            // 모든 구독 해제
+            Object.values(subscriptions).forEach(function(sub) {
+                if (sub && sub.unsubscribe) sub.unsubscribe();
+            });
 
-        // 디버깅 로그 활성화
-        stompClient.debug = function(str) {
-            console.log(str);
-            // addMessage(`<span style="color:blue">${str}</span>`);
-        };
-
-        stompClient.connect({}, frame => {
-            addMessage(`<strong style="color:green">연결 성공: ${frame}</strong>`);
-        }, error => {
-            addMessage(`<strong style="color:red">연결 오류: ${error}</strong>`);
-        });
-    }
-
-    function disconnect() {
-        if (stompClient !== null) {
-            // 실시간 변동률 구독 취소
-            if (realtimeSubscription) {
-                realtimeSubscription.unsubscribe();
-                realtimeSubscription = null;
-                addMessage("실시간 거래 변동률 구독 취소");
-                document.getElementById('realtime-table').style.display = 'none';
-                document.getElementById('realtime-data').innerHTML = '<p>구독 후 실시간 데이터가 여기에 표시됩니다.</p>';
+            // STOMP 연결 해제
+            if (stompClient && stompClient.disconnect) {
+                stompClient.disconnect(function() {
+                    log('STOMP 연결 해제 완료');
+                });
             }
 
-            // 전일 대비 변동률 구독 취소
-            if (prevdaySubscription) {
-                prevdaySubscription.unsubscribe();
-                prevdaySubscription = null;
-                addMessage("전일 대비 변동률 구독 취소");
-                document.getElementById('prevday-table').style.display = 'none';
-                document.getElementById('prevday-data').innerHTML = '<p>구독 후 전일 대비 변동률 데이터가 여기에 표시됩니다.</p>';
+            // WebSocket 닫기
+            if (socket && socket.close) {
+                socket.close(1000);
             }
-
-            stompClient.disconnect();
-            addMessage("<strong>연결 종료</strong>");
-            stompClient = null;
-        } else {
-            addMessage("연결된 웹소켓이 없습니다");
+        } catch (e) {
+            log(`연결 해제 중 오류: ${e.message}`, true);
         }
+
+        stompClient = null;
+        socket = null;
+        subscriptions = {};
+
+        resetUI();
     }
 
-    function subscribeRealTimeTradeRate() {
-        if (stompClient !== null && stompClient.connected) {
-            const symbol = document.getElementById('realtime-symbol').value;
+    // UI 초기화
+    function resetUI() {
+        connectBtn.disabled = false;
+        disconnectBtn.disabled = true;
+        subscribeTrade.disabled = true;
+        unsubscribeTrade.disabled = true;
+        subscribePrev.disabled = true;
+        unsubscribePrev.disabled = true;
+        subscribeOhlc.disabled = true;
+        unsubscribeOhlc.disabled = true;
+        statusEl.textContent = '상태: 연결 안됨';
+    }
 
-            // 경로 설정
-            const messageEndpoint = `/app/subscribe/realTimeTradeRate/${symbol}`;
-            const subscribeDestination = `/topic/realTimeTradeRate/${symbol}`;
+    // 실시간 거래 구독
+    subscribeTrade.addEventListener('click', function() {
+        const ticker = tickerEl.value;
+        if (!ticker) return alert('티커를 입력하세요');
 
-            if (realtimeSubscription) {
-                realtimeSubscription.unsubscribe();
-                addMessage(`이전 실시간 거래 변동률 구독 취소`);
+        try {
+            const topic = `/topic/realTimeTradeRate/${ticker}`;
+            log(`실시간 거래 데이터 구독: ${topic}`);
+
+            // 이미 구독 중이면 해제
+            if (subscriptions[topic]) {
+                subscriptions[topic].unsubscribe();
             }
 
-            // 구독 요청 전송
-            stompClient.send(messageEndpoint, {}, '');
-            addMessage(`${messageEndpoint} 메시지 전송 완료`);
-
-            // 토픽 구독
-            addMessage(`${subscribeDestination} 구독 시작...`);
-            realtimeSubscription = stompClient.subscribe(subscribeDestination, message => {
-                console.log('수신된 실시간 거래 변동률 데이터:', message);
+            // 구독
+            subscriptions[topic] = stompClient.subscribe(topic, function(message) {
                 try {
-                    const data = JSON.parse(message.body);
-                    lastTradeData = data;
+                    const payload = JSON.parse(message.body);
+                    lastTradeData = payload;
+                    tradeOutput.textContent = JSON.stringify(payload, null, 2);
 
-                    // 테이블 업데이트
-                    updateRealTimeTable(data);
-
-                    // 로그에도 표시
-                    addMessage(`<strong>실시간 거래 변동률 데이터 수신:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                    compareData();
                 } catch (e) {
-                    addMessage(`<strong>메시지 파싱 오류:</strong> ${message.body}`);
+                    log(`데이터 처리 오류: ${e.message}`, true);
                 }
             });
 
-            // 테이블 보이기
-            document.getElementById('realtime-table').style.display = 'table';
-            document.getElementById('realtime-data').innerHTML = '';
-        } else {
-            addMessage("<strong style='color:red'>먼저 연결 버튼을 클릭하세요</strong>");
+            // 구독 요청 메시지 전송
+            log(`실시간 거래 구독 메시지 전송: /app/subscribe/realTimeTradeRate/${ticker}`);
+            stompClient.send(`/app/subscribe/realTimeTradeRate/${ticker}`, {}, "");
+
+            // 버튼 상태 변경
+            subscribeTrade.disabled = true;
+            unsubscribeTrade.disabled = false;
+        } catch (e) {
+            log(`구독 오류: ${e.message}`, true);
         }
-    }
+    });
 
-    function subscribePrevDayRate() {
-        if (stompClient !== null && stompClient.connected) {
-            const symbol = document.getElementById('prevday-symbol').value;
+    // 실시간 거래 구독 해제
+    unsubscribeTrade.addEventListener('click', function() {
+        const ticker = tickerEl.value;
+        const topic = `/topic/realTimeTradeRate/${ticker}`;
 
-            // 경로 설정
-            const messageEndpoint = `/app/subscribe/prevRate/${symbol}`;
-            const subscribeDestination = `/topic/prevRate/${symbol}`;
+        if (subscriptions[topic]) {
+            subscriptions[topic].unsubscribe();
+            delete subscriptions[topic];
+        }
 
-            if (prevdaySubscription) {
-                prevdaySubscription.unsubscribe();
-                addMessage(`이전 전일 대비 변동률 구독 취소`);
+        tradeOutput.textContent = '구독하면 여기에 데이터가 표시됩니다.';
+        subscribeTrade.disabled = false;
+        unsubscribeTrade.disabled = true;
+    });
+
+    // 전일 대비 구독
+    subscribePrev.addEventListener('click', function() {
+        const ticker = tickerEl.value;
+        if (!ticker) return alert('티커를 입력하세요');
+
+        try {
+            const topic = `/topic/prevRate/${ticker}`;
+            log(`전일 대비 데이터 구독: ${topic}`);
+
+            // 이미 구독 중이면 해제
+            if (subscriptions[topic]) {
+                subscriptions[topic].unsubscribe();
             }
 
-            // 구독 요청 전송
-            stompClient.send(messageEndpoint, {}, '');
-            addMessage(`${messageEndpoint} 메시지 전송 완료`);
-
-            // 토픽 구독
-            addMessage(`${subscribeDestination} 구독 시작...`);
-            prevdaySubscription = stompClient.subscribe(subscribeDestination, message => {
-                console.log('수신된 전일 대비 변동률 데이터:', message);
+            // 구독
+            subscriptions[topic] = stompClient.subscribe(topic, function(message) {
                 try {
-                    const data = JSON.parse(message.body);
-                    lastPrevDayData = data;
+                    const payload = JSON.parse(message.body);
+                    lastPrevData = payload;
+                    prevOutput.textContent = JSON.stringify(payload, null, 2);
 
-                    // 테이블 업데이트
-                    updatePrevDayTable(data);
+                    // 모든 값이 0인지 확인
+                    if (payload.prevClose === 0 && payload.currentPrice === 0) {
+                        document.getElementById('prev-issue').style.display = 'block';
+                    } else {
+                        document.getElementById('prev-issue').style.display = 'none';
+                    }
 
-                    // 로그에도 표시
-                    addMessage(`<strong>전일 대비 변동률 데이터 수신:</strong> <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                    compareData();
                 } catch (e) {
-                    addMessage(`<strong>메시지 파싱 오류:</strong> ${message.body}`);
+                    log(`데이터 처리 오류: ${e.message}`, true);
                 }
             });
 
-            // 테이블 보이기
-            document.getElementById('prevday-table').style.display = 'table';
-            document.getElementById('prevday-data').innerHTML = '';
-        } else {
-            addMessage("<strong style='color:red'>먼저 연결 버튼을 클릭하세요</strong>");
+            // 구독 요청 메시지 전송
+            log(`전일 대비 구독 메시지 전송: /app/subscribe/prevRate/${ticker}`);
+            stompClient.send(`/app/subscribe/prevRate/${ticker}`, {}, "");
+
+            // 버튼 상태 변경
+            subscribePrev.disabled = true;
+            unsubscribePrev.disabled = false;
+        } catch (e) {
+            log(`구독 오류: ${e.message}`, true);
+        }
+    });
+
+    // 전일 대비 구독 해제
+    unsubscribePrev.addEventListener('click', function() {
+        const ticker = tickerEl.value;
+        const topic = `/topic/prevRate/${ticker}`;
+
+        if (subscriptions[topic]) {
+            subscriptions[topic].unsubscribe();
+            delete subscriptions[topic];
+        }
+
+        prevOutput.textContent = '구독하면 여기에 데이터가 표시됩니다.';
+        subscribePrev.disabled = false;
+        unsubscribePrev.disabled = true;
+    });
+
+    // OHLC 데이터 구독
+    subscribeOhlc.addEventListener('click', function() {
+        const ticker = tickerEl.value;
+        if (!ticker) return alert('티커를 입력하세요');
+
+        try {
+            const topic = `/topic/realTimeOhlc/${ticker}`;
+            log(`OHLC 데이터 구독: ${topic}`);
+
+            // 이미 구독 중이면 해제
+            if (subscriptions[topic]) {
+                subscriptions[topic].unsubscribe();
+            }
+
+            // 구독
+            subscriptions[topic] = stompClient.subscribe(topic, function(message) {
+                try {
+                    const payload = JSON.parse(message.body);
+                    lastOhlcData = payload;
+                    log(`OHLC 데이터 수신: ${ticker}`);
+                    ohlcOutput.textContent = JSON.stringify(payload, null, 2);
+                } catch (e) {
+                    log(`데이터 처리 오류: ${e.message}`, true);
+                }
+            });
+
+            // 구독 요청 메시지 전송 - 경로 변수 방식
+            log(`OHLC 구독 메시지 전송: /app/subscribe/realTimeOhlc`);
+            // 서버에 맞게 수정 - WebSocketMessageController 참조
+            stompClient.send("/app/subscribe/realTimeOhlc", {}, JSON.stringify({ticker: ticker}));
+
+            // 버튼 상태 변경
+            subscribeOhlc.disabled = true;
+            unsubscribeOhlc.disabled = false;
+        } catch (e) {
+            log(`구독 오류: ${e.message}`, true);
+        }
+    });
+
+    // OHLC 구독 해제
+    unsubscribeOhlc.addEventListener('click', function() {
+        const ticker = tickerEl.value;
+        const topic = `/topic/realTimeOhlc/${ticker}`;
+
+        if (subscriptions[topic]) {
+            subscriptions[topic].unsubscribe();
+            delete subscriptions[topic];
+        }
+
+        ohlcOutput.textContent = '구독하면 여기에 데이터가 표시됩니다.';
+        subscribeOhlc.disabled = false;
+        unsubscribeOhlc.disabled = true;
+    });
+
+    // 두 데이터 비교
+    function compareData() {
+        if (lastPrevData && lastTradeData) {
+            if (lastPrevData.currentPrice === 0 && lastTradeData.price > 0) {
+                // 프론트엔드에서 사용할 수 있는 수정된 전일 대비 데이터
+                const validPrevData = {
+                    ticker: lastTradeData.ticker,
+                    prevClose: lastTradeData.price * 0.95, // 임의로 95%
+                    currentPrice: lastTradeData.price,
+                    changeRate: 5.26, // ((100/95) - 1) * 100 = 약 5.26%
+                    timestamp: lastTradeData.timestamp
+                };
+
+                log(`리액트에서 사용하기 좋은 대체 전일 대비 데이터: ${JSON.stringify(validPrevData)}`);
+            }
         }
     }
 
-    // 실시간 거래 데이터 테이블 업데이트 함수
-    function updateRealTimeTable(data) {
-        document.getElementById('realtime-time').textContent = formatDateTime(data.timestamp);
-        document.getElementById('realtime-ticker').textContent = data.ticker;
-        document.getElementById('realtime-price').textContent = formatNumber(data.price);
-        document.getElementById('realtime-size').textContent = formatNumber(data.size);
-        document.getElementById('realtime-rate').textContent = formatRate(data.changeRate);
-    }
+    // 페이지 언로드 시 연결 해제
+    window.addEventListener('beforeunload', disconnectStomp);
 
-    // 전일 대비 변동률 테이블 업데이트 함수
-    function updatePrevDayTable(data) {
-        document.getElementById('prevday-time').textContent = formatDateTime(data.timestamp);
-        document.getElementById('prevday-ticker').textContent = data.ticker;
-        document.getElementById('prevday-close').textContent = formatNumber(data.prevClose);
-        document.getElementById('prevday-current').textContent = formatNumber(data.currentPrice);
-        document.getElementById('prevday-rate').textContent = formatRate(data.changeRate);
-    }
-
-    // 숫자 포맷팅 함수
-    function formatNumber(num) {
-        return num ? num.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }) : '-';
-    }
-
-    // 변동률 포맷팅 함수
-    function formatRate(rate) {
-        if (rate === undefined || rate === null) return '-';
-        const formattedRate = rate.toFixed(2);
-        const color = rate > 0 ? 'green' : (rate < 0 ? 'red' : 'black');
-        return `<span style="color: ${color}">${formattedRate}%</span>`;
-    }
-
-    // 날짜 포맷팅 함수
-    function formatDateTime(dateTimeStr) {
-        if (!dateTimeStr) return '-';
-        const date = new Date(dateTimeStr);
-        return date.toLocaleTimeString();
-    }
+    // 초기 메시지
+    log('코인 데이터 종합 테스트 페이지 로드됨');
+    log('이 페이지에서는 다양한 데이터 채널을 테스트할 수 있습니다:');
+    log('1. 실시간 거래 데이터 (/topic/realTimeTradeRate/{ticker})');
+    log('2. 전일 대비 데이터 (/topic/prevRate/{ticker})');
+    log('3. OHLC 차트 데이터 (/topic/realTimeOhlc/{ticker})');
+    log('연결 버튼을 클릭하여 시작하세요');
 </script>
 </body>
 </html>

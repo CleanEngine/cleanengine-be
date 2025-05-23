@@ -31,6 +31,7 @@ public class RealTimeDataPrevRateService {
         LocalDateTime today = LocalDateTime.now();
         LocalDateTime yesterdayStart = today.minusDays(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime yesterdayEnd = today.minusDays(1).withHour(23).withMinute(59).withSecond(59);
+        log.info("조회 시간 범위: {} ~ {}", yesterdayStart, yesterdayEnd);
 
         Trade yesterdayLastTrade = tradeRepository.findFirstByTickerAndTradeTimeBetweenOrderByTradeTimeDesc(
                 ticker, yesterdayStart, yesterdayEnd);
@@ -40,7 +41,7 @@ public class RealTimeDataPrevRateService {
 
         if (yesterdayLastTrade == null || currentTrade == null) {
             log.debug("전일 또는 현재 거래 데이터가 없습니다: {}", ticker);
-            return new PrevRateDto(ticker, 0.0, 0.0, 0.0, LocalDateTime.now());
+            return new PrevRateDto(ticker, 0.0, currentTrade.getPrice(), 0.0, LocalDateTime.now());
         }
 
         double prevClose = yesterdayLastTrade.getPrice();

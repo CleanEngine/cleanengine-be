@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Component
-@Profile({"dev & !it"})
+@Profile({"dev & !it & !mariadb-local"})
 @Order(1)
 @RequiredArgsConstructor
 public class DBInitRunner implements CommandLineRunner {
@@ -30,9 +30,13 @@ public class DBInitRunner implements CommandLineRunner {
     @Transactional
     @Override
     public void run(String... args) throws Exception {
-        initSellBotData();
-        initBuyBotData();
-        initAssetData();
+        if(userRepository.count() == 0){
+            initSellBotData();
+            initBuyBotData();
+        }
+        if(assetRepository.count() == 0){
+            initAssetData();
+        }
     }
 
     @Transactional

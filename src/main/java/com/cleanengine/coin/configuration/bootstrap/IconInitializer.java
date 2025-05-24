@@ -1,5 +1,6 @@
 package com.cleanengine.coin.configuration.bootstrap;
 
+import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.order.infra.AssetRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @Component
 @Order(2)
+@WorkingServerProfile
 @Slf4j
 @RequiredArgsConstructor
 public class IconInitializer implements ApplicationRunner {

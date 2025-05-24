@@ -6,13 +6,16 @@ import com.cleanengine.coin.common.response.ErrorStatus;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -51,6 +54,24 @@ public class BaseExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     protected ResponseEntity<ApiResponse<Object>> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         final ErrorResponse response = ErrorResponse.of(ErrorStatus.METHOD_NOT_SUPPORTED);
+        return ApiResponse.fail(response).toResponseEntity();
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<ApiResponse<Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        final ErrorResponse response = ErrorResponse.of(ErrorStatus.INVALID_INPUT_FORMAT);
+        return ApiResponse.fail(response).toResponseEntity();
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    protected ResponseEntity<ApiResponse<Object>> handleNoStaticResourceFoundException(NoResourceFoundException e) {
+        final ErrorResponse response = ErrorResponse.of(ErrorStatus.API_ENDPOINT_NOT_EXIST);
+        return ApiResponse.fail(response).toResponseEntity();
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    protected ResponseEntity<ApiResponse<Object>> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        final ErrorResponse response = ErrorResponse.of(ErrorStatus.INVALID_INPUT_VALUE);
         return ApiResponse.fail(response).toResponseEntity();
     }
 

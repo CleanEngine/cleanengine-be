@@ -1,6 +1,6 @@
-package com.cleanengine.coin.order.infra;
+package com.cleanengine.coin.order.infra.eventhandler;
 
-import com.cleanengine.coin.order.application.OrderCreated;
+import com.cleanengine.coin.order.application.event.OrderCreated;
 import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.Order;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ public class OrderCreatedEventHandler {
 
     @TransactionalEventListener(OrderCreated.class)
     public void handleOrderCreated(OrderCreated event) {
-        Order order = event.getOrder();
+        Order order = event.order();
         orderQueueManagerPool.addOrder(order.getTicker(), order);
     }
 }

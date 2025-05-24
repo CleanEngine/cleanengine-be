@@ -3,6 +3,7 @@ package com.cleanengine.coin.common.error;
 import com.cleanengine.coin.common.response.ApiResponse;
 import com.cleanengine.coin.common.response.ErrorResponse;
 import com.cleanengine.coin.common.response.ErrorStatus;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.util.Arrays;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestControllerAdvice
@@ -82,10 +83,16 @@ public class BaseExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ApiResponse<Object>> handleException(Exception e) {
+    protected ResponseEntity<ApiResponse<Object>> handleException(Exception e, HttpServletRequest request) {
         final ErrorResponse response = ErrorResponse.of(ErrorStatus.INTERNAL_SERVER_ERROR);
-        log.warn("Handling 되지 않는 에러 발생" + e.getMessage());
-        log.warn("Handling 되지 않는 에러 발생" + Arrays.toString(e.getStackTrace()));
+        StringBuilder logMessage = new StringBuilder();
+        logMessage.append("=======API 요청 중 Handling 되지 않는 에러 발생=======");
+        logMessage.append("\n발생 시간 : ").append(LocalDateTime.now());
+        logMessage.append("\n요청 URI : ").append(request.getRequestURI());
+        logMessage.append("\n예외 타입 : ").append(e.getClass().getName());
+        logMessage.append("\n메시지 : ").append(e.getMessage());
+        log.warn("{}", logMessage, e);
+
         return ApiResponse.fail(response).toResponseEntity();
     }
 }

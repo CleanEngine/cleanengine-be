@@ -17,7 +17,7 @@ public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예�
     public double calculateVWAPbyTrades(String ticker,List<Trade> trades,double apiVWAP) {
         VWAPState state = vwapMap.computeIfAbsent(ticker, VWAPState::new);
 
-        if (trades.size() <= 10){
+        if (trades.size() < 10){
             return generateVWAP(apiVWAP);
         }
 

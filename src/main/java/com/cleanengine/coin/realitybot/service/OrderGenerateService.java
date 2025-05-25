@@ -106,11 +106,11 @@ public class OrderGenerateService {
                 }
                 double correctionRate = 0.1;
                 if (trendLineRate < -0.01) { // platformVWAP이 너무 낮음
-                    sellPrice = normalizeToUnit(sellPrice - (apiVWAP * correctionRate)); // 매도 더 싸게 → 체결 유도
-//                    buyPrice = normalizeToUnit(buyPrice + (apiVWAP * correctionRate)); // 매수 더 비싸게 → 체결 유도
+                    sellPrice = normalizeToUnit(sellPrice + (apiVWAP * correctionRate)); // 매도 비싸게
+                    buyPrice = normalizeToUnit(buyPrice + (apiVWAP * correctionRate)); // 매수 비싸게
                 } else if (trendLineRate > 0.01) { // platformVWAP이 너무 높음
-//                    sellPrice = normalizeToUnit(sellPrice + (apiVWAP * correctionRate)); // 매도 더 비싸게
-                    buyPrice = normalizeToUnit(buyPrice - (apiVWAP * correctionRate)); // 매수 더 싸게
+                    sellPrice = normalizeToUnit(sellPrice - (apiVWAP * correctionRate)); // 매도 싸게
+                    buyPrice = normalizeToUnit(buyPrice - (apiVWAP * correctionRate)); // 매수 싸게
                     //platform vwap -> vwap으로 변환
                 }
 
@@ -119,12 +119,17 @@ public class OrderGenerateService {
                 if (deviation > 0.01) {
                     double power = trendLineRate * 100; // 3% → 3
                     if (trendLineRate < 0) {
-                        buyVolume *= 1.0 + power * 0.5; // 3% → 2.5배
+                        buyVolume *= 1.0 + Math.abs(power) * 0.5; // 3% → 2.5배
+                        sellVolume *= 1.0 + Math.abs(power) * 0.5;
                         buyPrice = normalizeToUnit(apiVWAP * (1 + 0.002 * power)); // +0.6%
+                        sellPrice = normalizeToUnit(apiVWAP * (1 + 0.002 * power)); // +0.6%
                     } else {
-                        sellVolume *= 1.0 + power * 0.5;
+                        buyVolume *= 1.0 + Math.abs(power) * 0.5; // 3% → 2.5배
+                        buyPrice = normalizeToUnit(apiVWAP * (1 - 0.002 * power)); // -0.6%
+                        sellVolume *= 1.0 + Math.abs(power) * 0.5;
                         sellPrice = normalizeToUnit(apiVWAP * (1 - 0.002 * power)); // -0.6%
                     }
+                    log.info("볼륨 파워 : {}, 바이볼륨 : {} , 셀볼륨 : {}",power,buyVolume,sellVolume);
                 }
                 createOrderWithFallback(ticker,false, sellVolume,sellPrice);
                 createOrderWithFallback(ticker,true, buyVolume,buyPrice);
@@ -163,7 +168,7 @@ public class OrderGenerateService {
             System.out.println("====================================");*/
             DecimalFormat df = new DecimalFormat("#,##0.00");
             System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
-            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
+//            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
         }
         System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
@@ -191,6 +196,11 @@ public class OrderGenerateService {
     }
 
     private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) {
+        if (volume <= 0 || price <= 0){
+            log.error("잘못된 주문이 발생 [종목 : {}] ,[isBuy : {}] ,[금액 : {}] ,[수량 : {}] 주문은 생성 취소",ticker,isBuy,volume,price);
+            return;
+        } 
+        
         try {
             orderService.createOrderWithBot(ticker, isBuy, volume, price);
         } catch (DomainValidationException e) {

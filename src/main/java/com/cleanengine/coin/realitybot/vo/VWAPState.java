@@ -27,16 +27,17 @@ public class VWAPState {
 
     public void recordTrade(double price, double volume) {
 
-        if (volume <= 0) return;
-
-        if (tradeQueue.size() >= maxQueueSize) {
-            Vwap removed = tradeQueue.poll();
-            totalPriceVolume -= removed.price * removed.volume;
-            totalVolume -= removed.volume;
-        }
+        //이건 처음에나 필요했지 queue나 10개씩 받아오면서 필요 없는 로직이 되어버림
+//        if (volume <= 0) return;
+//        if (tradeQueue.size() >= maxQueueSize) {
+//            Vwap removed = tradeQueue.poll();
+//            totalPriceVolume -= removed.price * removed.volume;
+//            totalVolume -= removed.volume;
+//        }
 
         tradeQueue.offer(new Vwap(price, volume));
         totalPriceVolume += price * volume;
+        totalVolume += volume;
     }
 
     public double getVWAP() {
@@ -48,9 +49,10 @@ public class VWAPState {
         for (Trade trade : trades) {
             double price = trade.getPrice();
             double volume = trade.getSize();
-            if (volume <= 0) continue;
-            totalPriceVolume += price * volume;
-            totalVolume += volume;
+            recordTrade(price,volume);
+//            if (volume <= 0) continue;
+//            totalPriceVolume += price * volume;
+//            totalVolume += volume;
 
         }
         getVWAP();

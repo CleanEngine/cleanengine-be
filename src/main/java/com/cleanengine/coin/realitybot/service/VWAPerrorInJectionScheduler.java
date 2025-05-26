@@ -32,7 +32,7 @@ public class VWAPerrorInJectionScheduler {
         fakeTrade.setSellUserId(1); // 테스트용 유저 ID
         fakeTrade.setPrice(25000.0);   // 말도 안되는 고가 (예: 시장 평균이 19,000일 때)
 //        fakeTrade.setPrice(18900.0);   // 말도 안되는 고가 (예: 시장 평균이 19,000일 때)
-        fakeTrade.setSize(300000.0);     // 대량 체결
+        fakeTrade.setSize(300.0);     // 대량 체결
 //        fakeTrade.setSize(100.0);     // 대량 체결
         fakeTrade.setTradeTime(LocalDateTime.now());
 

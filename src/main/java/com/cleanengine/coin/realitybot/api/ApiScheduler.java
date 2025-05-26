@@ -9,7 +9,6 @@ import com.cleanengine.coin.realitybot.service.TickParser;
 import com.cleanengine.coin.realitybot.service.TickServiceManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,13 +19,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ApiScheduler implements DisposableBean {
+public class ApiScheduler {
 
     private final BithumbAPIClient bithumbAPIClient;
     private final TickParser tickParser;
     private final OrderGenerateService orderGenerateService;
     private final TickServiceManager tickServiceManager;
-    private long lastMaxSequentialId = 1L;
     private final Map<String,Long> lastSequentialIdMap = new ConcurrentHashMap<>();
     private final AssetRepository assetRepository;
     private String ticker;
@@ -81,14 +79,14 @@ public class ApiScheduler implements DisposableBean {
         };
 
     };
-    @Override
+/*    @Override
     public void destroy() throws Exception { //담긴 Queue데이터 확인용
 //        log.info("종료 전 큐 데이터 출력");
 //        ticksQueue.forEach(tick -> log.info(tick.toString())); //
 //        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
 //        orderQueueManagerService.logAllOrders();
 //        virtualTradeService.printOrderSummary();
-    }
+    }*/
 
 
 }

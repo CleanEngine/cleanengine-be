@@ -33,18 +33,15 @@ public class OrderGenerateService {
     private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
     private final WalletExternalRepository walletExternalRepository;
     private final AccountExternalRepository accountExternalRepository;
-    private final ConcurrentHashMap<String,Double> virtualVWAPMap = new ConcurrentHashMap<>();
     private String ticker;
 
-        //TODO 비동기 처리로 전환 필요 + 시장 확인 후 주문량에 따른 오더 조절 필요
-    public void generateOrder(String ticker, double apiVWAP, double avgVolum) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
+
+    public void generateOrder(String ticker, double apiVWAP, double avgVolume) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
         this.ticker = ticker;
-        //todo 여기에 recordTrade를 불러 올 예정
-        //불러와서 vwap을 넣어야 함
+
         List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
 
         // Platform 기반 가격 , 최초 0.0원
-//        double platformVWAP = platformVWAPService.getPlatformVWAP(); //order를 넣고 체결한 trade queue 값을 기준으로 계산
         double platformVWAP = platformVWAPService.calculateVWAPbyTrades(ticker,trades,apiVWAP);
         //todo 0513 이거 체결량 그만큼 채워지는 거 아니면 작동 안되도록 전환 필요
         if(platformVWAP == 0.0){ //최초 실행 시 vwap 계산
@@ -56,12 +53,6 @@ public class OrderGenerateService {
         //근데 이거 platforVWAP 이 값이 있을 경우 작동해야 함
         double trendLineRate = (platformVWAP - apiVWAP)/ apiVWAP;
         boolean isWithinRange = Math.abs(trendLineRate) <= 0.01;
-
-        //VWAP 선택기 = 최초1회 API, 이후 Tick기반 todo 제거 대상
-//        double virtualVWAP = virtualMarketService.switcherVWAP(tickService.getTicksQueue(), platformVWAP);
-
-
-        //TODO 체결 제작 후 VirtualVWAP이 아닌 PlatformVWAP 로 전환필요 ✔
 
         for(int level : orderLevels) { //1주문당 3회 매수매도 처리
             double priceOffset = unitPrice * level; //3단계 호가 각각 처리

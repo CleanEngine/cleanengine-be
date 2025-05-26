@@ -117,10 +117,10 @@ public class OrderGenerateService {
                 if (deviation > 0.01) {
                     double power = trendLineRate * 100; // 3% → 3
                     if (trendLineRate < 0) {
-                        buyVolume *= 1.0 + power * 0.5; // 3% → 2.5배
+                        buyVolume *= 1.0 + Math.abs(power) * 0.5; // 3% → 2.5배
                         buyPrice = normalizeToUnit(apiVWAP * (1 + 0.002 * power)); // +0.6%
                     } else {
-                        sellVolume *= 1.0 + power * 0.5;
+                        sellVolume *= 1.0 + Math.abs(power) * 0.5;
                         sellPrice = normalizeToUnit(apiVWAP * (1 - 0.002 * power)); // -0.6%
                     }
                 }

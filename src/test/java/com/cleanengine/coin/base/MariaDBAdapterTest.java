@@ -1,11 +1,13 @@
 package com.cleanengine.coin.base;
 
+import com.cleanengine.coin.configuration.TimeZoneConfig;
 import com.cleanengine.coin.tool.extension.MariaDBTestContainerExtension;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -21,6 +23,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
 @ActiveProfiles({"dev", "it"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(MariaDBTestContainerExtension.class)
+@Import(TimeZoneConfig.class)
 @Sql(
         scripts = "classpath:db/mariadb/data/delete.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,

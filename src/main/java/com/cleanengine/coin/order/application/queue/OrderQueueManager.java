@@ -38,4 +38,53 @@ public class OrderQueueManager {
             }
         }
     }
+
+    public int getMarketSellOrderQueueSize() {
+        return marketSellOrderQueue.size();
+    }
+
+    public int getMarketBuyOrderQueueSize() {
+        return marketBuyOrderQueue.size();
+    }
+
+    public int getLimitSellOrderQueueSize() {
+        return limitSellOrderQueue.size();
+    }
+
+    public int getLimitBuyOrderQueueSize() {
+        return limitBuyOrderQueue.size();
+    }
+
+    public SellOrder getMarketSellOrder() {
+        return marketSellOrderQueue.peek();
+    }
+
+    public BuyOrder getMarketBuyOrder() {
+        return marketBuyOrderQueue.peek();
+    }
+
+    public SellOrder getLimitSellOrder() {
+        return limitSellOrderQueue.peek();
+    }
+
+    public BuyOrder getLimitBuyOrder() {
+        return limitBuyOrderQueue.peek();
+    }
+
+    public boolean removeOrderFromQueue(Order order) {
+        if (order instanceof SellOrder) {
+            if (order.getIsMarketOrder()) {
+                return marketSellOrderQueue.remove(order);
+            } else {
+                return limitSellOrderQueue.remove(order);
+            }
+        } else {
+            if (order.getIsMarketOrder()) {
+                return marketBuyOrderQueue.remove(order);
+            } else {
+                return limitBuyOrderQueue.remove(order);
+            }
+        }
+    }
+
 }

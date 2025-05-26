@@ -41,6 +41,11 @@ public class RealTimeDataPrevRateService {
 
         if (yesterdayLastTrade == null || currentTrade == null) {
             log.debug("전일 또는 현재 거래 데이터가 없습니다: {}", ticker);
+            // TODO : (에러 방지용) 요기 수정 부탁드려요!!
+            if (currentTrade == null) {
+                return new PrevRateDto(ticker, 0.0, 0.0, 0.0, LocalDateTime.now());
+            }
+
             return new PrevRateDto(ticker, 0.0, currentTrade.getPrice(), 0.0, LocalDateTime.now());
         }
 

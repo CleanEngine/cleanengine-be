@@ -12,7 +12,7 @@ public class Asset {
     private String ticker;
     @Column(name = "name", length = 100)
     private String name;
-    @Column(name = "icon") @Lob @Setter
+    @Column(name = "icon", columnDefinition = "BLOB") @Lob @Setter
     private byte[] icon;
 
     public Asset(String ticker, String name){

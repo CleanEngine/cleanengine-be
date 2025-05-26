@@ -31,7 +31,7 @@ public class RealTimeDataPrevRateService {
         LocalDateTime today = LocalDateTime.now();
         LocalDateTime yesterdayStart = today.minusDays(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime yesterdayEnd = today.minusDays(1).withHour(23).withMinute(59).withSecond(59);
-        log.info("조회 시간 범위: {} ~ {}", yesterdayStart, yesterdayEnd);
+        log.debug("조회 시간 범위: {} ~ {}", yesterdayStart, yesterdayEnd);
 
         Trade yesterdayLastTrade = tradeRepository.findFirstByTickerAndTradeTimeBetweenOrderByTradeTimeDesc(
                 ticker, yesterdayStart, yesterdayEnd);

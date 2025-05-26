@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
@@ -26,7 +25,6 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 public class OrderGenerateService {
     private final int[] orderLevels = {1,2,3};
     private final int unitPrice = 10; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
-    private final OrderQueueManagerService queueManager;
     private final PlatformVWAPService platformVWAPService;
     private final OrderService orderService;
     private final TradeRepository tradeRepository;
@@ -39,26 +37,22 @@ public class OrderGenerateService {
     public void generateOrder(String ticker, double apiVWAP, double avgVolume) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
         this.ticker = ticker;
 
+        //최근 체결 내역 가져오기
         List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
 
-        // Platform 기반 가격 , 최초 0.0원
+        // Platform 기반 가격 생성 (10개 이하, 10개 이상에 따른 가격 생성)
         double platformVWAP = platformVWAPService.calculateVWAPbyTrades(ticker,trades,apiVWAP);
-        //todo 0513 이거 체결량 그만큼 채워지는 거 아니면 작동 안되도록 전환 필요
-        if(platformVWAP == 0.0){ //최초 실행 시 vwap 계산
-//            platformVWAP = getOrCreateVirtualVWAP(ticker, apiVWAP); //0.1% 보정값 랜덤 생성
-//            platformVWAP = generateVirtualVWAP(apiVWAP); //0.1% 보정값 랜덤 생성
-            log.info("generateorder의 vwap은 {}",platformVWAP);
-        }
 
-        //근데 이거 platforVWAP 이 값이 있을 경우 작동해야 함
+        //편차 계산 (vwap 기준)
         double trendLineRate = (platformVWAP - apiVWAP)/ apiVWAP;
-        boolean isWithinRange = Math.abs(trendLineRate) <= 0.01;
 
+        //편차가 +-5% 이상 발생하면 true 반환
+        boolean isWithinRange = Math.abs(trendLineRate) <= 0.005; //TODO 호가 단위에 따른 편차 보정 필요
         for(int level : orderLevels) { //1주문당 3회 매수매도 처리
-            double priceOffset = unitPrice * level; //3단계 호가 각각 처리
-            double randomOffset =  level1TradeMaker(platformVWAP,getDynamicMaxRate(trendLineRate));//랜덤 오차 부여 (가격 조정용)
-            double deviation = Math.abs(trendLineRate);
-
+            double priceOffset = unitPrice * level; //호가 단위만큼 단계별 offset 설정
+            //randomoffset는 1단계 밀집 주문을 위해 offset 편차가 많이 안나도록 동적으로 max를 제한함
+            double randomOffset =  Math.abs(level1TradeMaker(platformVWAP,getDynamicMaxRate(trendLineRate)));
+            double deviation = Math.abs(trendLineRate); //편차 구하기
             double sellPrice;
             double buyPrice;
 
@@ -81,9 +75,8 @@ public class OrderGenerateService {
             }
 
             //주문 실행
-//            sellPrice = normalizeToUnit(virtualVWAP + priceOffset);//todo : 제거 대상
-            double sellVolume = getRandomVolum(avgVolum);
-            double buyVolume = getRandomVolum(avgVolum);
+            double sellVolume = getRandomVolum(avgVolume);
+            double buyVolume = getRandomVolum(avgVolume);
 
             if (platformVWAP != 0){
                 if (isWithinRange){
@@ -120,7 +113,6 @@ public class OrderGenerateService {
                         sellVolume *= 1.0 + Math.abs(power) * 0.5;
                         sellPrice = normalizeToUnit(apiVWAP * (1 - 0.002 * power)); // -0.6%
                     }
-                    log.info("볼륨 파워 : {}, 바이볼륨 : {} , 셀볼륨 : {}",power,buyVolume,sellVolume);
                 }
                 createOrderWithFallback(ticker,false, sellVolume,sellPrice);
                 createOrderWithFallback(ticker,true, buyVolume,buyPrice);
@@ -145,62 +137,44 @@ public class OrderGenerateService {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+//            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
 
-/*            //모니터링용
+            /*//모니터링용
             System.out.println("sellPrice = " + sellPrice);
             System.out.println("sellVolume = " + sellVolume);
-//            buyPrice = normalizeToUnit(virtualVWAP - priceOffset);//todo : 제거 대상
             //모니터링용
             System.out.println("buyPrice = " + buyPrice);
             System.out.println("buyVolume = " + buyVolume);
 
             System.out.println("====================================");
-            System.out.println("현재 시장 vwap "+apiVWAP+"  현재 플랫폼 vwap"+platformVWAP);
-            System.out.println("====================================");*/
             DecimalFormat df = new DecimalFormat("#,##0.00");
-            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
-//            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
+            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));*/
+
         }
-        System.out.println("📦"+ticker+" [체결 기록 Top 10]");
+/*        System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.8f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
-        );
-    }
-
-    private double getOrCreateVirtualVWAP(String ticker, double apiVWAP){
-        double vwap = generateVirtualVWAP(apiVWAP);
-        log.info("{} 의 apivwap {}",ticker,apiVWAP);
-        return virtualVWAPMap.computeIfAbsent(ticker, key -> vwap);
-    }
-
-    //todo VirtualMarketService 여기에도 있는데 공통화 필요? , 계수는 조금 다른긴함 -> vms 제거 대상
-    private double generateVirtualVWAP(double apiVWAP) {//가상 vwap 계산 , 최초 1회 사용
-        double maxDeviationaRate = 0.001; //보정값 0.1%만
-        double deviation = (Math.random() * 2 - 1)* maxDeviationaRate; //편차 계산
-        return apiVWAP * (1+deviation); // +=deviation 난수 생성 후 계산 (범위는 -1~+1)
-    }
-
-
-    private double getDynamicMaxRate(double trendLineRate) {
-        return 0.01 + Math.abs(trendLineRate) * 0.5; // 더 벌어질수록 보정폭 확대
+        );*/
     }
 
     private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) {
         if (volume <= 0 || price <= 0){
-            log.error("잘못된 주문이 발생 [종목 : {}] ,[isBuy : {}] ,[금액 : {}] ,[수량 : {}] 주문은 생성 취소",ticker,isBuy,volume,price);
+            log.error("잘못된 주문이 발생 [종목 : {}] ,[isBuy : {}] ,[금액 : {}] ,[수량 : {}] 주문은 생성 취소",ticker,isBuy,
+                    new DecimalFormat("#,###.########").format(price),
+                    new DecimalFormat("#,###.########").format(volume));
             return;
         } 
         
         try {
             orderService.createOrderWithBot(ticker, isBuy, volume, price);
         } catch (DomainValidationException e) {
-//            log.warn("잔량 부족: {}", e.getMessage());
+            log.warn("잔량 부족: {}", e.getMessage());
             try {
                 resetBot(ticker);
                 orderService.createOrderWithBot(ticker, isBuy, volume, price);
             } catch (Exception e1) {
-//                log.error("주문 재시도 실패", e1);
+                log.error("주문 재시도 실패", e1);
             }
         }
     }
@@ -224,17 +198,30 @@ public class OrderGenerateService {
 
     //==================================order 정규화용 ============================================
 
-    private double level1TradeMaker(double apiVWAP, double maxRate){
+    private double level1TradeMaker(double platformVWAP, double maxRate){
+        //시장가에 해당하는 호가는 거래 체결 강하게 하기 위함
         double percent = (Math.random() * 2-1)*maxRate;
-        return apiVWAP * percent;
+        return platformVWAP * percent;
+    }
+
+    private double getDynamicMaxRate(double trendLineRate) {
+        // 편차가 벌어지면 벌어질수록 보정폭 확대
+        // 5% = 2.51의 가중치
+        // 11% = 5.51의 가중치
+        return 0.01 + Math.abs(trendLineRate) * 0.5;
     }
 
     private int normalizeToUnit(double price){ //호가단위로 변환
         return (int)(Math.round(price / unitPrice)) * unitPrice;
-//        return (int) (price / unitPrice) * unitPrice;
     }
     private double getRandomVolum(double avgVolum){ //볼륨 랜덤 입력
         double rawVolume = avgVolum * (0.5+Math.random());
-        return Math.round(rawVolume * 1000.0)/1000.0;
+        //호가 단위에 따라 0원이 발생 가능성
+        double resultVolume = Math.round(rawVolume * 1000.0)/1000.0;
+        if(resultVolume <= 0){
+            //Volume이 0이하일 경우 재 계산
+            resultVolume = Math.round(rawVolume * 10000000.0)/10000000.0;
+        }
+        return resultVolume;
     }
 }

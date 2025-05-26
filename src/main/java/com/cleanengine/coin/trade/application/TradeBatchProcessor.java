@@ -97,19 +97,9 @@ public class TradeBatchProcessor implements ApplicationRunner {
         }
     }
 
+    @Deprecated
     public TradeEventDto retrieveTradeEventDto(String ticker) {
-        TradeQueueManager tradeQueueManager = this.tradeQueueManagers.get(ticker);
-        if (tradeQueueManager == null) {
-            return null;
-        }
-        
-        TradeEventDto lastTradeEventDto = tradeQueueManager.getLastTradeEventDto();
-
-        // 서비스 시작 후 체결 내역이 없으면 null 반환
-        if (lastTradeEventDto.getSize() == 0.0 || lastTradeEventDto.getPrice() == 0.0) {
-            return null;
-        }
-        return lastTradeEventDto;
+        return null;
     }
 
 }

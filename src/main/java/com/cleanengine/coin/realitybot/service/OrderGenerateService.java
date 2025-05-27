@@ -10,6 +10,7 @@ import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
@@ -21,6 +22,7 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 
 @Slf4j
 @Service
+@Order(5)
 @RequiredArgsConstructor
 public class OrderGenerateService {
     private final int[] orderLevels = {1,2,3};
@@ -124,13 +126,9 @@ public class OrderGenerateService {
                 //스위치 시켜야 할까?
                 createOrderWithFallback(ticker,false, sellVolume,sellPrice);
                 createOrderWithFallback(ticker,true, buyVolume,buyPrice);
-
 //                queueManager.addSellOrder(sellPrice, sellVolume);
 //                queueManager.addBuyOrder(buyPrice, buyVolume);
-
             }
-
-
 
             try {
                 TimeUnit.MICROSECONDS.sleep(100);

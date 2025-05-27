@@ -6,7 +6,7 @@ import com.cleanengine.coin.order.infra.AssetRepository;
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.cleanengine.coin.realitybot.service.ApiVWAPService;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;
-import com.cleanengine.coin.realitybot.service.TickParser;
+import com.cleanengine.coin.realitybot.parser.TickParser;
 import com.cleanengine.coin.realitybot.service.TickServiceManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

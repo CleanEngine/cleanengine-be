@@ -1,4 +1,4 @@
-package com.cleanengine.coin.realitybot.service;
+package com.cleanengine.coin.realitybot.parser;
 
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.google.gson.Gson;

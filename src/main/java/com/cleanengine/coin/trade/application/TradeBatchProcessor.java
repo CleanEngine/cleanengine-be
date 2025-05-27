@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Order(4)
 public class TradeBatchProcessor implements ApplicationRunner {
 
     Logger logger = LoggerFactory.getLogger(TradeBatchProcessor.class);
@@ -95,19 +97,9 @@ public class TradeBatchProcessor implements ApplicationRunner {
         }
     }
 
+    @Deprecated
     public TradeEventDto retrieveTradeEventDto(String ticker) {
-        TradeQueueManager tradeQueueManager = this.tradeQueueManagers.get(ticker);
-        if (tradeQueueManager == null) {
-            return null;
-        }
-        
-        TradeEventDto lastTradeEventDto = tradeQueueManager.getLastTradeEventDto();
-
-        // 서비스 시작 후 체결 내역이 없으면 null 반환
-        if (lastTradeEventDto.getSize() == 0.0 || lastTradeEventDto.getPrice() == 0.0) {
-            return null;
-        }
-        return lastTradeEventDto;
+        return null;
     }
 
 }

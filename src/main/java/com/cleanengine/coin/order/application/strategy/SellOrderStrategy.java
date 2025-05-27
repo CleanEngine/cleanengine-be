@@ -1,5 +1,7 @@
 package com.cleanengine.coin.order.application.strategy;
 
+import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.OrderCommand;
 import com.cleanengine.coin.order.application.OrderInfo;
 import com.cleanengine.coin.order.application.port.WalletUpdatePort;
@@ -14,6 +16,9 @@ import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.FieldError;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +29,7 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     private final UpdateOrderBookUsecase updateOrderBookUsecase;
     private final WalletExternalRepository walletRepository;
     private final AccountExternalRepository accountRepository;
+    private final AssetService assetService;
 
     @Override
     public SellOrder createOrder(OrderCommand.CreateOrder createOrderCommand) {
@@ -54,6 +60,14 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
     @Override
     public boolean supports(Boolean isBuyOrder) {
         return !isBuyOrder;
+    }
+
+    @Override
+    protected void validateTicker(String ticker) {
+        if(!assetService.isAssetExist(ticker)){
+            throw new DomainValidationException("Asset not supported "+ticker,
+                    List.of(new FieldError("SellOrder", "ticker", "Asset not supported")));
+        }
     }
 
     @Override

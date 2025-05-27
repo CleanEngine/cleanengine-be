@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: my-spring-app
+    volumes:
+      - ../build/libs/coin-0.0.1-SNAPSHOT.jar:/app/coin-0.0.1-SNAPSHOT.jar
+      - /etc/localtime:/etc/localtime:ro
+      - /home/ubuntu/logs/springboot:/app/logs
+    working_dir: /app
+    command: ["java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,mariadb-local"]
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./local.properties
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    env_file:
+      - ./local.properties
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./mariadb/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    driver: local

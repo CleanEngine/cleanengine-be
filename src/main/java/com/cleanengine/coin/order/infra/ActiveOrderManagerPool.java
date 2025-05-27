@@ -14,13 +14,6 @@ import java.util.Optional;
 public class ActiveOrderManagerPool {
     private final HashMap<String, ActiveOrderManager> activeOrderManagerPool = new HashMap<>();
 
-    @Autowired
-    public ActiveOrderManagerPool(@Value("${order.tickers}") String[] tickers) {
-        for (String ticker : tickers) {
-            activeOrderManagerPool.put(ticker, new ActiveOrderManager(ticker));
-        }
-    }
-
     public void saveOrder(String ticker, Order order) {
         ActiveOrderManager activeOrderManager = getActiveOrderManager(ticker);
         activeOrderManager.saveOrder(order);
@@ -37,11 +30,21 @@ public class ActiveOrderManagerPool {
     }
 
     private ActiveOrderManager getActiveOrderManager(String ticker) {
+        if(!activeOrderManagerPool.containsKey(ticker)){
+            addActiveOrderManager(ticker);
+        }
+
         Optional<ActiveOrderManager> activeOrderManager = Optional.ofNullable(activeOrderManagerPool.get(ticker));
         if(activeOrderManager.isEmpty()){
-            log.debug("ActiveOrderManager not found. check order.tickers on startup");
-            throw new RuntimeException("ActiveOrderManager not found. check order.tickers on startup");
+            log.debug("ActiveOrderManager not found with " + ticker);
+            throw new RuntimeException("ActiveOrderManager not found with " + ticker);
         }
         return activeOrderManager.get();
+    }
+
+    protected synchronized void addActiveOrderManager(String ticker) {
+        if(!activeOrderManagerPool.containsKey(ticker)){
+            activeOrderManagerPool.put(ticker, new ActiveOrderManager(ticker));
+        }
     }
 }

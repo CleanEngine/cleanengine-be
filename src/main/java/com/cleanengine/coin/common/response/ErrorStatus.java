@@ -11,7 +11,8 @@ public enum ErrorStatus {
     INVALID_TYPE("A02", HttpStatus.BAD_REQUEST, "Invalid Type entered"),
     INVALID_INPUT_VALUE("A03", HttpStatus.BAD_REQUEST, "Invalid Input entered"),
     API_ENDPOINT_NOT_EXIST("A04", HttpStatus.NOT_FOUND, "API Endpoint doesn't exist"),
-    UNAUTHORIZED_RESOURCE("A05", HttpStatus.BAD_REQUEST, "Current user can't access this resource"),
+    UNAUTHORIZED_RESOURCE("A05", HttpStatus.UNAUTHORIZED, "Current user can't access this resource"),
+    INVALID_INPUT_FORMAT("A06", HttpStatus.BAD_REQUEST, "Invalid Input Format"),
     INTERNAL_SERVER_ERROR("A88", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected Server Error occurred. Contact Backend Admin."),
     NOT_CLASSIFIED_BUSINESS_ERROR("A99", HttpStatus.BAD_REQUEST, "Unclassified Business Error.");
 

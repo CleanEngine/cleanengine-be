@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Component
-@Profile({"dev & !it"})
+@Profile({"(dev & !it & !mariadb-local) | h2-mem"})
 @Order(1)
 @RequiredArgsConstructor
 public class DBInitRunner implements CommandLineRunner {
@@ -30,9 +30,13 @@ public class DBInitRunner implements CommandLineRunner {
     @Transactional
     @Override
     public void run(String... args) throws Exception {
-        initSellBotData();
-        initBuyBotData();
-        initAssetData();
+        if(userRepository.count() == 0){
+            initSellBotData();
+            initBuyBotData();
+        }
+        if(assetRepository.count() == 0){
+            initAssetData();
+        }
     }
 
     @Transactional
@@ -83,7 +87,7 @@ public class DBInitRunner implements CommandLineRunner {
     protected void initAssetData() {
         assetRepository.saveAll(List.of(
                 new Asset("BTC", "비트코인"),
-                new Asset("TRUMP", "트럼프")
+                new Asset("TRUMP", "오피셜 트럼프")
         ));
     }
 }

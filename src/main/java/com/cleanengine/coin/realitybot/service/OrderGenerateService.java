@@ -169,7 +169,7 @@ public class OrderGenerateService {
         try {
             orderService.createOrderWithBot(ticker, isBuy, volume, price);
         } catch (DomainValidationException e) {
-            log.warn("잔량 부족: {}", e.getMessage());
+            log.debug("잔량 부족: {}", e.getMessage());
             try {
                 resetBot(ticker);
                 orderService.createOrderWithBot(ticker, isBuy, volume, price);

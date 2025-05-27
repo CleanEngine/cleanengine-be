@@ -31,7 +31,7 @@ public class BithumbAPIClient {
         try (Response response = client.newCall(request).execute()){
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());
-            log.info("{}의 Bithumb API 응답 : {}",ticker,responseBody);
+            log.debug("{}의 Bithumb API 응답 : {}",ticker,responseBody);
             return responseBody;
         } catch (IOException e) {
             throw new RuntimeException(e);

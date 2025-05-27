@@ -2,6 +2,11 @@ spring:
   security:
     cookie:
       secure: true
+  datasource:
+    url: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE}
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
 
 frontend:
   url: "https://investfuture.my/callback"

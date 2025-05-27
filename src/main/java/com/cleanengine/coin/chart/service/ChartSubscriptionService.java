@@ -22,7 +22,7 @@ public class ChartSubscriptionService {
      * 티커 구독 추가 (캔들)
      */
     public void subscribe(String ticker) {
-        log.info("캔들 티커 구독 추가: {}", ticker);
+        log.debug("캔들 티커 구독 추가: {}", ticker);
         subscribedTickers.add(ticker);
     }
 
@@ -30,7 +30,7 @@ public class ChartSubscriptionService {
      * 티커 구독 해제 (캔들)
      */
     public void unsubscribe(String ticker) {
-        log.info("캔들 티커 구독 해제: {}", ticker);
+        log.debug("캔들 티커 구독 해제: {}", ticker);
         subscribedTickers.remove(ticker);
     }
 
@@ -52,7 +52,7 @@ public class ChartSubscriptionService {
      * 실시간 OHLC 티커 구독 추가
      */
     public void subscribeRealTimeOhlc(String ticker) {
-        log.info("실시간 OHLC 티커 구독 추가: {}", ticker);
+        log.debug("실시간 OHLC 티커 구독 추가: {}", ticker);
         realTimeOhlcSubscribedTickers.add(ticker);
     }
 
@@ -60,7 +60,7 @@ public class ChartSubscriptionService {
      * 실시간 OHLC 티커 구독 해제
      */
     public void unsubscribeRealTimeOhlc(String ticker) {
-        log.info("실시간 OHLC 티커 구독 해제: {}", ticker);
+        log.debug("실시간 OHLC 티커 구독 해제: {}", ticker);
         realTimeOhlcSubscribedTickers.remove(ticker);
     }
 
@@ -82,7 +82,7 @@ public class ChartSubscriptionService {
      * 실시간 거래 데이터 티커 구독 추가
      */
     public void subscribeRealTime(String ticker) {
-        log.info("실시간 거래 데이터 티커 구독 추가: {}", ticker);
+        log.debug("실시간 거래 데이터 티커 구독 추가: {}", ticker);
         realTimeTradeSubscribedTickers.add(ticker);
     }
 
@@ -90,7 +90,7 @@ public class ChartSubscriptionService {
      * 실시간 거래 데이터 티커 구독 해제
      */
     public void unsubscribeRealTime(String ticker) {
-        log.info("실시간 거래 데이터 티커 구독 해제: {}", ticker);
+        log.debug("실시간 거래 데이터 티커 구독 해제: {}", ticker);
         realTimeTradeSubscribedTickers.remove(ticker);
     }
 

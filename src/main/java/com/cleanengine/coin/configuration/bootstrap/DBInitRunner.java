@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Component
-@Profile("dev")
+@Profile({"dev & !it"})
 @Order(1)
 @RequiredArgsConstructor
 public class DBInitRunner implements CommandLineRunner {

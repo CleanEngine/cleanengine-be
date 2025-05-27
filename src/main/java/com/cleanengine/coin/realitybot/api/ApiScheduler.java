@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.api;
 
+import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.order.infra.AssetRepository;
 import com.cleanengine.coin.realitybot.dto.Ticks;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
+@WorkingServerProfile
 @RequiredArgsConstructor
 public class ApiScheduler {
 
@@ -66,7 +68,7 @@ public class ApiScheduler {
 /*    @Override
     public void destroy() throws Exception { //담긴 Queue데이터 확인용
 //        log.info("종료 전 큐 데이터 출력");
-//        ticksQueue.forEach(tick -> log.info(tick.toString())); //
+//        ticksQueue.forEach(tick -> log.debug(tick.toString())); //
 //        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
 //        orderQueueManagerService.logAllOrders();
 //        virtualTradeService.printOrderSummary();

@@ -1,5 +1,6 @@
-package com.cleanengine.coin.user.login.infra;
+package com.cleanengine.coin.configuration;
 
+import com.cleanengine.coin.configuration.SecurityEndpoints.EndpointConfig;
 import com.cleanengine.coin.user.login.application.CustomSuccessHandler;
 import com.cleanengine.coin.user.login.application.JWTFilter;
 import com.cleanengine.coin.user.login.application.JWTUtil;
@@ -28,21 +29,22 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final JWTUtil jwtUtil;
+    private final EndpointConfig endpointConfig;
 
     @Value("${frontend.url}")
     private String frontendUrl;
 
     public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
-                          CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil) {
+                          CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil, EndpointConfig endpointConfig) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customSuccessHandler = customSuccessHandler;
         this.jwtUtil = jwtUtil;
+        this.endpointConfig = endpointConfig;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        URI uri = new URI(frontendUrl);
-        String frontendBaseUrl = uri.getScheme() + "://" + uri.getHost() + (uri.getPort() == -1 ? "" : ":" + uri.getPort());
+        String frontendBaseUrl = buildBaseUrl(new URI(frontendUrl));
 
         http
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
@@ -60,7 +62,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class)
+                .addFilterBefore(new JWTFilter(jwtUtil, endpointConfig), OAuth2LoginAuthenticationFilter.class)
                 .oauth2Login(oauth -> oauth
                                 .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
                                         .userService(customOAuth2UserService))
@@ -74,18 +76,8 @@ public class SecurityConfig {
                                 )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html/**",
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                "/coin/min/info",
-                                "/coin/min/**", // 웹소켓 엔드포인트 추가
-                                "/coin/realtime/**", // 웹소켓 엔드포인트 추가
-                                "/api/minute-ohlc" //차트 과거 데이터
-                        ).permitAll().requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/healthcheck", "/api/oauth2/**", "/api/login/**", "/h2-console/**").permitAll()
+                        .requestMatchers(endpointConfig.getPublicPathPatterns()).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // pre-flight 허용
                         .anyRequest().authenticated()
                 )
                 .sessionManagement((session) -> session
@@ -97,6 +89,14 @@ public class SecurityConfig {
         // TODO : OAuth 플랫폼 API의 access_token, refresh_token 관리
 
         return http.build();
+    }
+
+    private String buildBaseUrl(URI uri) {
+        return String.format("%s://%s%s", 
+            uri.getScheme(), 
+            uri.getHost(), 
+            uri.getPort() == -1 ? "" : ":" + uri.getPort()
+        );
     }
 
 }

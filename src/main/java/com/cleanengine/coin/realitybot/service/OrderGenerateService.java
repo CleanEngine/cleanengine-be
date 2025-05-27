@@ -46,8 +46,8 @@ public class OrderGenerateService {
         //편차 계산 (vwap 기준)
         double trendLineRate = (platformVWAP - apiVWAP)/ apiVWAP;
 
-        //편차가 +-5% 이상 발생하면 true 반환
-        boolean isWithinRange = Math.abs(trendLineRate) <= 0.005; //TODO 호가 단위에 따른 편차 보정 필요
+        //편차가 +-1% 이상 발생하면 true 반환
+        boolean isWithinRange = Math.abs(trendLineRate) <= 0.001; //TODO 호가 단위에 따른 편차 보정 필요
         for(int level : orderLevels) { //1주문당 3회 매수매도 처리
             double priceOffset = unitPrice * level; //호가 단위만큼 단계별 offset 설정
             //randomoffset는 1단계 밀집 주문을 위해 offset 편차가 많이 안나도록 동적으로 max를 제한함
@@ -139,7 +139,7 @@ public class OrderGenerateService {
             }
 //            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
 
-            /*//모니터링용
+            //모니터링용
             System.out.println("sellPrice = " + sellPrice);
             System.out.println("sellVolume = " + sellVolume);
             //모니터링용
@@ -148,14 +148,14 @@ public class OrderGenerateService {
 
             System.out.println("====================================");
             DecimalFormat df = new DecimalFormat("#,##0.00");
-            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));*/
+            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
 
         }
-/*        System.out.println("📦"+ticker+" [체결 기록 Top 10]");
+        System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.8f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
-        );*/
+        );
     }
 
     private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) {

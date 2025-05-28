@@ -1,25 +1,25 @@
 package com.cleanengine.coin.realitybot.dto;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class OpeningPrice {
-    String market;
-    @SerializedName("opening_price")
-    double openingPrice;
-    @SerializedName("trade_price")
-    double tradePrice;
+    private String market;
+    private double opening_price;
+    private double trade_price;
 
     @Override
     public String toString() {
         return "OpeningPrice{" +
                 "market='" + market + '\'' +
-                ", OpeningPrice=" + openingPrice +
-                ", tradePrice=" + tradePrice +
+                ", OpeningPrice=" + opening_price +
+                ", tradePrice=" + trade_price +
                 '}';
     }
 }

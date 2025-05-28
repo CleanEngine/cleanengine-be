@@ -24,13 +24,13 @@ public class UnitPricePolicy {
         unitPriceRules.put(100_000.0,10.0);
         unitPriceRules.put(500_000.0,50.0);
         unitPriceRules.put(1_000_000.0,100.0);
-        unitPriceRules.put(5_000_000.0,500.0);
-        unitPriceRules.put(10_000_000.0,1_000.0);
+        unitPriceRules.put(2_000_000.0,500.0);
+        unitPriceRules.put(Double.MAX_VALUE,1_000.0);
     }
 
     public double getUnitPrice(double apiTradePrice){
         double unitprice =unitPriceRules.higherEntry(apiTradePrice).getValue();
-        System.out.println("========================================"+unitprice);
         return unitprice;
     }
+
 }

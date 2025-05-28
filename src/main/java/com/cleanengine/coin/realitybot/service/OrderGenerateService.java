@@ -4,6 +4,7 @@ import com.cleanengine.coin.common.error.DomainValidationException;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
 import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
+import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
@@ -26,7 +27,8 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 @RequiredArgsConstructor
 public class OrderGenerateService {
     private final int[] orderLevels = {1,2,3};
-    private final int unitPrice = 10; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
+    private double unitPrice = 0; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
+    private final UnitPriceRefresher unitPriceRefresher;
     private final PlatformVWAPService platformVWAPService;
     private final OrderService orderService;
     private final TradeRepository tradeRepository;
@@ -38,6 +40,9 @@ public class OrderGenerateService {
 
     public void generateOrder(String ticker, double apiVWAP, double avgVolume) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
         this.ticker = ticker;
+
+        //호가 정책 적용
+        this.unitPrice = unitPriceRefresher.getUnitPriceByTicker(ticker);
 
         //최근 체결 내역 가져오기
         List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
@@ -118,16 +123,11 @@ public class OrderGenerateService {
                 }
                 createOrderWithFallback(ticker,false, sellVolume,sellPrice);
                 createOrderWithFallback(ticker,true, buyVolume,buyPrice);
-
-//                queueManager.addSellOrder(sellPrice, sellVolume);
-//                queueManager.addBuyOrder(buyPrice, buyVolume); //Queue 추가
             } else {
 
                 //스위치 시켜야 할까?
                 createOrderWithFallback(ticker,false, sellVolume,sellPrice);
                 createOrderWithFallback(ticker,true, buyVolume,buyPrice);
-//                queueManager.addSellOrder(sellPrice, sellVolume);
-//                queueManager.addBuyOrder(buyPrice, buyVolume);
             }
 
             try {
@@ -137,23 +137,23 @@ public class OrderGenerateService {
             }
 //            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
 
-           /* //모니터링용
-            System.out.println("sellPrice = " + sellPrice);
+            DecimalFormat df = new DecimalFormat("#,##0.00");
+            //모니터링용
+            System.out.println("sellPrice = " + df.format(sellPrice));
             System.out.println("sellVolume = " + sellVolume);
             //모니터링용
-            System.out.println("buyPrice = " + buyPrice);
+            System.out.println("buyPrice = " + df.format(buyPrice));
             System.out.println("buyVolume = " + buyVolume);
 
             System.out.println("====================================");
-            DecimalFormat df = new DecimalFormat("#,##0.00");
-            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));*/
+            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
 
         }
-       /* System.out.println("📦"+ticker+" [체결 기록 Top 10]");
+        System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.8f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
-        );*/
+        );
     }
 
     private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) {
@@ -210,7 +210,7 @@ public class OrderGenerateService {
     }
 
     private int normalizeToUnit(double price){ //호가단위로 변환
-        return (int)(Math.round(price / unitPrice)) * unitPrice;
+        return (int) ((double)(Math.round(price / unitPrice)) * unitPrice);
     }
     private double getRandomVolum(double avgVolum){ //볼륨 랜덤 입력
         double rawVolume = avgVolum * (0.5+Math.random());

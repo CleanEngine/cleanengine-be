@@ -4,9 +4,9 @@ package com.cleanengine.coin.realitybot.api;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
-import okhttp3.*;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.stereotype.Component;
-import com.google.gson.Gson;
 
 import java.io.IOException;
 
@@ -33,7 +33,7 @@ public class BithumbAPIClient {
         try (Response response = client.newCall(request).execute()){
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());
-            log.debug("{}의 Bithumb API 응답 : {}",ticker,responseBody);
+            log.info("{}의 Bithumb API 응답 : {}",ticker,responseBody);
             return responseBody;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -49,7 +49,7 @@ public class BithumbAPIClient {
         try (Response response = client.newCall(request).execute()){
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());
-            log.debug("{}의 Bithumb API 응답 : {}",ticker,responseBody);
+            log.info("{}의 OpeningPirce 응답 : {}",ticker,responseBody);
             return responseBody;
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -139,23 +139,24 @@ public class OrderGenerateService {
             }
 //            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
 
-            DecimalFormat df = new DecimalFormat("#,##0.00");
+           /* DecimalFormat df = new DecimalFormat("#,##0.00");
+            DecimalFormat dfv = new DecimalFormat("#,###.########");
             //모니터링용
             System.out.println("sellPrice = " + df.format(sellPrice));
-            System.out.println("sellVolume = " + sellVolume);
+            System.out.println("sellVolume = " + dfv.format(sellVolume));
             //모니터링용
             System.out.println("buyPrice = " + df.format(buyPrice));
-            System.out.println("buyVolume = " + buyVolume);
+            System.out.println("buyVolume = " + dfv.format(buyVolume));
 
             System.out.println("====================================");
-            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
+            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));*/
 
         }
-        System.out.println("📦"+ticker+" [체결 기록 Top 10]");
+        /*System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.8f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
-        );
+        );*/
     }
 
     private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) {

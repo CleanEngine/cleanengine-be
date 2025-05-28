@@ -4,6 +4,7 @@ import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrde
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
+import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
@@ -136,8 +137,8 @@ public class TradeQueueManagerTest {
         assertTrue(tradeOfBuy.getFirst().getSize() - orderSize < MINIMUM_ORDER_SIZE, "체결수량과 주문수량은 같아야 합니다.");
         assertTrue(tradeOfBuy.getFirst().getPrice() - price < MINIMUM_ORDER_SIZE, "체결단가와 주문단가는 같아야 합니다.");
 
-        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(false).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
-        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(false).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
 
         assertTrue(buyOrder.getRemainingSize() < MINIMUM_ORDER_SIZE, "매수주문의 잔여수량은 없어야 합니다.");
         assertTrue(sellOrder.getRemainingSize() < MINIMUM_ORDER_SIZE, "매도주문의 잔여수량은 없어야 합니다.");
@@ -179,8 +180,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(false).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
-        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(false).size(), "지정가 매도 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).size(), "지정가 매도 주문이 1개 남아있어야 합니다.");
     }
 
     @DisplayName("지정가매수-지정가매도 매수부분체결")
@@ -219,8 +220,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(false).size(), "지정가 매수 주문이 1개 남아있어야 합니다.");
-        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(false).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).size(), "지정가 매수 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
     }
 
     @DisplayName("시장가매수-지정가매도 완전체결")
@@ -259,8 +260,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(true).isEmpty(), "남은 시장가 매수 주문이 없어야 합니다.");
-        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(false).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).isEmpty(), "남은 시장가 매수 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
     }
 
     @DisplayName("지정가매수-시장가매도 완전체결")
@@ -299,8 +300,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(false).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
-        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(true).isEmpty(), "남은 시장가 매도 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).isEmpty(), "남은 시장가 매도 주문이 없어야 합니다.");
     }
 
     @DisplayName("시장가매수-지정가매도 매도부분체결")
@@ -339,8 +340,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(true).isEmpty(), "남은 시장가 매수 주문이 없어야 합니다.");
-        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(false).size(), "지정가 매도 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).isEmpty(), "남은 시장가 매수 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).size(), "지정가 매도 주문이 1개 남아있어야 합니다.");
     }
 
     @DisplayName("시장가매수-지정가매도 매수부분체결")
@@ -379,14 +380,14 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(true).size(), "시장가 매수 주문이 1개 남아있어야 합니다.");
-        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(false).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).size(), "시장가 매수 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
 
-        assert waitingOrders.getBuyOrderPriorityQueueStore(true).peek() != null;
+        assert waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).peek() != null;
         assertEquals(1_300_000_000.0 - 130_000_000.0,
-                waitingOrders.getBuyOrderPriorityQueueStore(true).peek().getRemainingDeposit(),
+                waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).peek().getRemainingDeposit(),
                 "잔여 예수금이 맞지 않습니다.");
-        logger.debug("잔여 예수금 : {}", waitingOrders.getBuyOrderPriorityQueueStore(true).peek().getRemainingDeposit());
+        logger.debug("잔여 예수금 : {}", waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).peek().getRemainingDeposit());
     }
 
     @DisplayName("지정가매수-시장가매도 매수부분체결")
@@ -425,8 +426,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(false).size(), "지정가 매수 주문이 1개 남아있어야 합니다.");
-        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(true).isEmpty(), "남은 시장가 매도 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).size(), "지정가 매수 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).isEmpty(), "남은 시장가 매도 주문이 없어야 합니다.");
     }
 
     @DisplayName("지정가매수-시장가매도 매도부분체결")
@@ -465,8 +466,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(false).isEmpty(), "지정가 매수 주문이 1개 남아있어야 합니다.");
-        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(true).size(), "남은 시장가 매도 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "지정가 매수 주문이 1개 남아있어야 합니다.");
+        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).size(), "남은 시장가 매도 주문이 없어야 합니다.");
     }
 
 //    @DisplayName("여러 지정가매수-지정가매도 완전체결")

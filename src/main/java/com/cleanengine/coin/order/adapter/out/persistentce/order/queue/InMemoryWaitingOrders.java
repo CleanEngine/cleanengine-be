@@ -4,6 +4,7 @@ import com.cleanengine.coin.common.adapter.out.store.InMemoryPriorityQueueStore;
 import com.cleanengine.coin.common.domain.port.PriorityQueueStore;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
+import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import lombok.AllArgsConstructor;
@@ -46,12 +47,12 @@ public class InMemoryWaitingOrders implements WaitingOrders {
         }
     }
 
-    public PriorityQueueStore<BuyOrder> getBuyOrderPriorityQueueStore(boolean isMarketOrder) {
-        return isMarketOrder ? marketBuyOrderPriorityQueueStore : limitBuyOrderPriorityQueueStore;
+    public PriorityQueueStore<BuyOrder> getBuyOrderPriorityQueueStore(OrderType orderType) {
+        return orderType == OrderType.MARKET ? marketBuyOrderPriorityQueueStore : limitBuyOrderPriorityQueueStore;
     }
 
-    public PriorityQueueStore<SellOrder> getSellOrderPriorityQueueStore(boolean isMarketOrder) {
-        return isMarketOrder ? marketSellOrderPriorityQueueStore : limitSellOrderPriorityQueueStore;
+    public PriorityQueueStore<SellOrder> getSellOrderPriorityQueueStore(OrderType orderType) {
+        return orderType == OrderType.MARKET ? marketSellOrderPriorityQueueStore : limitSellOrderPriorityQueueStore;
     }
 
     @Override

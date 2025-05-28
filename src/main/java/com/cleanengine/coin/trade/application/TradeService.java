@@ -4,10 +4,7 @@ import com.cleanengine.coin.common.error.BusinessException;
 import com.cleanengine.coin.common.response.ErrorStatus;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
-import com.cleanengine.coin.order.domain.BuyOrder;
-import com.cleanengine.coin.order.domain.Order;
-import com.cleanengine.coin.order.domain.OrderStatus;
-import com.cleanengine.coin.order.domain.SellOrder;
+import com.cleanengine.coin.order.domain.*;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
@@ -137,10 +134,10 @@ public class TradeService {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastLogTime > LOG_INTERVAL) {
             log.debug("주문 큐 - 시장가매도[{}], 지정가매도[{}], 시장가매수[{}], 지정가매수[{}]",
-                    waitingOrders.getSellOrderPriorityQueueStore(true).size(),
-                    waitingOrders.getSellOrderPriorityQueueStore(false).size(),
-                    waitingOrders.getBuyOrderPriorityQueueStore(true).size(),
-                    waitingOrders.getBuyOrderPriorityQueueStore(false).size());
+                    waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).size(),
+                    waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).size(),
+                    waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).size(),
+                    waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).size());
             lastLogTime = currentTime;
         }
     }
@@ -158,10 +155,10 @@ public class TradeService {
         TradePair<Order, Order> targetTradePair;
 
         // 시장가 주문 우선처리
-        SellOrder marketSellOrder = waitingOrders.getSellOrderPriorityQueueStore(true).peek();
-        SellOrder limitSellOrder = waitingOrders.getSellOrderPriorityQueueStore(false).peek();
-        BuyOrder marketBuyOrder = waitingOrders.getBuyOrderPriorityQueueStore(true).peek();
-        BuyOrder limitBuyOrder = waitingOrders.getBuyOrderPriorityQueueStore(false).peek();
+        SellOrder marketSellOrder = waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).peek();
+        SellOrder limitSellOrder = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).peek();
+        BuyOrder marketBuyOrder = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).peek();
+        BuyOrder limitBuyOrder = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).peek();
 
         if (marketSellOrder != null && limitBuyOrder != null) {
             // 1. 시장가 매도 주문, 지정가 매수 주문

@@ -2,15 +2,14 @@ package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
 import com.cleanengine.coin.order.application.AssetService;
-import com.cleanengine.coin.order.application.OrderCommand;
-import com.cleanengine.coin.order.application.OrderInfo;
+import com.cleanengine.coin.order.application.dto.OrderCommand;
+import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.order.application.event.OrderCreated;
 import com.cleanengine.coin.order.application.port.out.PublishOrderCreatedPort;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.domainservice.CreateOrderDomainService;
-import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
-import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
-import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
+import com.cleanengine.coin.order.adapter.out.persistentce.account.AccountExternalRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import lombok.AllArgsConstructor;
@@ -22,7 +21,6 @@ import java.util.List;
 public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?>> {
     protected final PublishOrderCreatedPort publishOrderCreatedPort;
     protected final AssetService assetService;
-    protected final UpdateOrderBookUsecase updateOrderBookUsecase;
     protected final WalletExternalRepository walletRepository;
     protected final AccountExternalRepository accountRepository;
 
@@ -32,7 +30,6 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
         saveOrder(order);
         createWalletIfNeeded(order.getUserId(), order.getTicker());
         keepHoldings(order);
-        updateOrderBook(order);
         publishOrderCreatedPort.publish(new OrderCreated(order));
         return extractOrderInfo(order);
     }
@@ -67,9 +64,5 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
             Wallet wallet = Wallet.generateEmptyWallet(ticker, account.getId());
             walletRepository.save(wallet);
         }
-    }
-
-    protected void updateOrderBook(T order){
-        updateOrderBookUsecase.updateOrderBookOnNewOrder(order);
     }
 }

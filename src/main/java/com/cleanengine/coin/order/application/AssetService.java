@@ -1,9 +1,10 @@
 package com.cleanengine.coin.order.application;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.order.application.dto.AssetInfo;
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.infra.AssetCacheRepository;
-import com.cleanengine.coin.order.infra.AssetRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetCacheRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.FieldError;

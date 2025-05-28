@@ -1,6 +1,6 @@
 package com.cleanengine.coin.trade.application;
 
-import com.cleanengine.coin.order.application.queue.OrderQueueManager;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.queue.OrderQueueManager;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 
 import lombok.extern.slf4j.Slf4j;

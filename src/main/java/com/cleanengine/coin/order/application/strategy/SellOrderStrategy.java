@@ -1,17 +1,16 @@
 package com.cleanengine.coin.order.application.strategy;
 
+import com.cleanengine.coin.order.adapter.out.persistentce.account.AccountExternalRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
 import com.cleanengine.coin.order.application.AssetService;
-import com.cleanengine.coin.order.application.OrderInfo;
-import com.cleanengine.coin.order.application.port.WalletUpdatePort;
+import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.order.application.port.out.PublishOrderCreatedPort;
+import com.cleanengine.coin.order.application.port.out.WalletUpdatePort;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateOrderDomainService;
 import com.cleanengine.coin.order.domain.domainservice.CreateSellOrderDomainService;
-import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
-import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
-import com.cleanengine.coin.order.infra.SellOrderRepository;
-import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -47,13 +46,12 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
 
     public SellOrderStrategy(PublishOrderCreatedPort publishOrderCreatedPort,
                              AssetService assetService,
-                             UpdateOrderBookUsecase updateOrderBookUsecase,
                              WalletExternalRepository walletRepository,
                              AccountExternalRepository accountRepository,
                              SellOrderRepository sellOrderRepository,
                              WalletUpdatePort walletUpdatePort,
                              CreateSellOrderDomainService createOrderDomainService) {
-        super(publishOrderCreatedPort, assetService, updateOrderBookUsecase, walletRepository, accountRepository);
+        super(publishOrderCreatedPort, assetService, walletRepository, accountRepository);
         this.sellOrderRepository = sellOrderRepository;
         this.walletUpdatePort = walletUpdatePort;
         this.createOrderDomainService = createOrderDomainService;

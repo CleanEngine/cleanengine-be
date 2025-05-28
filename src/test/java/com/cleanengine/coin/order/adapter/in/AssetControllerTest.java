@@ -1,9 +1,9 @@
 package com.cleanengine.coin.order.adapter.in;
 
 import com.cleanengine.coin.base.ControllerTest;
-import com.cleanengine.coin.order.application.AssetInfo;
+import com.cleanengine.coin.order.application.dto.AssetInfo;
 import com.cleanengine.coin.order.application.AssetService;
-import com.cleanengine.coin.order.presentation.AssetController;
+import com.cleanengine.coin.order.adapter.in.web.asset.AssetController;
 import com.cleanengine.coin.tool.annotation.WithCustomMockUser;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

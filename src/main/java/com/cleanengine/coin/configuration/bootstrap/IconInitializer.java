@@ -2,7 +2,7 @@ package com.cleanengine.coin.configuration.bootstrap;
 
 import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.infra.AssetRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;

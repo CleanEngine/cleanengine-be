@@ -1,7 +1,7 @@
 package com.cleanengine.coin.trade.application;
 
 import com.cleanengine.coin.chart.dto.TradeEventDto;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;

@@ -7,6 +7,7 @@ import lombok.Getter;
 
 import java.util.concurrent.PriorityBlockingQueue;
 
+@Deprecated
 @Getter
 public class OrderQueueManager {
     private final String ticker;

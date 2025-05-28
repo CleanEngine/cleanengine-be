@@ -1,8 +1,7 @@
 package com.cleanengine.coin.trade.application;
 
-import com.cleanengine.coin.order.adapter.out.persistentce.order.queue.OrderQueueManager;
+import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -13,9 +12,9 @@ public class TradeQueueManager {
     private final String ticker;
     private final TradeService tradeService;
 
-    public TradeQueueManager(OrderQueueManager orderQueueManager, UpdateOrderBookUsecase updateOrderBookUsecase, TradeService tradeService) {
+    public TradeQueueManager(WaitingOrders waitingOrders, UpdateOrderBookUsecase updateOrderBookUsecase, TradeService tradeService) {
         this.tradeService = tradeService;
-        this.ticker = orderQueueManager.getTicker();
+        this.ticker = waitingOrders.getTicker();
     }
 
     public void run() {

@@ -9,44 +9,36 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @Slf4j
 public class ChartSubscriptionService {
-    // 구독된 티커 목록 관리
-    private final Set<String> subscribedTickers = ConcurrentHashMap.newKeySet();
 
     // 실시간 OHLC 구독 목록 관리
+    //이건 종목에 따라 확장성을 고려해서 만든것 종목으로 불러오기
     private final Set<String> realTimeOhlcSubscribedTickers = ConcurrentHashMap.newKeySet();
 
-    // 실시간 거래 구독 목록 관리
-    private final Set<String> realTimeTradeSubscribedTickers = ConcurrentHashMap.newKeySet();
+    // 실시간 체결 정보 구독 목록 관리
+    private final Set<String> realTimeTradeRateSubscribedTickers = ConcurrentHashMap.newKeySet();
 
-    /**
-     * 티커 구독 추가 (캔들)
+
+    /*
+    실시간 체결 내역 구독
      */
-    public void subscribe(String ticker) {
-        log.debug("캔들 티커 구독 추가: {}", ticker);
-        subscribedTickers.add(ticker);
+    public void subscribeRealTimeTradeRate(String ticker) {
+        log.debug("실시간 체결 정보 티커 구독 추가: {}", ticker);
+        realTimeTradeRateSubscribedTickers.add(ticker);
+    }
+    //구독 해지
+    public void unsubscribeRealTimeTradeRate(String ticker) {
+        log.debug("실시간 체결 정보 티커 구독 해지: {}", ticker);
+        realTimeTradeRateSubscribedTickers.remove(ticker);
+    }
+    //모든 구독 종목 반환
+    public Set<String> getAllRealTimeTradeRateSubscribedTickers() {
+        return realTimeTradeRateSubscribedTickers;
+    }
+    //종목에 대한 구독 여부
+    public boolean isSubscribedToRealTimeTradeRate(String ticker) {
+        return realTimeTradeRateSubscribedTickers.contains(ticker);
     }
 
-    /**
-     * 티커 구독 해제 (캔들)
-     */
-    public void unsubscribe(String ticker) {
-        log.debug("캔들 티커 구독 해제: {}", ticker);
-        subscribedTickers.remove(ticker);
-    }
-
-    /**
-     * 모든 구독된 티커 조회 (캔들)
-     */
-    public Set<String> getAllSubscribedTickers() {
-        return subscribedTickers;
-    }
-
-    /**
-     * 해당 티커가 구독되었는지 확인 (캔들)
-     */
-    public boolean isSubscribed(String ticker) {
-        return subscribedTickers.contains(ticker);
-    }
 
     /**
      * 실시간 OHLC 티커 구독 추가
@@ -56,13 +48,11 @@ public class ChartSubscriptionService {
         realTimeOhlcSubscribedTickers.add(ticker);
     }
 
-    /**
-     * 실시간 OHLC 티커 구독 해제
-     */
     public void unsubscribeRealTimeOhlc(String ticker) {
-        log.debug("실시간 OHLC 티커 구독 해제: {}", ticker);
+        log.debug("실시간 OHLC 티커 구독 해지: {}", ticker);
         realTimeOhlcSubscribedTickers.remove(ticker);
     }
+
 
     /**
      * 모든 실시간 OHLC 구독된 티커 조회
@@ -71,40 +61,7 @@ public class ChartSubscriptionService {
         return realTimeOhlcSubscribedTickers;
     }
 
-    /**
-     * 해당 티커가 실시간 OHLC 구독되었는지 확인
-     */
-    public boolean isRealTimeOhlcSubscribed(String ticker) {
+    public boolean isSubscribedToRealTimeOhlc(String ticker) {
         return realTimeOhlcSubscribedTickers.contains(ticker);
-    }
-
-    /**
-     * 실시간 거래 데이터 티커 구독 추가
-     */
-    public void subscribeRealTime(String ticker) {
-        log.debug("실시간 거래 데이터 티커 구독 추가: {}", ticker);
-        realTimeTradeSubscribedTickers.add(ticker);
-    }
-
-    /**
-     * 실시간 거래 데이터 티커 구독 해제
-     */
-    public void unsubscribeRealTime(String ticker) {
-        log.debug("실시간 거래 데이터 티커 구독 해제: {}", ticker);
-        realTimeTradeSubscribedTickers.remove(ticker);
-    }
-
-    /**
-     * 모든 실시간 거래 데이터 구독된 티커 조회
-     */
-    public Set<String> getAllRealTimeSubscribedTickers() {
-        return realTimeTradeSubscribedTickers;
-    }
-
-    /**
-     * 해당 티커가 실시간 거래 데이터 구독되었는지 확인
-     */
-    public boolean isRealTimeSubscribed(String ticker) {
-        return realTimeTradeSubscribedTickers.contains(ticker);
     }
 }

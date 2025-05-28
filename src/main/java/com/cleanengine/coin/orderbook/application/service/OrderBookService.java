@@ -3,7 +3,8 @@ package com.cleanengine.coin.orderbook.application.service;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderStatus;
-import com.cleanengine.coin.order.infra.ActiveOrderManagerPool;
+import com.cleanengine.coin.order.domain.spi.ActiveOrders;
+import com.cleanengine.coin.order.domain.spi.ActiveOrdersManager;
 import com.cleanengine.coin.orderbook.domain.OrderBookDomainService;
 import com.cleanengine.coin.orderbook.dto.OrderBookInfo;
 import com.cleanengine.coin.orderbook.dto.OrderBookUnitInfo;
@@ -18,7 +19,7 @@ import static com.cleanengine.coin.common.CommonValues.approxEquals;
 @Component
 @RequiredArgsConstructor
 public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUsecase {
-    private final ActiveOrderManagerPool activeOrderManagerPool;
+    private final ActiveOrdersManager activeOrdersManager;
     private final OrderBookDomainService orderBookDomainService;
     private final OrderBookUpdatedNotifierPort orderBookUpdatedNotifierPort;
 
@@ -26,7 +27,7 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
     public void updateOrderBookOnNewOrder(Order order) {
         if(order.getIsMarketOrder()){return;}
         String ticker = order.getTicker();
-        activeOrderManagerPool.saveOrder(ticker, order);
+        activeOrders(ticker).saveOrder(order);
 
         boolean isBuyOrder = order instanceof BuyOrder;
         orderBookDomainService.updateOrderBookOnNewOrder(ticker, isBuyOrder, order.getPrice(), order.getOrderSize());
@@ -43,13 +44,15 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
     }
 
     private void updateOrderBookOnTradeExecuted(String ticker, Long orderId, boolean isBuyOrder, Double orderSize) {
-        Optional<Order> orderOptional = activeOrderManagerPool.getOrder(ticker, orderId, isBuyOrder);
+        ActiveOrders activeOrders = activeOrders(ticker);
+
+        Optional<Order> orderOptional = activeOrders.getOrder(orderId, isBuyOrder);
         // 시장가일 경우에는 ManagerPool에 없음
         if(orderOptional.isPresent()){
             Order order = orderOptional.get();
             orderBookDomainService.updateOrderBookOnTradeExecuted(ticker, isBuyOrder, order.getPrice(), orderSize);
             if(order.getState().equals(OrderStatus.DONE) || approxEquals(order.getOrderSize(), 0.0)){
-                activeOrderManagerPool.removeOrder(ticker, orderId, isBuyOrder);
+                activeOrders.removeOrder(orderId, isBuyOrder);
             }
         }
     }
@@ -71,5 +74,9 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
     @Override
     public OrderBookInfo getOrderBook(String ticker) {
         return extractOrderBookInfo(ticker);
+    }
+
+    private ActiveOrders activeOrders(String ticker){
+        return activeOrdersManager.getActiveOrders(ticker);
     }
 }

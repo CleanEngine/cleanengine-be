@@ -1,12 +1,13 @@
 package com.cleanengine.coin.trade.application;
 
-import com.cleanengine.coin.order.application.queue.OrderQueueManager;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
+import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
-import com.cleanengine.coin.order.infra.BuyOrderRepository;
-import com.cleanengine.coin.order.infra.SellOrderRepository;
+import com.cleanengine.coin.order.domain.spi.WaitingOrders;
+import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import org.junit.jupiter.api.AfterAll;
@@ -45,7 +46,7 @@ public class TradeQueueManagerTest {
     @Autowired
     TradeBatchProcessor tradeBatchProcessor;
     @Autowired
-    private OrderQueueManagerPool orderQueueManagerPool;
+    private WaitingOrdersManager waitingOrdersManager;
     @Autowired
     TradeService tradeService;
 
@@ -54,18 +55,18 @@ public class TradeQueueManagerTest {
     private void addBuyOrdersToQueueManager(List<BuyOrder> orders){
         if (orders.isEmpty()) return;
         String ticker = orders.getFirst().getTicker();
-        OrderQueueManager orderQueueManager = orderQueueManagerPool.getOrderQueueManager(ticker);
+        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
         for(com.cleanengine.coin.order.domain.Order order : orders){
-            orderQueueManager.addOrder(order);
+            waitingOrders.addOrder(order);
         }
     }
 
     private void addSellOrdersToQueueManager(List<SellOrder> orders){
         if (orders.isEmpty()) return;
         String ticker = orders.getFirst().getTicker();
-        OrderQueueManager orderQueueManager = orderQueueManagerPool.getOrderQueueManager(ticker);
+        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
         for(Order order : orders){
-            orderQueueManager.addOrder(order);
+            waitingOrders.addOrder(order);
         }
     }
 
@@ -74,11 +75,8 @@ public class TradeQueueManagerTest {
         if (staticTradeBatchProcessor == null) {
             staticTradeBatchProcessor = tradeBatchProcessor;
         }
-        OrderQueueManager orderQueueManager = orderQueueManagerPool.getOrderQueueManager(ticker);
-        orderQueueManager.getMarketSellOrderQueue().clear();
-        orderQueueManager.getMarketBuyOrderQueue().clear();
-        orderQueueManager.getLimitSellOrderQueue().clear();
-        orderQueueManager.getLimitBuyOrderQueue().clear();
+        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
+        waitingOrders.clearAllQueues();
         tradeRepository.deleteAll();
         buyOrderRepository.deleteAll();
         sellOrderRepository.deleteAll();
@@ -109,9 +107,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -139,8 +137,8 @@ public class TradeQueueManagerTest {
         assertTrue(tradeOfBuy.getFirst().getSize() - orderSize < MINIMUM_ORDER_SIZE, "체결수량과 주문수량은 같아야 합니다.");
         assertTrue(tradeOfBuy.getFirst().getPrice() - price < MINIMUM_ORDER_SIZE, "체결단가와 주문단가는 같아야 합니다.");
 
-        assertTrue(orderQueueManager.getLimitBuyOrderQueue().isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
-        assertTrue(orderQueueManager.getLimitSellOrderQueue().isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
 
         assertTrue(buyOrder.getRemainingSize() < MINIMUM_ORDER_SIZE, "매수주문의 잔여수량은 없어야 합니다.");
         assertTrue(sellOrder.getRemainingSize() < MINIMUM_ORDER_SIZE, "매도주문의 잔여수량은 없어야 합니다.");
@@ -156,9 +154,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -182,8 +180,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(orderQueueManager.getLimitBuyOrderQueue().isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
-        assertEquals(1, orderQueueManager.getLimitSellOrderQueue().size(), "지정가 매도 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).size(), "지정가 매도 주문이 1개 남아있어야 합니다.");
     }
 
     @DisplayName("지정가매수-지정가매도 매수부분체결")
@@ -196,9 +194,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -222,8 +220,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertEquals(1, orderQueueManager.getLimitBuyOrderQueue().size(), "지정가 매수 주문이 1개 남아있어야 합니다.");
-        assertTrue(orderQueueManager.getLimitSellOrderQueue().isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).size(), "지정가 매수 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
     }
 
     @DisplayName("시장가매수-지정가매도 완전체결")
@@ -236,9 +234,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -262,8 +260,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(orderQueueManager.getMarketBuyOrderQueue().isEmpty(), "남은 시장가 매수 주문이 없어야 합니다.");
-        assertTrue(orderQueueManager.getLimitSellOrderQueue().isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).isEmpty(), "남은 시장가 매수 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
     }
 
     @DisplayName("지정가매수-시장가매도 완전체결")
@@ -276,9 +274,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -302,8 +300,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(orderQueueManager.getLimitBuyOrderQueue().isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
-        assertTrue(orderQueueManager.getMarketSellOrderQueue().isEmpty(), "남은 시장가 매도 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매수 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).isEmpty(), "남은 시장가 매도 주문이 없어야 합니다.");
     }
 
     @DisplayName("시장가매수-지정가매도 매도부분체결")
@@ -316,9 +314,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -342,8 +340,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(orderQueueManager.getMarketBuyOrderQueue().isEmpty(), "남은 시장가 매수 주문이 없어야 합니다.");
-        assertEquals(1, orderQueueManager.getLimitSellOrderQueue().size(), "지정가 매도 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).isEmpty(), "남은 시장가 매수 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).size(), "지정가 매도 주문이 1개 남아있어야 합니다.");
     }
 
     @DisplayName("시장가매수-지정가매도 매수부분체결")
@@ -356,9 +354,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -382,14 +380,14 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertEquals(1, orderQueueManager.getMarketBuyOrderQueue().size(), "시장가 매수 주문이 1개 남아있어야 합니다.");
-        assertTrue(orderQueueManager.getLimitSellOrderQueue().isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).size(), "시장가 매수 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "남은 지정가 매도 주문이 없어야 합니다.");
 
-        assert orderQueueManager.getMarketBuyOrderQueue().peek() != null;
+        assert waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).peek() != null;
         assertEquals(1_300_000_000.0 - 130_000_000.0,
-                orderQueueManager.getMarketBuyOrderQueue().peek().getRemainingDeposit(),
+                waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).peek().getRemainingDeposit(),
                 "잔여 예수금이 맞지 않습니다.");
-        logger.debug("잔여 예수금 : {}", orderQueueManager.getMarketBuyOrderQueue().peek().getRemainingDeposit());
+        logger.debug("잔여 예수금 : {}", waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).peek().getRemainingDeposit());
     }
 
     @DisplayName("지정가매수-시장가매도 매수부분체결")
@@ -402,9 +400,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -428,8 +426,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertEquals(1, orderQueueManager.getLimitBuyOrderQueue().size(), "지정가 매수 주문이 1개 남아있어야 합니다.");
-        assertTrue(orderQueueManager.getMarketSellOrderQueue().isEmpty(), "남은 시장가 매도 주문이 없어야 합니다.");
+        assertEquals(1, waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).size(), "지정가 매수 주문이 1개 남아있어야 합니다.");
+        assertTrue(waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).isEmpty(), "남은 시장가 매도 주문이 없어야 합니다.");
     }
 
     @DisplayName("지정가매수-시장가매도 매도부분체결")
@@ -442,9 +440,9 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
-        orderQueueManager.addOrder(buyOrder);
-        orderQueueManager.addOrder(sellOrder);
+        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        waitingOrders.addOrder(buyOrder);
+        waitingOrders.addOrder(sellOrder);
 
         // 체결이 완료될 때까지 대기 (최대 3초)
         await()
@@ -468,8 +466,8 @@ public class TradeQueueManagerTest {
                 "매수인와 매도인의 거래 내역은 동일한 거래를 가리켜야 합니다"
         );
 
-        assertTrue(orderQueueManager.getLimitBuyOrderQueue().isEmpty(), "지정가 매수 주문이 1개 남아있어야 합니다.");
-        assertEquals(1, orderQueueManager.getMarketSellOrderQueue().size(), "남은 시장가 매도 주문이 없어야 합니다.");
+        assertTrue(waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).isEmpty(), "지정가 매수 주문이 1개 남아있어야 합니다.");
+        assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).size(), "남은 시장가 매도 주문이 없어야 합니다.");
     }
 
 //    @DisplayName("여러 지정가매수-지정가매도 완전체결")

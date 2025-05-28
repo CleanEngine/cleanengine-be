@@ -2,14 +2,11 @@ package com.cleanengine.coin.trade.application;
 
 import com.cleanengine.coin.common.error.BusinessException;
 import com.cleanengine.coin.common.response.ErrorStatus;
-import com.cleanengine.coin.order.application.queue.OrderQueueManager;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
-import com.cleanengine.coin.order.domain.BuyOrder;
-import com.cleanengine.coin.order.domain.Order;
-import com.cleanengine.coin.order.domain.OrderStatus;
-import com.cleanengine.coin.order.domain.SellOrder;
-import com.cleanengine.coin.order.infra.BuyOrderRepository;
-import com.cleanengine.coin.order.infra.SellOrderRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
+import com.cleanengine.coin.order.domain.*;
+import com.cleanengine.coin.order.domain.spi.WaitingOrders;
+import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
@@ -37,7 +34,7 @@ public class TradeService {
     private final AccountRepository accountRepository;
     private final WalletRepository walletRepository;
     @Getter
-    private final OrderQueueManagerPool orderQueueManagerPool;
+    private final WaitingOrdersManager waitingOrdersManager;
     private final UpdateOrderBookUsecase updateOrderBookUsecase;
     private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
 
@@ -45,13 +42,13 @@ public class TradeService {
     private long lastLogTime = 0;
     private static final long LOG_INTERVAL = 1000;
 
-    public TradeService(TradeRepository tradeRepository, BuyOrderRepository buyOrderRepository, SellOrderRepository sellOrderRepository, AccountRepository accountRepository, WalletRepository walletRepository, OrderQueueManagerPool orderQueueManagerPool, UpdateOrderBookUsecase updateOrderBookUsecase, TradeExecutedEventPublisher tradeExecutedEventPublisher) {
+    public TradeService(TradeRepository tradeRepository, BuyOrderRepository buyOrderRepository, SellOrderRepository sellOrderRepository, AccountRepository accountRepository, WalletRepository walletRepository, WaitingOrdersManager waitingOrdersManager, UpdateOrderBookUsecase updateOrderBookUsecase, TradeExecutedEventPublisher tradeExecutedEventPublisher) {
         this.tradeRepository = tradeRepository;
         this.buyOrderRepository = buyOrderRepository;
         this.sellOrderRepository = sellOrderRepository;
         this.accountRepository = accountRepository;
         this.walletRepository = walletRepository;
-        this.orderQueueManagerPool = orderQueueManagerPool;
+        this.waitingOrdersManager = waitingOrdersManager;
         this.updateOrderBookUsecase = updateOrderBookUsecase;
         this.tradeExecutedEventPublisher = tradeExecutedEventPublisher;
     }
@@ -133,35 +130,35 @@ public class TradeService {
         order.setState(OrderStatus.DONE);
     }
 
-    private void writeQueueLog(OrderQueueManager orderQueueManager) {
+    private void writeQueueLog(WaitingOrders waitingOrders) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastLogTime > LOG_INTERVAL) {
             log.debug("주문 큐 - 시장가매도[{}], 지정가매도[{}], 시장가매수[{}], 지정가매수[{}]",
-                    orderQueueManager.getMarketSellOrderQueueSize(),
-                    orderQueueManager.getLimitSellOrderQueueSize(),
-                    orderQueueManager.getMarketBuyOrderQueueSize(),
-                    orderQueueManager.getLimitBuyOrderQueueSize());
+                    waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).size(),
+                    waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).size(),
+                    waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).size(),
+                    waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).size());
             lastLogTime = currentTime;
         }
     }
 
     public void execMatchAndTrade(String ticker) {
-        OrderQueueManager orderQueueManager = orderQueueManagerPool.getOrderQueueManager(ticker);
+        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
         // TODO : peek() 해온 Order 객체들을 lock -> 체결 도중 취소 방지
-        this.matchOrders(orderQueueManager)
-                .ifPresent(tradePair -> executeTrade(orderQueueManager, tradePair, ticker));
+        this.matchOrders(waitingOrders)
+                .ifPresent(tradePair -> executeTrade(waitingOrders, tradePair, ticker));
     }
 
-    private Optional<TradePair<Order, Order>> matchOrders(OrderQueueManager orderQueueManager) {  // 반환값 : 체결여부
-        this.writeQueueLog(orderQueueManager);
+    private Optional<TradePair<Order, Order>> matchOrders(WaitingOrders waitingOrders) {  // 반환값 : 체결여부
+        this.writeQueueLog(waitingOrders);
 
         TradePair<Order, Order> targetTradePair;
 
         // 시장가 주문 우선처리
-        SellOrder marketSellOrder = orderQueueManager.getMarketSellOrder();
-        SellOrder limitSellOrder = orderQueueManager.getLimitSellOrder();
-        BuyOrder marketBuyOrder = orderQueueManager.getMarketBuyOrder();
-        BuyOrder limitBuyOrder = orderQueueManager.getLimitBuyOrder();
+        SellOrder marketSellOrder = waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).peek();
+        SellOrder limitSellOrder = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT).peek();
+        BuyOrder marketBuyOrder = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.MARKET).peek();
+        BuyOrder limitBuyOrder = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT).peek();
 
         if (marketSellOrder != null && limitBuyOrder != null) {
             // 1. 시장가 매도 주문, 지정가 매수 주문
@@ -193,7 +190,7 @@ public class TradeService {
     private record TradeUnitPriceAndSize(double tradedSize, double tradedPrice) {
     }
 
-    public void executeTrade(OrderQueueManager orderQueueManager, TradePair<Order, Order> tradePair, String ticker) {
+    public void executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
         BuyOrder buyOrder = tradePair.getBuyOrder();
         SellOrder sellOrder = tradePair.getSellOrder();
 
@@ -220,8 +217,8 @@ public class TradeService {
         sellOrder.decreaseRemainingSize(tradedSize);
 
         // 주문 완전체결 처리(잔여금액 or 잔여수량이 0)
-        this.removeCompletedBuyOrder(orderQueueManager, buyOrder);
-        this.removeCompletedSellOrder(orderQueueManager, sellOrder);
+        this.removeCompletedBuyOrder(waitingOrders, buyOrder);
+        this.removeCompletedSellOrder(waitingOrders, sellOrder);
 
         // DB 테이블 저장에 걸리는 시간 측정용
         long beforeTime = System.currentTimeMillis();
@@ -309,21 +306,21 @@ public class TradeService {
         return !order.getIsMarketOrder();
     }
 
-    private void removeCompletedBuyOrder(OrderQueueManager orderQueueManager, BuyOrder order) {
+    private void removeCompletedBuyOrder(WaitingOrders waitingOrders, BuyOrder order) {
         boolean isOrderCompleted = (isMarketOrder(order) && approxEquals(order.getRemainingDeposit(), 0.0)) ||
                 (isLimitOrder(order) && approxEquals(order.getRemainingSize(), 0.0));
 
         if (isOrderCompleted) {
-            orderQueueManager.removeOrderFromQueue(order);
+            waitingOrders.removeOrder(order);
             this.updateCompletedOrderStatus(order);
         }
     }
 
-    private void removeCompletedSellOrder(OrderQueueManager orderQueueManager, SellOrder order) {
+    private void removeCompletedSellOrder(WaitingOrders waitingOrders, SellOrder order) {
         boolean isOrderCompleted = approxEquals(order.getRemainingSize(), 0.0);
 
         if (isOrderCompleted) {
-            orderQueueManager.removeOrderFromQueue(order);
+            waitingOrders.removeOrder(order);
             this.updateCompletedOrderStatus(order);
         }
     }

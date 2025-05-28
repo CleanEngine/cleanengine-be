@@ -1,8 +1,8 @@
 package com.cleanengine.coin.realitybot.api;
 
 import com.cleanengine.coin.common.annotation.WorkingServerProfile;
+import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.infra.AssetRepository;
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.cleanengine.coin.realitybot.service.ApiVWAPService;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;

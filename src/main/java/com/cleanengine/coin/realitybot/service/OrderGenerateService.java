@@ -11,6 +11,7 @@ import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,8 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 @Order(5)
 @RequiredArgsConstructor
 public class OrderGenerateService {
-    private final int[] orderLevels = {1,2,3};
+    @Value("${bot-handler.order-level}")
+    private int[] orderLevels; //체결 강도
     private double unitPrice = 0; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
     private final UnitPriceRefresher unitPriceRefresher;
     private final PlatformVWAPService platformVWAPService;
@@ -212,10 +214,11 @@ public class OrderGenerateService {
     private int normalizeToUnit(double price){ //호가단위로 변환
         return (int) ((double)(Math.round(price / unitPrice)) * unitPrice);
     }
+
     private double getRandomVolum(double avgVolum){ //볼륨 랜덤 입력
         double rawVolume = avgVolum * (0.5+Math.random());
         //호가 단위에 따라 0원이 발생 가능성
-        double resultVolume = Math.round(rawVolume * 1000.0)/1000.0;
+        double resultVolume = Math.round(rawVolume * 10000.0)/10000.0;
         if(resultVolume <= 0){
             //Volume이 0이하일 경우 재 계산
             resultVolume = Math.round(rawVolume * 10000000.0)/10000000.0;

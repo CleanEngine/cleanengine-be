@@ -1,12 +1,12 @@
 package com.cleanengine.coin.order.application;
 
 import com.cleanengine.coin.common.annotation.WorkingServerProfile;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
-import com.cleanengine.coin.order.infra.query.BuyOrderQueryRepository;
-import com.cleanengine.coin.order.infra.query.SellOrderQueryRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.query.BuyOrderQueryRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.query.SellOrderQueryRepository;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;

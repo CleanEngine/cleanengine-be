@@ -1,12 +1,12 @@
 package com.cleanengine.coin.trade.application;
 
-import com.cleanengine.coin.order.application.queue.OrderQueueManager;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.queue.OrderQueueManager;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
-import com.cleanengine.coin.order.infra.BuyOrderRepository;
-import com.cleanengine.coin.order.infra.SellOrderRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import org.junit.jupiter.api.AfterAll;

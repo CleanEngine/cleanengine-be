@@ -2,12 +2,12 @@ package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.order.application.OrderCommand;
 import com.cleanengine.coin.order.application.OrderInfo;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
 import com.cleanengine.coin.order.domain.Order;
 
 public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?>> {
 
     public T processCreatingOrder(OrderCommand.CreateOrder createOrderCommand){
+        validateTicker(createOrderCommand.ticker());
         T order = createOrder(createOrderCommand);
         saveOrder(order);
         createWallet(order.getUserId(), order.getTicker());
@@ -18,6 +18,7 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
 
     public abstract boolean supports(Boolean isBuyOrder);
 
+    protected abstract void validateTicker(String ticker);
     protected abstract T createOrder(OrderCommand.CreateOrder createOrderCommand);
     protected abstract void saveOrder(T order);
     protected abstract void createWallet(Integer userId, String ticker);

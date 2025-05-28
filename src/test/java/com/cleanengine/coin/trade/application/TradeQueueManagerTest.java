@@ -46,6 +46,8 @@ public class TradeQueueManagerTest {
     TradeBatchProcessor tradeBatchProcessor;
     @Autowired
     private OrderQueueManagerPool orderQueueManagerPool;
+    @Autowired
+    TradeService tradeService;
 
     private final String ticker = "BTC";
 
@@ -107,7 +109,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 
@@ -154,7 +156,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 
@@ -194,7 +196,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 
@@ -234,7 +236,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 
@@ -274,7 +276,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 
@@ -314,7 +316,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 
@@ -354,7 +356,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 
@@ -400,7 +402,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 
@@ -440,7 +442,7 @@ public class TradeQueueManagerTest {
         sellOrderRepository.save(sellOrder);
 
         Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        OrderQueueManager orderQueueManager = tradeQueueManagers.get(ticker).getOrderQueueManager();
+        OrderQueueManager orderQueueManager = tradeService.getOrderQueueManagerPool().getOrderQueueManager(ticker);
         orderQueueManager.addOrder(buyOrder);
         orderQueueManager.addOrder(sellOrder);
 

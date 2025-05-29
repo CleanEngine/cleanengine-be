@@ -8,4 +8,6 @@ import lombok.Getter;
 @Builder
 public class TradeExecutedEvent {
     Trade trade;
+    Long buyOrderId;
+    Long sellOrderId;
 }

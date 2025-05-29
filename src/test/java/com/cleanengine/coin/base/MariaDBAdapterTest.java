@@ -26,7 +26,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
 @Import(TimeZoneConfig.class)
 @Sql(
         scripts = "classpath:db/mariadb/data/delete.sql",
-        executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         config=@SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
 )
 public abstract class MariaDBAdapterTest {

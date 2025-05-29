@@ -7,7 +7,6 @@ import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrd
 import com.cleanengine.coin.order.domain.*;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
-import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
@@ -35,21 +34,19 @@ public class TradeService {
     private final WalletRepository walletRepository;
     @Getter
     private final WaitingOrdersManager waitingOrdersManager;
-    private final UpdateOrderBookUsecase updateOrderBookUsecase;
     private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
 
     // 1초마다 큐 로깅
     private long lastLogTime = 0;
     private static final long LOG_INTERVAL = 1000;
 
-    public TradeService(TradeRepository tradeRepository, BuyOrderRepository buyOrderRepository, SellOrderRepository sellOrderRepository, AccountRepository accountRepository, WalletRepository walletRepository, WaitingOrdersManager waitingOrdersManager, UpdateOrderBookUsecase updateOrderBookUsecase, TradeExecutedEventPublisher tradeExecutedEventPublisher) {
+    public TradeService(TradeRepository tradeRepository, BuyOrderRepository buyOrderRepository, SellOrderRepository sellOrderRepository, AccountRepository accountRepository, WalletRepository walletRepository, WaitingOrdersManager waitingOrdersManager, TradeExecutedEventPublisher tradeExecutedEventPublisher) {
         this.tradeRepository = tradeRepository;
         this.buyOrderRepository = buyOrderRepository;
         this.sellOrderRepository = sellOrderRepository;
         this.accountRepository = accountRepository;
         this.walletRepository = walletRepository;
         this.waitingOrdersManager = waitingOrdersManager;
-        this.updateOrderBookUsecase = updateOrderBookUsecase;
         this.tradeExecutedEventPublisher = tradeExecutedEventPublisher;
     }
 
@@ -247,9 +244,6 @@ public class TradeService {
 
         // 체결내역 저장
         Trade trade = this.insertNewTrade(ticker, buyOrder, sellOrder, tradedSize, tradedPrice);
-
-        // 호가 조회를 위한 Order Service 메서드 호출
-        updateOrderBookUsecase.updateOrderBookOnTradeExecuted(ticker, buyOrder.getId(), sellOrder.getId(), tradedSize);
 
         TradeExecutedEvent tradeExecutedEvent =
                 TradeExecutedEvent.builder()

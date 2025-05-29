@@ -1,11 +1,13 @@
 package com.cleanengine.coin.realitybot.vo;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+@Slf4j
 @Service
 public class UnitPricePolicy {
     private final NavigableMap<Double, Double> unitPriceRules = new TreeMap<Double, Double>();
@@ -29,8 +31,11 @@ public class UnitPricePolicy {
     }
 
     public double getUnitPrice(double apiTradePrice){
-        double unitprice =unitPriceRules.higherEntry(apiTradePrice).getValue();
-        return unitprice;
+        if (apiTradePrice <=0){
+            log.warn("api의 opening_price가 음수입니다. 0원으로 치환됩니다.");
+            return unitPriceRules.higherEntry(0.0).getValue();
+        }
+        return unitPriceRules.higherEntry(apiTradePrice).getValue();
     }
 
 }

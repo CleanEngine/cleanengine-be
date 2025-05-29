@@ -42,15 +42,12 @@ public class UnitPriceRefresher implements ApplicationRunner {
 
     @Scheduled(cron = "${bot-handler.corn}")
     public void refreshUnitPrices() {
-//        unitPriceCache.keySet().forEach(ticker -> {
-//            unitPriceCache.put(ticker, fetchOpeningPriceFromAPI(ticker));
-//        });
-
-        List<Asset> tickers = assetRepository.findAll();
-        for (Asset ticker : tickers){
-            double unitPrice = fetchOpeningPriceFromAPI(ticker.getTicker());
-            unitPriceCache.put(ticker.getTicker(),unitPrice);
-        }
+        initializeUnitPrices();
+//        List<Asset> tickers = assetRepository.findAll();
+//        for (Asset ticker : tickers){
+//            double unitPrice = fetchOpeningPriceFromAPI(ticker.getTicker());
+//            unitPriceCache.put(ticker.getTicker(),unitPrice);
+//        }
 
     }
 

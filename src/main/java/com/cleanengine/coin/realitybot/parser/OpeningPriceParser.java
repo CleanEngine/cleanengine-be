@@ -15,9 +15,9 @@ import java.util.List;
 @Slf4j
 @Getter
 public class OpeningPriceParser {
-    private static final Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
-    public static OpeningPrice parseGson(String json) {
+    public OpeningPrice parseGson(String json) {
         List<OpeningPrice> list = gson.fromJson(json, new TypeToken<List<OpeningPrice>>() {}.getType());
         return list.get(0);
     }

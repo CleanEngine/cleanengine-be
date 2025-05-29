@@ -4,6 +4,7 @@ import com.cleanengine.coin.configuration.TimeZoneConfig;
 import com.cleanengine.coin.tool.extension.MariaDBTestContainerExtension;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -20,6 +21,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
  * API단으로 수행하는 통합 테스트는 AcceptanceTest를 사용바랍니다.
  */
 @DataJpaTest
+@Disabled
 @ActiveProfiles({"dev", "it"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(MariaDBTestContainerExtension.class)

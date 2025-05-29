@@ -18,15 +18,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles({"dev", "it", "h2-mem"})
 @SpringBootTest
 @DisplayName("체결 처리 테스트")
 public class TradeQueueManagerTest {
@@ -48,7 +49,7 @@ public class TradeQueueManagerTest {
     @Autowired
     private WaitingOrdersManager waitingOrdersManager;
     @Autowired
-    TradeService tradeService;
+    TradeMatcher tradeMatcher;
 
     private final String ticker = "BTC";
 
@@ -106,8 +107,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -153,8 +153,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -193,8 +192,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -233,8 +231,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -273,8 +270,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -313,8 +309,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -353,8 +348,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -399,8 +393,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -439,8 +432,7 @@ public class TradeQueueManagerTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        Map<String, TradeQueueManager> tradeQueueManagers = tradeBatchProcessor.getTradeQueueManagers();
-        WaitingOrders waitingOrders = tradeService.getWaitingOrdersManager().getWaitingOrders(ticker);
+        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 

@@ -18,6 +18,10 @@ public class ChartSubscriptionService {
     private final Set<String> realTimeTradeRateSubscribedTickers = ConcurrentHashMap.newKeySet();
 
 
+    //전날 종가 데이터 구독 목록 관리
+    private final Set<String> PrevRateSubscribedTickers = ConcurrentHashMap.newKeySet();
+
+
     /*
     실시간 체결 내역 구독
      */
@@ -63,5 +67,24 @@ public class ChartSubscriptionService {
 
     public boolean isSubscribedToRealTimeOhlc(String ticker) {
         return realTimeOhlcSubscribedTickers.contains(ticker);
+    }
+
+    /*
+    전날 종가 변동률 구독 추가,삭제,조회
+     */
+    public void subscribePrevRate(String ticker) {
+        log.debug("전날 종가 변동률 티커 구독 추가: {}", ticker);
+        PrevRateSubscribedTickers.add(ticker);
+    }
+    public void unsubscribePrevRate(String ticker) {
+        log.debug("전날 종가 변동률 티커 구독 해지: {}", ticker);
+        PrevRateSubscribedTickers.remove(ticker);
+    }
+    public Set<String> getAllPrevRateSubscribedTickers(String ticker) {
+        return PrevRateSubscribedTickers;
+    }
+
+    public boolean isSubscribedToPrevRate(String ticker) {
+        return PrevRateSubscribedTickers.contains(ticker);
     }
 }

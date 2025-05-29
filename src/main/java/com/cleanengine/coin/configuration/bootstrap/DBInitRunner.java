@@ -1,8 +1,8 @@
 package com.cleanengine.coin.configuration.bootstrap;
 
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
-import com.cleanengine.coin.order.infra.AssetRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.User;
 import com.cleanengine.coin.user.domain.Wallet;

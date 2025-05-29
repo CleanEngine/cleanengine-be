@@ -2,7 +2,7 @@ package com.cleanengine.coin.order.adapter.out;
 
 import com.cleanengine.coin.base.MariaDBAdapterTest;
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.infra.AssetRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;

@@ -1,7 +1,7 @@
 package com.cleanengine.coin.trade.application;
 
 import com.cleanengine.coin.chart.dto.TradeEventDto;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
+import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
@@ -27,7 +27,7 @@ public class TradeBatchProcessor implements ApplicationRunner {
 
     Logger logger = LoggerFactory.getLogger(TradeBatchProcessor.class);
 
-    private final OrderQueueManagerPool orderQueueManagerPool;
+    private final WaitingOrdersManager waitingOrdersManager;
     private final TradeService tradeService;
     private final List<ExecutorService> executors = new ArrayList<>();
 
@@ -37,8 +37,8 @@ public class TradeBatchProcessor implements ApplicationRunner {
 
     @Value("${order.tickers}") String[] tickers;
 
-    public TradeBatchProcessor(OrderQueueManagerPool orderQueueManagerPool, TradeService tradeService, UpdateOrderBookUsecase updateOrderBookUsecase) {
-        this.orderQueueManagerPool = orderQueueManagerPool;
+    public TradeBatchProcessor(WaitingOrdersManager waitingOrdersManager, TradeService tradeService, UpdateOrderBookUsecase updateOrderBookUsecase) {
+        this.waitingOrdersManager = waitingOrdersManager;
         this.tradeService = tradeService;
         this.updateOrderBookUsecase = updateOrderBookUsecase;
     }
@@ -50,7 +50,7 @@ public class TradeBatchProcessor implements ApplicationRunner {
 
     private void processTrades() {
         for (String ticker : tickers) {
-            TradeQueueManager tradeQueueManager = new TradeQueueManager(orderQueueManagerPool.getOrderQueueManager(ticker),
+            TradeQueueManager tradeQueueManager = new TradeQueueManager(waitingOrdersManager.getWaitingOrders(ticker),
                     updateOrderBookUsecase,
                     tradeService);
             tradeQueueManagers.put(ticker, tradeQueueManager); // 정상 종료를 위해 저장
@@ -97,19 +97,9 @@ public class TradeBatchProcessor implements ApplicationRunner {
         }
     }
 
+    @Deprecated
     public TradeEventDto retrieveTradeEventDto(String ticker) {
-        TradeQueueManager tradeQueueManager = this.tradeQueueManagers.get(ticker);
-        if (tradeQueueManager == null) {
-            return null;
-        }
-        
-        TradeEventDto lastTradeEventDto = tradeQueueManager.getLastTradeEventDto();
-
-        // 서비스 시작 후 체결 내역이 없으면 null 반환
-        if (lastTradeEventDto.getSize() == 0.0 || lastTradeEventDto.getPrice() == 0.0) {
-            return null;
-        }
-        return lastTradeEventDto;
+        return null;
     }
 
 }

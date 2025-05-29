@@ -23,7 +23,7 @@ public class RealTimeTradeController {
      * {ticker} 값을 받습니다.
      */
     @MessageMapping("/subscribe/realTimeTradeRate/{ticker}")
-    public void realTimeTradeRate(@DestinationVariable String ticker, Object data) {
+    public void realTimeTradeRate(@DestinationVariable String ticker) {
         chartSubscriptionService.subscribeRealTimeTradeRate(ticker);
     }
 }

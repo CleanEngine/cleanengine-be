@@ -6,7 +6,6 @@ import com.cleanengine.coin.chart.repository.RealTimeTradeRepository;
 import com.cleanengine.coin.trade.entity.Trade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

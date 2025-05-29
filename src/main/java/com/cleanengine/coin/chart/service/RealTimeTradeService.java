@@ -2,7 +2,6 @@ package com.cleanengine.coin.chart.service;
 
 import com.cleanengine.coin.chart.dto.RealTimeDataDto;
 import com.cleanengine.coin.chart.dto.TradeEventDto;
-import com.cleanengine.coin.chart.handler.TradeEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

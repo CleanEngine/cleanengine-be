@@ -254,6 +254,8 @@ public class TradeService {
         TradeExecutedEvent tradeExecutedEvent =
                 TradeExecutedEvent.builder()
                         .trade(trade)
+                        .buyOrderId(buyOrder.getId())
+                        .sellOrderId(sellOrder.getId())
                         .build();
         tradeExecutedEventPublisher.publish(tradeExecutedEvent);
     }

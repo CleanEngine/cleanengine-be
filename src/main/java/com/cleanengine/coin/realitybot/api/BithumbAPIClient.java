@@ -14,10 +14,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Slf4j
 public class BithumbAPIClient {
-//    private OkHttpClient client;
-//    private Gson gson;
     private OkHttpClient client = new OkHttpClient();
-//    private Gson gson = new Gson();
     private String ticker;
 
 
@@ -39,7 +36,7 @@ public class BithumbAPIClient {
             throw new RuntimeException(e);
         }
     }
-    public String getOpeningPirce(String ticker){
+    public String getOpeningPrice(String ticker){
         this.ticker = ticker;
         Request request = new Request.Builder()
                 .url("https://api.bithumb.com/v1/ticker?markets=KRW-"+ticker)

@@ -33,7 +33,6 @@ public class UnitPriceRefresher implements ApplicationRunner {
     }
 
     public void initializeUnitPrices() {
-
         List<Asset> tickers = assetRepository.findAll();
         for (Asset ticker : tickers){
             double unitPrice = fetchOpeningPriceFromAPI(ticker.getTicker());
@@ -41,7 +40,7 @@ public class UnitPriceRefresher implements ApplicationRunner {
         }
     }
 
-    @Scheduled(cron = "30 * * * * *")
+    @Scheduled(cron = "${bot-handler.corn}")
     public void refreshUnitPrices() {
 //        unitPriceCache.keySet().forEach(ticker -> {
 //            unitPriceCache.put(ticker, fetchOpeningPriceFromAPI(ticker));
@@ -56,7 +55,7 @@ public class UnitPriceRefresher implements ApplicationRunner {
     }
 
     private double fetchOpeningPriceFromAPI(String ticker) {
-        String rawJson = bithumbAPIClient.getOpeningPirce(ticker); //api raw데이터
+        String rawJson = bithumbAPIClient.getOpeningPrice(ticker); //api raw데이터
         OpeningPrice json = openingPriceParser.parseGson(rawJson); //json을 list로 변환
         double unitprice = unitPricePolicy.getUnitPrice(json.getOpening_price());
         return unitprice;

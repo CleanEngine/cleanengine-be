@@ -246,12 +246,15 @@ public class TradeService {
         this.updateWalletAfterTrade(sellOrder, ticker, tradedSize, totalTradedPrice);
 
         // 체결내역 저장
-        this.insertNewTrade(ticker, buyOrder, sellOrder, tradedSize, tradedPrice);
+        Trade trade = this.insertNewTrade(ticker, buyOrder, sellOrder, tradedSize, tradedPrice);
 
         // 호가 조회를 위한 Order Service 메서드 호출
         updateOrderBookUsecase.updateOrderBookOnTradeExecuted(ticker, buyOrder.getId(), sellOrder.getId(), tradedSize);
 
-        TradeExecutedEvent tradeExecutedEvent = TradeExecutedEvent.builder().build();
+        TradeExecutedEvent tradeExecutedEvent =
+                TradeExecutedEvent.builder()
+                        .trade(trade)
+                        .build();
         tradeExecutedEventPublisher.publish(tradeExecutedEvent);
     }
 

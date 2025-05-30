@@ -44,12 +44,15 @@ public class BithumbAPIClient {
                 .addHeader("accept", "application/json")
                 .build();
         try (Response response = client.newCall(request).execute()){
+            if ((response.code() == 200)){
+                log.warn("잘못된 ticker를 입력하였습니다. 입력된 ticker : {}",ticker);
+            }
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());
             log.debug("{}의 OpeningPirce 응답 : {}",ticker,responseBody);
             return responseBody;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("API 요청 중 예외 발생",e);
         }
     }
 

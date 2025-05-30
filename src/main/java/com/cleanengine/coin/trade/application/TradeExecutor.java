@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 import static com.cleanengine.coin.common.CommonValues.approxEquals;
 
 @Slf4j
@@ -114,12 +116,7 @@ public class TradeExecutor {
     }
 
     public Trade insertNewTrade(String ticker, BuyOrder buyOrder, SellOrder sellOrder, double tradeSize, Double tradePrice) {
-        Trade newTrade = new Trade();
-        newTrade.setTicker(ticker);
-        newTrade.setBuyUserId(buyOrder.getUserId());
-        newTrade.setSellUserId(sellOrder.getUserId());
-        newTrade.setPrice(tradePrice);
-        newTrade.setSize(tradeSize);
+        Trade newTrade = Trade.of(ticker, LocalDateTime.now(), buyOrder.getUserId(), sellOrder.getUserId(), tradePrice, tradeSize);
 
         return tradeService.save(newTrade);
     }

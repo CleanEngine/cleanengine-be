@@ -1,13 +1,13 @@
 package com.cleanengine.coin.user.login.application;
 
-import com.cleanengine.coin.user.domain.Account;
+import com.cleanengine.coin.common.CommonValues;
 import com.cleanengine.coin.user.domain.OAuth;
 import com.cleanengine.coin.user.domain.User;
+import com.cleanengine.coin.user.info.application.AccountService;
 import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
 import com.cleanengine.coin.user.login.infra.KakaoResponse;
 import com.cleanengine.coin.user.login.infra.OAuth2Response;
 import com.cleanengine.coin.user.login.infra.UserOAuthDetails;
-import com.cleanengine.coin.user.info.infra.AccountRepository;
 import com.cleanengine.coin.user.info.infra.OAuthRepository;
 import com.cleanengine.coin.user.info.infra.UserRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -21,12 +21,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final OAuthRepository oAuthRepository;
-    private final AccountRepository accountRepository;
+    private final AccountService accountService;
 
-    public CustomOAuth2UserService(UserRepository userRepository, OAuthRepository oAuthRepository, AccountRepository accountRepository) {
+    public CustomOAuth2UserService(UserRepository userRepository, OAuthRepository oAuthRepository, AccountService accountService) {
         this.userRepository = userRepository;
         this.oAuthRepository = oAuthRepository;
-        this.accountRepository = accountRepository;
+        this.accountService = accountService;
     }
 
     @Override
@@ -64,11 +64,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             newOAuth.setNickname(name);
             // TODO : KAKAO Token 관련 정보 추가
             oAuthRepository.save(newOAuth);
-
-            Account newAccount = new Account();
-            newAccount.setUserId(newUser.getId());
-            newAccount.setCash((double) 50_000_000_000L);
-            accountRepository.save(newAccount);
+            accountService.createNewAccount(newUser.getId(), CommonValues.INITIAL_USER_CASH);
 
             UserOAuthDetails userOAuthDetails = new UserOAuthDetails(newUser, newOAuth);
 

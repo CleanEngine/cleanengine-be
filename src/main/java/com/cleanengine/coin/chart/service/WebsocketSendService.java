@@ -1,6 +1,5 @@
 package com.cleanengine.coin.chart.service;
 
-import com.cleanengine.coin.chart.dto.PrevRateDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

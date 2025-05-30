@@ -44,28 +44,6 @@ jobs:
       - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: ./gradlew sonar --info
-        
-      - name: Comment SonarQube URL on PR
-        uses: actions/github-script@v7
-        env:
-          SONAR_URL: ${{ secrets.SONAR_URL }}
-          PROJECT_KEY: "CleanEngine_cleanengine-be_2b6f2f63-fa39-426c-b9c7-8aa127fd14d8"
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        with:
-          script: |
-            const { SONAR_URL, PROJECT_KEY, PR_NUMBER } = process.env
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## 소나큐브 코드 분석 결과 🔍
-              
-              소나큐브 분석이 완료되었습니다. 아래 링크에서 결과를 확인하세요:
-              
-              🔗 [소나큐브 분석 결과 보기](${SONAR_URL}/dashboard?id=${PROJECT_KEY})
-              
-              테스트 결과에 관계없이 코드 품질 분석이 실행되었습니다.`
-            })

@@ -80,7 +80,7 @@ sonar {
   properties {
     property "sonar.projectKey", "CleanEngine_cleanengine-be_2b6f2f63-fa39-426c-b9c7-8aa127fd14d8"
     property "sonar.projectName", "cleanengine-be"
-    property "sonar.host.url", System.getenv('SONAR_URL') ?: 'http://localhost:9000'
+    property "sonar.host.url", System.getenv('SONAR_HOST_URL') ?: 'http://localhost:9000'
     property "sonar.token", System.getenv('SONAR_TOKEN') ?: ''
     property "sonar.java.source", '21'
     property "sonar.java.target", '21'

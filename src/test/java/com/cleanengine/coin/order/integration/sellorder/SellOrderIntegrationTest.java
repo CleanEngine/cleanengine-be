@@ -1,10 +1,10 @@
 package com.cleanengine.coin.order.integration.sellorder;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.order.application.OrderCommand;
-import com.cleanengine.coin.order.application.OrderInfo;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
 import com.cleanengine.coin.order.application.OrderService;
-import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
+import com.cleanengine.coin.order.application.dto.OrderCommand;
+import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.user.domain.Wallet;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -3,7 +3,6 @@ package com.cleanengine.coin.realitybot.controller;
 import com.cleanengine.coin.realitybot.api.BithumbAPIClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -15,6 +14,7 @@ public class ApiController {
     }
     @GetMapping("/test")
     public String getApiData(){
-        return bithumbAPIClient.get();
+//        return bithumbAPIClient.get(ticekr);
+        return null;
 
     }}

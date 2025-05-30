@@ -2,7 +2,6 @@ package com.cleanengine.coin.chart.service;
 
 import com.cleanengine.coin.chart.dto.RealTimeDataDto;
 import com.cleanengine.coin.chart.dto.TradeEventDto;
-import com.cleanengine.coin.trade.application.TradeBatchProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,28 +12,25 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+//종목 체결내역 서비스 변동률
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RealTimeTradeService {
-    //tradeService를 받아야한다
-    private final TradeBatchProcessor tradeBatchProcessor;
-
-    //실시간 거래 데이터 보안성에 적합한 ConcuerrentHashMap 사용
+    //실시간 거래 데이터 보안성에 적합한 ConcurrentHashMap 사용
     //전에 데이터를 캐싱처리해서 변동률 계산
     private final Map<String, TradeEventDto> previousTradeMap = new ConcurrentHashMap<>();
 
-    public RealTimeDataDto generateRealTimeData(String ticker){
+    //이벤트 Dto 받아서 체결내역에 필요한 데이터들을 보내주는것
+    public RealTimeDataDto generateRealTimeData(TradeEventDto tradeEventDto) {
         // 최신 거래 이벤트 데이터 조회
-        TradeEventDto tradeEventDto = tradeBatchProcessor.retrieveTradeEventDto(ticker);
-
-        // 거래 데이터가 없는 경우 처리
-        if(tradeEventDto == null){
-            log.debug("실시간 거래 데이터가 존재하지않습니다: {}", ticker);
-            return new RealTimeDataDto(ticker, 0, 0, 0, LocalDateTime.now(), UUID.randomUUID().toString());
+        if (tradeEventDto == null) {
+            log.debug("실시간 거래 데이터가 존재하지않습니다: {}", (Object) null);
+            return new RealTimeDataDto(null, 0, 0, 0, LocalDateTime.now(), UUID.randomUUID().toString());
         }
 
         // 현재 가격 및 시간 정보 추출
+        String ticker = tradeEventDto.getTicker();
         double currentPrice = tradeEventDto.getPrice();
         double currentSize = tradeEventDto.getSize();
         LocalDateTime currentTime = tradeEventDto.getTimestamp();
@@ -55,7 +51,8 @@ public class RealTimeTradeService {
                     !previousTrade.getTimestamp().equals(tradeEventDto.getTimestamp())) {
 
                 double previousPrice = previousTrade.getPrice();
-                changeRate = ((currentPrice - previousPrice) / previousPrice) * 100;
+                //SRP를 위한 메서드 분리
+                changeRate = getChangeRate(currentPrice, previousPrice);
                 log.debug("변동률 계산: 현재가={}, 이전가={}, 변동률={}%",
                         currentPrice, previousPrice, changeRate);
 
@@ -92,6 +89,14 @@ public class RealTimeTradeService {
                 currentTime,
                 UUID.randomUUID().toString()
         );
+    }
+
+
+    //SRP
+    public double getChangeRate(double currentPrice, double previousPrice) {
+        double changeRate;
+        changeRate = ((currentPrice - previousPrice) / previousPrice) * 100;
+        return changeRate;
     }
 
 }

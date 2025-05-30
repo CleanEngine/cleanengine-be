@@ -16,19 +16,22 @@ import java.io.IOException;
 public class BithumbAPIClient {
     private OkHttpClient client;
     private Gson gson;
+    private String ticker;
 
-    public String get(){ //API를 responseBody에 담아 반환
+
+    public String get(String ticker){ //API를 responseBody에 담아 반환
+        this.ticker = ticker;
         client = new OkHttpClient();
         gson = new Gson();
         Request request = new Request.Builder()
-                .url("https://api.bithumb.com/v1/trades/ticks?market=krw-TRUMP&count=10")
+                .url("https://api.bithumb.com/v1/trades/ticks?market=krw-"+ticker+"&count=10")
                 .get()
                 .addHeader("accept", "application/json")
                 .build();
         try (Response response = client.newCall(request).execute()){
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());
-            log.debug("Bithumb API 응답 : {}",responseBody);
+            log.debug("{}의 Bithumb API 응답 : {}",ticker,responseBody);
             return responseBody;
         } catch (IOException e) {
             throw new RuntimeException(e);

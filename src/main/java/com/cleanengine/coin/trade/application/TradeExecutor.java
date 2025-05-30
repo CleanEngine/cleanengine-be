@@ -27,7 +27,6 @@ public class TradeExecutor {
 
     private final WalletService walletService;
     private final AccountService accountService;
-    private final OrderService orderService;
     @Getter
     private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
     private final TradeService tradeService;
@@ -62,8 +61,8 @@ public class TradeExecutor {
         this.removeCompletedBuyOrder(waitingOrders, buyOrder);
         this.removeCompletedSellOrder(waitingOrders, sellOrder);
 
-        orderService.updateOrder(buyOrder);
-        orderService.updateOrder(sellOrder);
+        tradeService.updateOrder(buyOrder);
+        tradeService.updateOrder(sellOrder);
 
         // 예수금 처리
         //   - 매수 잔여금액 반환

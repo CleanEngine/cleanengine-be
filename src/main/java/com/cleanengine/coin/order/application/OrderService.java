@@ -28,8 +28,6 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 @Validated
 public class OrderService {
     private final List<CreateOrderStrategy<?, ?>> createOrderStrategies;
-    private final BuyOrderRepository buyOrderRepository;
-    private final SellOrderRepository sellOrderRepository;
 
     @Transactional
     public OrderInfo<?> createOrder(@Valid OrderCommand.CreateOrder createOrder){
@@ -49,26 +47,4 @@ public class OrderService {
         return createOrder(createOrder);
     }
 
-    @Transactional
-    public Order updateOrder(Order order){
-        /*
-        CreateOrderStrategy<?, ?> strategy = createOrderStrategies.stream()
-                .filter(s -> s.supports(order instanceof BuyOrder))
-                .findFirst()
-                .orElseThrow(() -> new BusinessException(
-                        "Unsupported order type: " + order.getClass().getName(),
-                        ErrorStatus.INTERNAL_SERVER_ERROR)
-                );
-        strategy.saveOrder(order);
-        return order;
-        */
-
-        if (order instanceof BuyOrder) {
-            return buyOrderRepository.save((BuyOrder) order);
-        } else if (order instanceof SellOrder) {
-            return sellOrderRepository.save((SellOrder) order);
-        } else {
-            throw new BusinessException("Unsupported order type: " + order.getClass().getName(), ErrorStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 }

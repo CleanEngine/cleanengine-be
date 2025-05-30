@@ -72,6 +72,8 @@ dependencies {
 	testImplementation 'org.testcontainers:mariadb'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	testImplementation 'org.junit.platform:junit-platform-suite:1.10.0' //suite 기능 추가용
+
 	// Spring Security + OAuth2
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'

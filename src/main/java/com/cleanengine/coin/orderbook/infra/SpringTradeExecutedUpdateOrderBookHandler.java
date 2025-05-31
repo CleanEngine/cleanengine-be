@@ -12,7 +12,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class SpringTradeExecutedUpdateOrderBookHandler {
     private final UpdateOrderBookUsecase updateOrderBookUsecase;
 
-    @TransactionalEventListener(TradeExecutedEvent.class)
+    @TransactionalEventListener
     public void onTradeExecutedEvent(TradeExecutedEvent tradeExecutedEvent) {
         Trade trade = tradeExecutedEvent.getTrade();
         updateOrderBookUsecase.updateOrderBookOnTradeExecuted(trade.getTicker(),

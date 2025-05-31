@@ -25,6 +25,26 @@ repositories {
 	mavenCentral()
 }
 
+jacoco { //추가함
+	toolVersion = "0.8.13"
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+
+//	afterEvaluate {
+//		getClassDirectories().setFrom(files(classDirectories.files.collect{
+//			fileTree(dir : it, includes: [
+//					"com/cleanengine/coin/realitybot/**"
+//			])
+//		}))
+//	}
+}
+
 dependencies {
 
   implementation 'org.springframework.boot:spring-boot-starter-websocket' // WS + STOMP
@@ -53,6 +73,7 @@ dependencies {
 	testImplementation 'org.testcontainers:mariadb'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	testImplementation 'org.junit.platform:junit-platform-suite:1.10.0'
 	// Spring Security + OAuth2
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
@@ -64,16 +85,10 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
-	finalizedBy jacocoTestReport
-}
-
-jacocoTestReport {
-	reports {
-		xml.required = true
-		html.required = true
+	useJUnitPlatform{
+		excludeTags 'testcontainers'
 	}
-	dependsOn test
+	finalizedBy jacocoTestReport
 }
 
 sonar {

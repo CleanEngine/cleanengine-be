@@ -5,6 +5,7 @@ import com.cleanengine.coin.realitybot.api.RefresherRunnerTest;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresherTest;
 import com.cleanengine.coin.realitybot.dto.OpeningPriceTest;
 import com.cleanengine.coin.realitybot.vo.UnitPricePolicyTest;
+import com.cleanengine.coin.realitybot.vo.VWAPStateTest;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
@@ -14,7 +15,8 @@ import org.junit.platform.suite.api.Suite;
         BithumbAPIClientTest.class,
         UnitPriceRefresherTest.class,
         OpeningPriceTest.class,
-        UnitPricePolicyTest.class
+        VWAPStateTest.class,
+        UnitPricePolicyTest.class,
 })
 public class RealitybotCoreTestSuite {
 }

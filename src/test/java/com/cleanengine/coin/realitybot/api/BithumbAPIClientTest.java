@@ -27,7 +27,18 @@ public class BithumbAPIClientTest {
     void get() {
     }
     private String ticker = "BTC";
-    private String json = "{\n" +
+    private String tradeJson = "  {\n" +
+            "    \"market\": \"KRW-BTC\",\n" +
+            "    \"trade_date_utc\": \"2018-04-18\",\n" +
+            "    \"trade_time_utc\": \"10:19:58\",\n" +
+            "    \"timestamp\": 1524046798000,\n" +
+            "    \"trade_price\": 8616000,\n" +
+            "    \"trade_volume\": 0.03060688,\n" +
+            "    \"prev_closing_price\": 8450000,\n" +
+            "    \"chane_price\": 166000,\n" +
+            "    \"ask_bid\": \"ASK\"\n" +
+            "  }";
+    private String openingJson = "{\n" +
             "    \"market\": \"KRW-BTC\",\n" +
             "    \"trade_date\": \"20180418\",\n" +
             "    \"trade_time\": \"102340\",\n" +
@@ -57,11 +68,36 @@ public class BithumbAPIClientTest {
             "  }";
     private String failJson = "{}";
 
+    @DisplayName("실행시 API의 response에 trade 값이 들어오는 지")
+    @Test
+    void callTradePrice() throws IOException {
+        //given
+        ResponseBody responseBody = ResponseBody.create(tradeJson, MediaType.get("application/json"));
+        Request mockrequest = new Request.Builder().url("http://localhost").build();
+        Response mockresponse = new Response.Builder()
+                .request(mockrequest)
+                .protocol(Protocol.HTTP_1_1)
+                .code(400)
+                .message("OK")
+                .body(responseBody)
+                .build();
+
+        when(client.newCall(any())).thenReturn(call);
+        when(call.execute()).thenReturn(mockresponse);
+
+        //when
+        String response = bithumbAPIClient.get(ticker);
+
+        //then
+        assertTrue(response.contains("trade_price"));
+        assertEquals(tradeJson, response);
+    }
+
     @DisplayName("실행시 API의 response에 Opening_price 값이 들어오는 지")
     @Test
     void callOpeningPrice() throws IOException {
         //given
-        ResponseBody responseBody = ResponseBody.create(json, MediaType.get("application/json"));
+        ResponseBody responseBody = ResponseBody.create(openingJson, MediaType.get("application/json"));
         Request mockrequest = new Request.Builder().url("http://localhost").build();
         Response mockresponse = new Response.Builder()
                 .request(mockrequest)
@@ -79,7 +115,7 @@ public class BithumbAPIClientTest {
 
         //then
         assertTrue(response.contains("opening_price"));
-        assertEquals(json, response);
+        assertEquals(openingJson, response);
     }
     @DisplayName("ticker가 잘못된 요청이 들어갔을 때  log를 띄우는 지")
     @Test
@@ -110,6 +146,18 @@ public class BithumbAPIClientTest {
     @DisplayName("실행시 API의 response가 실패할 경우 에러를 던지는 지")
     @Test
     void callOpeningPriceFails() throws IOException {
+        //given
+        //when
+        when(client.newCall(any())).thenReturn(call);
+        when(call.execute()).thenThrow(new IOException("API 요청 중 예외 발생"));
+
+        //then
+        assertThrows(RuntimeException.class, () -> bithumbAPIClient.getOpeningPrice(ticker));
+    }
+    //무응답도 대응필요함
+    @DisplayName("실행시 API의 response가 실패할 경우 에러를 던지는 지")
+    @Test
+    void callTradePriceFails() throws IOException {
         //given
         //when
         when(client.newCall(any())).thenReturn(call);

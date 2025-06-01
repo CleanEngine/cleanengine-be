@@ -14,7 +14,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Slf4j
 public class BithumbAPIClient {
-    private OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client;
     private String ticker;
 
 

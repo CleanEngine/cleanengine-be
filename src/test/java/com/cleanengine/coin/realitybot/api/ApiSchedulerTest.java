@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ApiSchedulerTest {
+public class ApiSchedulerTest {
 
     @InjectMocks
     private ApiScheduler apiScheduler;

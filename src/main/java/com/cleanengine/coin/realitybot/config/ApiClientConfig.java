@@ -16,9 +16,4 @@ public class ApiClientConfig {
 //                .addInterceptor()
                 .build();
     }
-
-    @Bean
-    public Queue<Ticks> ticksQueue(){ //공통화 시킴
-        return new LinkedList<>();
-    }
 }

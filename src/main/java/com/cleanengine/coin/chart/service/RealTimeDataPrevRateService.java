@@ -14,16 +14,17 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-//todo: 테스트 하기 쉽게 변환하기(메서드 분리)
 public class RealTimeDataPrevRateService {
 
     private final RealTimeTradeRepository tradeRepository;
 
     public PrevRateDto generatePrevRateData(TradeEventDto currentTrade) {
-        // 전일 종가 계산
+        return generatePrevRateData(currentTrade, LocalDateTime.now());
+    }
+
+    PrevRateDto generatePrevRateData(TradeEventDto currentTrade, LocalDateTime currentTime) {
         String ticker = currentTrade.getTicker();
-        LocalDateTime today = LocalDateTime.now();
-        YesterDay yesterDay = getYesterDay(today);
+        YesterDay yesterDay = getYesterDay(currentTime);
         log.debug("조회 시간 범위: {} ~ {}", yesterDay.yesterdayStart(), yesterDay.yesterdayEnd());
 
         Trade yesterdayLastTrade = tradeRepository.findFirstByTickerAndTradeTimeBetweenOrderByTradeTimeDesc(
@@ -31,7 +32,7 @@ public class RealTimeDataPrevRateService {
 
         if (yesterdayLastTrade == null) {
             log.debug("전일 거래 데이터가 없습니다: {}", ticker);
-            return new PrevRateDto(ticker, 0.0, currentTrade.getPrice(), 0.0, LocalDateTime.now());
+            return new PrevRateDto(ticker, 0.0, currentTrade.getPrice(), 0.0, currentTime);
         }
         double prevClose = yesterdayLastTrade.getPrice();
         double currentPrice = currentTrade.getPrice();
@@ -42,24 +43,21 @@ public class RealTimeDataPrevRateService {
                 prevClose,
                 currentPrice,
                 changeRate,
-                today
+                currentTime
         );
     }
 
-    private static double getChangeRate(double currentPrice, double prevClose) {
-        double changeRate = ((currentPrice - prevClose) / prevClose) * 100;
-        return changeRate;
+    static double getChangeRate(double currentPrice, double prevClose) {
+        return ((currentPrice - prevClose) / prevClose) * 100;
     }
 
-    //시간 데이터는 파라미터로 주입받아서 활용받는게 좋음(test관점)
     @NotNull
-    private static YesterDay getYesterDay(LocalDateTime today) {
+    static YesterDay getYesterDay(LocalDateTime today) {
         LocalDateTime yesterdayStart = today.minusDays(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime yesterdayEnd = today.minusDays(1).withHour(23).withMinute(59).withSecond(59);
-        YesterDay result = new YesterDay(yesterdayStart, yesterdayEnd);
-        return result;
+        return new YesterDay(yesterdayStart, yesterdayEnd);
     }
 
-    private record YesterDay(LocalDateTime yesterdayStart, LocalDateTime yesterdayEnd) {
+    record YesterDay(LocalDateTime yesterdayStart, LocalDateTime yesterdayEnd) {
     }
 }

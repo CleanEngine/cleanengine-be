@@ -15,9 +15,9 @@ import java.util.List;
 @Slf4j
 @Getter
 public class TickParser {
-    private static final Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
-    public static List<Ticks> parseGson(String json) {
+    public List<Ticks> parseGson(String json) {
         return gson.fromJson(json, new TypeToken<List<Ticks>>() {}.getType());
     }
     /*

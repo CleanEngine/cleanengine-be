@@ -43,7 +43,7 @@ public class ApiScheduler {
     public void MarketDataRequest(String ticker){
         this.ticker = ticker;
         String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
-        List<Ticks> gson = TickParser.parseGson(rawJson); //json을 list로 변환
+        List<Ticks> gson = tickParser.parseGson(rawJson); //json을 list로 변환
 
         ApiVWAPService apiVWAPService = tickServiceManager.getService(ticker);
         long lastSeqId = lastSequentialIdMap.getOrDefault(ticker,0L);

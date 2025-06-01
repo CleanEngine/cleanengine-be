@@ -3,13 +3,13 @@ package com.cleanengine.coin.realitybot.vo;
 import com.cleanengine.coin.trade.entity.Trade;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 @Getter
 @Setter
+@Slf4j
 public class VWAPState {
 
     public VWAPState(String ticker) {
@@ -17,8 +17,8 @@ public class VWAPState {
     }
 
     private String ticker;
-    private final Queue<Vwap> tradeQueue = new LinkedList<>(); //테스트를 위한 큐 -> 체결 db에서 데이터 조회
-    private int maxQueueSize = 10;
+//    private final Queue<Vwap> tradeQueue = new LinkedList<>(); //테스트를 위한 큐 -> 체결 db에서 데이터 조회
+//    private int maxQueueSize = 10;
 
     private double totalPriceVolume = 0;
     private double totalVolume = 0;
@@ -27,15 +27,7 @@ public class VWAPState {
 
         //이건 처음에나 필요했지 queue나 10개씩 받아오면서 필요 없는 로직이 되어버림
     public void recordTrade(double price, double volume) {
-
-//        if (volume <= 0) return;
-//        if (tradeQueue.size() >= maxQueueSize) {
-//            Vwap removed = tradeQueue.poll();
-//            totalPriceVolume -= removed.price * removed.volume;
-//            totalVolume -= removed.volume;
-//        }
-
-        tradeQueue.offer(new Vwap(price, volume));
+//        tradeQueue.offer(new Vwap(price, volume)); //오로지 계산에만 목적을 둠
         totalPriceVolume += price * volume;
         totalVolume += volume;
     }
@@ -50,29 +42,7 @@ public class VWAPState {
             double price = trade.getPrice();
             double volume = trade.getSize();
             recordTrade(price,volume);
-//            if (volume <= 0) continue;
-//            totalPriceVolume += price * volume;
-//            totalVolume += volume;
-
         }
         getVWAP();
-    }
-
-    private static class Vwap { //원래 trade였는데 가상 계산 떄문에 냅두기
-        double price;
-        double volume;
-
-        public Vwap(double price, double volume) {
-            this.price = price;
-            this.volume = volume;
-        }
-
-        @Override
-        public String toString() {
-            return "Trade{" +
-                    "price=" + price +
-                    ", volume=" + volume +
-                    '}';
-        }
     }
 }

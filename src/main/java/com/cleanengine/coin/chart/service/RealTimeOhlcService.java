@@ -5,6 +5,7 @@ import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,56 +32,88 @@ public class RealTimeOhlcService {
      */
     public RealTimeOhlcDto getRealTimeOhlc(String ticker) {
         try {
-            // 현재 시간
             LocalDateTime now = LocalDateTime.now();
 
-            // 마지막 처리 시간 (없으면 현재 시간에서 1초 전)
-            LocalDateTime lastProcessedTime = lastProcessedTimeMap.getOrDefault(
-                    ticker, now.minusSeconds(1));
+            // 시간 범위 계산
+            TimeRange timeRange = calculateTimeRange(ticker, now);
 
-            // 1초 전부터 현재까지의 데이터 조회
-            List<Trade> recentTrades = tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(
-                    ticker,
-                    lastProcessedTime,
-                    now
-            );
+            // 거래 데이터 조회 및 전처리
+            List<Trade> recentTrades = getProcessedTradeData(ticker, timeRange);
 
-            // 시간 순서대로 정렬이 필요하면 뒤집음
-            Collections.reverse(recentTrades);
-
-            // 거래 데이터가 없으면 마지막으로 캐싱된 데이터 반환
+            // 거래 데이터가 없으면 캐시된 데이터 반환
             if (recentTrades.isEmpty()) {
-                return lastOhlcDataMap.getOrDefault(ticker, null);
+                return getCachedData(ticker);
             }
 
-            // 새로운 마지막 처리 시간 업데이트
-            lastProcessedTimeMap.put(ticker, now);
+            calculateOhlcv ohlcv = getCalculateOhlcv(recentTrades);
 
-            // OHLC 계산
-            Double open = recentTrades.get(0).getPrice();
-            Double high = recentTrades.stream().mapToDouble(Trade::getPrice).max().orElse(0.0);
-            Double low = recentTrades.stream().mapToDouble(Trade::getPrice).min().orElse(0.0);
-            Double close = recentTrades.get(recentTrades.size() - 1).getPrice();
-            Double volume = recentTrades.stream().mapToDouble(Trade::getSize).sum();
+            RealTimeOhlcDto ohlcData = createOhlcDto(ticker, now, ohlcv);
 
-            // RealTimeOhlcDto 생성
-            RealTimeOhlcDto ohlcData = new RealTimeOhlcDto(
-                    ticker,
-                    now,
-                    open,
-                    high,
-                    low,
-                    close,
-                    volume
-            );
-
-            // 캐시에 저장
-            lastOhlcDataMap.put(ticker, ohlcData);
+            // 캐시 업데이트
+            updateCache(ticker, now, ohlcData);
 
             return ohlcData;
         } catch (Exception e) {
             log.error("실시간 OHLC 데이터 생성 중 오류: {}", e.getMessage(), e);
-            return lastOhlcDataMap.getOrDefault(ticker, null);
+            return getCachedData(ticker);
         }
     }
+
+    // 시간 범위 계산
+    TimeRange calculateTimeRange(String ticker, LocalDateTime now) {
+        LocalDateTime lastProcessedTime = lastProcessedTimeMap.getOrDefault(
+                ticker, now.minusSeconds(1));
+        return new TimeRange(lastProcessedTime, now);
+    }
+
+    // 거래 데이터 조회 및 전처리
+    List<Trade> getProcessedTradeData(String ticker, TimeRange timeRange) {
+        List<Trade> recentTrades = tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(
+                ticker,
+                timeRange.start(),
+                timeRange.end()
+        );
+
+        Collections.reverse(recentTrades);
+        return recentTrades;
+    }
+
+    // 캐시 업데이트
+    void updateCache(String ticker, LocalDateTime now, RealTimeOhlcDto ohlcData) {
+        lastProcessedTimeMap.put(ticker, now);
+        lastOhlcDataMap.put(ticker, ohlcData);
+    }
+
+    // 캐시된 데이터 조회
+    RealTimeOhlcDto getCachedData(String ticker) {
+        return lastOhlcDataMap.getOrDefault(ticker, null);
+    }
+
+    // DTO 생성
+    RealTimeOhlcDto createOhlcDto(String ticker, LocalDateTime timestamp, calculateOhlcv ohlcv) {
+        return new RealTimeOhlcDto(
+                ticker,
+                timestamp,
+                ohlcv.open(),
+                ohlcv.high(),
+                ohlcv.low(),
+                ohlcv.close(),
+                ohlcv.volume()
+        );
+    }
+
+    // OHLCV 계산 메서드
+    @NotNull
+    static calculateOhlcv getCalculateOhlcv(List<Trade> recentTrades) {
+        Double open = recentTrades.get(0).getPrice();
+        Double high = recentTrades.stream().mapToDouble(Trade::getPrice).max().orElse(0.0);
+        Double low = recentTrades.stream().mapToDouble(Trade::getPrice).min().orElse(0.0);
+        Double close = recentTrades.get(recentTrades.size() - 1).getPrice();
+        Double volume = recentTrades.stream().mapToDouble(Trade::getSize).sum();
+        return new calculateOhlcv(open, high, low, close, volume);
+    }
+
+    record TimeRange(LocalDateTime start, LocalDateTime end) {}
+
+    record calculateOhlcv(Double open, Double high, Double low, Double close, Double volume) {}
 }

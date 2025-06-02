@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,14 +67,11 @@ public class RealTimeOhlcService {
 
     // 거래 데이터 조회 및 전처리
     List<Trade> getProcessedTradeData(String ticker, TimeRange timeRange) {
-        List<Trade> recentTrades = tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(
+        return tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(
                 ticker,
                 timeRange.start(),
                 timeRange.end()
         );
-
-        Collections.reverse(recentTrades);
-        return recentTrades;
     }
 
     // 캐시 업데이트
@@ -104,14 +100,19 @@ public class RealTimeOhlcService {
 
     // OHLCV 계산 메서드
     @NotNull
-    static calculateOhlcv getCalculateOhlcv(List<Trade> recentTrades) {
-        Double open = recentTrades.get(0).getPrice();
-        Double high = recentTrades.stream().mapToDouble(Trade::getPrice).max().orElse(0.0);
-        Double low = recentTrades.stream().mapToDouble(Trade::getPrice).min().orElse(0.0);
-        Double close = recentTrades.get(recentTrades.size() - 1).getPrice();
-        Double volume = recentTrades.stream().mapToDouble(Trade::getSize).sum();
+    static calculateOhlcv getCalculateOhlcv(List<Trade> trades) {
+        // trades는 시간 오름차순 정렬되어 있음
+        Double open = trades.getFirst().getPrice();  // 첫 번째(가장 오래된) = Open ✅
+        Double close = trades.getLast().getPrice();  // 마지막(가장 최근) = Close ✅
+        Double high = trades.stream().mapToDouble(Trade::getPrice).max().orElse(0.0);
+        Double low = trades.stream().mapToDouble(Trade::getPrice).min().orElse(0.0);
+        Double volume = trades.stream().mapToDouble(Trade::getSize).sum();
+
         return new calculateOhlcv(open, high, low, close, volume);
     }
+
+
+
 
     record TimeRange(LocalDateTime start, LocalDateTime end) {}
 

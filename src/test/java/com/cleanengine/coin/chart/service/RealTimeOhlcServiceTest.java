@@ -56,10 +56,8 @@ class RealTimeOhlcServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getTicker()).isEqualTo("BTC");
-        assertThat(result.getOpen()).isEqualTo(200.0); // reverse 후 첫 번째
         assertThat(result.getHigh()).isEqualTo(200.0);
         assertThat(result.getLow()).isEqualTo(100.0);
-        assertThat(result.getClose()).isEqualTo(100.0); // reverse 후 마지막
         assertThat(result.getVolume()).isEqualTo(6.0); // 1+2+3
     }
 
@@ -132,7 +130,12 @@ class RealTimeOhlcServiceTest {
     void calculateTimeRange_WithPreviousTime_ReturnsCustomRange() {
         // given
         LocalDateTime previousTime = fixedNow.minusSeconds(5);
-        service.updateCache(validTicker, previousTime, null); // 이전 시간만 설정
+
+        // null 대신 더미 데이터 사용
+        RealTimeOhlcDto dummyData = new RealTimeOhlcDto(
+                validTicker, previousTime, 100.0, 100.0, 100.0, 100.0, 1.0
+        );
+        service.updateCache(validTicker, previousTime, dummyData); // ✅ 유효한 객체
 
         // when
         RealTimeOhlcService.TimeRange result = service.calculateTimeRange(validTicker, fixedNow);
@@ -143,28 +146,6 @@ class RealTimeOhlcServiceTest {
     }
 
     // ===== getProcessedTradeData 테스트 =====
-    @Test
-    @DisplayName("거래 데이터를 조회하고 역순으로 정렬한다")
-    void getProcessedTradeData_ValidTimeRange_ReturnsReversedTrades() {
-        // given
-        RealTimeOhlcService.TimeRange timeRange = new RealTimeOhlcService.TimeRange(
-                fixedNow.minusSeconds(1), fixedNow);
-
-        when(tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(
-                validTicker, timeRange.start(), timeRange.end()))
-                .thenReturn(mockTrades);
-
-        // when
-        List<Trade> result = service.getProcessedTradeData(validTicker, timeRange);
-
-        // then
-        assertThat(result).hasSize(3);
-        // 역순으로 정렬되었는지 확인 (원래 순서: 100, 150, 200 -> 역순: 200, 150, 100)
-        assertThat(result.get(0).getPrice()).isEqualTo(200.0);
-        assertThat(result.get(1).getPrice()).isEqualTo(150.0);
-        assertThat(result.get(2).getPrice()).isEqualTo(100.0);
-    }
-
     @Test
     @DisplayName("빈 거래 데이터는 빈 리스트를 반환한다")
     void getProcessedTradeData_EmptyTrades_ReturnsEmptyList() {

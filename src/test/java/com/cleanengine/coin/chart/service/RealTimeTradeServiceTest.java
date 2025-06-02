@@ -426,4 +426,207 @@ class RealTimeTradeServiceTest {
         assertThat(result1).isEqualTo(result2);
         assertThat(result1.hashCode()).isEqualTo(result2.hashCode());
     }
+
+
+    // ===== updateTradeCache 메서드 테스트 =====
+    @Test
+    @DisplayName("updateTradeCache - shouldUpdate가 true일 때 캐시 업데이트")
+    void updateTradeCache_ShouldUpdateTrue_UpdatesCache() {
+        // given
+        RealTimeTradeService.ChangeRateResult changeRateResult =
+                new RealTimeTradeService.ChangeRateResult(5.0, true);
+
+        // when
+        service.updateTradeCache(testTradeEventDto, changeRateResult);
+
+        // then - 내부 상태 확인을 위해 다음 호출에서 이전 데이터로 사용되는지 확인
+        TradeEventDto newTrade = new TradeEventDto("TRUMP", 2.0, 55000.0, testTime.plusSeconds(10));
+        RealTimeTradeService.TradeInfo newTradeInfo = service.extractTradeInfo(newTrade);
+
+        RealTimeTradeService.ChangeRateResult result = service.calculateChangeRate(newTrade, newTradeInfo);
+        assertThat(result.shouldUpdate()).isTrue(); // 이전 데이터가 캐시되었으므로 계산 가능
+    }
+
+    @Test
+    @DisplayName("updateTradeCache - shouldUpdate가 false지만 캐시에 없을 때 업데이트")
+    void updateTradeCache_ShouldUpdateFalseButNoCachedData_UpdatesCache() {
+        // given
+        RealTimeTradeService.ChangeRateResult changeRateResult =
+                new RealTimeTradeService.ChangeRateResult(0.0, false);
+
+        // when
+        service.updateTradeCache(testTradeEventDto, changeRateResult);
+
+        // then - 캐시되었는지 확인
+        TradeEventDto newTrade = new TradeEventDto("TRUMP", 2.0, 55000.0, testTime.plusSeconds(10));
+        RealTimeTradeService.TradeInfo newTradeInfo = service.extractTradeInfo(newTrade);
+
+        RealTimeTradeService.ChangeRateResult result = service.calculateChangeRate(newTrade, newTradeInfo);
+        assertThat(result.shouldUpdate()).isTrue();
+    }
+
+    @Test
+    @DisplayName("updateTradeCache - shouldUpdate가 false이고 캐시에 있을 때 업데이트 안함")
+    void updateTradeCache_ShouldUpdateFalseAndCachedDataExists_DoesNotUpdate() {
+        // given - 먼저 캐시에 데이터 추가
+        RealTimeTradeService.ChangeRateResult firstResult =
+                new RealTimeTradeService.ChangeRateResult(5.0, true);
+        service.updateTradeCache(testTradeEventDto, firstResult);
+
+        // 다른 가격의 거래 데이터
+        TradeEventDto differentTrade = new TradeEventDto("TRUMP", 2.0, 60000.0, testTime.plusSeconds(5));
+        RealTimeTradeService.ChangeRateResult secondResult =
+                new RealTimeTradeService.ChangeRateResult(0.0, false);
+
+        // when
+        service.updateTradeCache(differentTrade, secondResult);
+
+        // then - 원래 캐시된 데이터가 유지되는지 확인
+        TradeEventDto thirdTrade = new TradeEventDto("TRUMP", 1.0, 55000.0, testTime.plusSeconds(10));
+        RealTimeTradeService.TradeInfo thirdTradeInfo = service.extractTradeInfo(thirdTrade);
+
+        RealTimeTradeService.ChangeRateResult result = service.calculateChangeRate(thirdTrade, thirdTradeInfo);
+        // 첫 번째 캐시된 데이터(50000.0)와 비교되어야 함
+        double expectedChangeRate = ((55000.0 - 50000.0) / 50000.0) * 100;
+        assertThat(result.changeRate()).isCloseTo(expectedChangeRate, org.assertj.core.data.Offset.offset(0.01));
+    }
+
+    // ===== generateRealTimeData 메서드 테스트 =====
+    @Test
+    @DisplayName("generateRealTimeData - 정상적인 실시간 데이터 생성")
+    void generateRealTimeData_ValidInput_ReturnsCorrectData() {
+        // when
+        RealTimeDataDto result = service.generateRealTimeData(testTradeEventDto);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getTicker()).isEqualTo("TRUMP");
+        assertThat(result.getPrice()).isEqualTo(50000.0);
+        assertThat(result.getSize()).isEqualTo(1.5);
+        assertThat(result.getTimestamp()).isEqualTo(testTime);
+        assertThat(result.getTransactionId()).isNotNull();
+        assertThat(result.getChangeRate()).isEqualTo(0.0); // 첫 번째 거래이므로 0
+    }
+
+    @Test
+    @DisplayName("generateRealTimeData - 두 번째 거래에서 변동률 계산")
+    void generateRealTimeData_SecondTrade_CalculatesChangeRate() {
+        // given - 첫 번째 거래
+        service.generateRealTimeData(testTradeEventDto);
+
+        // 두 번째 거래 (가격 상승)
+        TradeEventDto secondTrade = new TradeEventDto("TRUMP", 2.0, 55000.0, testTime.plusSeconds(10));
+
+        // when
+        RealTimeDataDto result = service.generateRealTimeData(secondTrade);
+
+        // then
+        assertThat(result.getChangeRate()).isEqualTo(10.0); // (55000-50000)/50000 * 100
+    }
+
+    @Test
+    @DisplayName("generateRealTimeData - 동일한 타임스탬프 거래 처리")
+    void generateRealTimeData_SameTimestamp_ReturnsZeroChangeRate() {
+        // given - 첫 번째 거래
+        service.generateRealTimeData(testTradeEventDto);
+
+        // 동일한 타임스탬프의 다른 거래
+        TradeEventDto sameTrade = new TradeEventDto("TRUMP", 2.0, 55000.0, testTime);
+
+        // when
+        RealTimeDataDto result = service.generateRealTimeData(sameTrade);
+
+        // then
+        assertThat(result.getChangeRate()).isEqualTo(0.0);
+    }
+
+    @Test
+    @DisplayName("generateRealTimeData - 예외 발생 시 기본값 반환")
+    void generateRealTimeData_ExceptionOccurs_ReturnsDefaultData() {
+        // given - null 값으로 예외 유발 가능한 데이터
+        TradeEventDto nullTrade = new TradeEventDto(null, 1.0, 50000.0, testTime);
+
+        // when
+        RealTimeDataDto result = service.generateRealTimeData(nullTrade);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getChangeRate()).isEqualTo(0.0);
+    }
+
+    // ===== calculateChangeRate 메서드 테스트 =====
+    @Test
+    @DisplayName("calculateChangeRate - 이전 거래가 없는 경우")
+    void calculateChangeRate_NoPreviousTrade_ReturnsZeroWithFalse() {
+        // given
+        RealTimeTradeService.TradeInfo tradeInfo = service.extractTradeInfo(testTradeEventDto);
+
+        // when
+        RealTimeTradeService.ChangeRateResult result = service.calculateChangeRate(testTradeEventDto, tradeInfo);
+
+        // then
+        assertThat(result.changeRate()).isEqualTo(0.0);
+        assertThat(result.shouldUpdate()).isFalse();
+    }
+
+    @Test
+    @DisplayName("calculateChangeRate - 정상적인 변동률 계산")
+    void calculateChangeRate_ValidPreviousTrade_CalculatesCorrectly() {
+        // given - 이전 거래 캐시에 저장
+        RealTimeTradeService.ChangeRateResult firstResult =
+                new RealTimeTradeService.ChangeRateResult(0.0, true);
+        service.updateTradeCache(testTradeEventDto, firstResult);
+
+        // 새로운 거래
+        TradeEventDto newTrade = new TradeEventDto("TRUMP", 2.0, 55000.0, testTime.plusSeconds(10));
+        RealTimeTradeService.TradeInfo newTradeInfo = service.extractTradeInfo(newTrade);
+
+        // when
+        RealTimeTradeService.ChangeRateResult result = service.calculateChangeRate(newTrade, newTradeInfo);
+
+        // then
+        assertThat(result.changeRate()).isEqualTo(10.0); // (55000-50000)/50000 * 100
+        assertThat(result.shouldUpdate()).isTrue();
+    }
+
+    @Test
+    @DisplayName("calculateChangeRate - 동일한 타임스탬프 거래")
+    void calculateChangeRate_SameTimestamp_ReturnsZeroWithFalse() {
+        // given - 이전 거래 캐시에 저장
+        RealTimeTradeService.ChangeRateResult firstResult =
+                new RealTimeTradeService.ChangeRateResult(0.0, true);
+        service.updateTradeCache(testTradeEventDto, firstResult);
+
+        // 동일한 타임스탬프의 거래
+        TradeEventDto sameTrade = new TradeEventDto("TRUMP", 2.0, 55000.0, testTime);
+        RealTimeTradeService.TradeInfo sameTradeInfo = service.extractTradeInfo(sameTrade);
+
+        // when
+        RealTimeTradeService.ChangeRateResult result = service.calculateChangeRate(sameTrade, sameTradeInfo);
+
+        // then
+        assertThat(result.changeRate()).isEqualTo(0.0);
+        assertThat(result.shouldUpdate()).isFalse();
+    }
+
+    @Test
+    @DisplayName("calculateChangeRate - 이전 거래 가격이 0인 경우")
+    void calculateChangeRate_PreviousPriceZero_ReturnsZeroWithFalse() {
+        // given - 가격이 0인 이전 거래 캐시에 저장
+        TradeEventDto zeroPriceTrade = new TradeEventDto("TRUMP", 1.0, 0.0, testTime.minusSeconds(10));
+        RealTimeTradeService.ChangeRateResult firstResult =
+                new RealTimeTradeService.ChangeRateResult(0.0, true);
+        service.updateTradeCache(zeroPriceTrade, firstResult);
+
+        // 새로운 거래
+        TradeEventDto newTrade = new TradeEventDto("TRUMP", 2.0, 55000.0, testTime);
+        RealTimeTradeService.TradeInfo newTradeInfo = service.extractTradeInfo(newTrade);
+
+        // when
+        RealTimeTradeService.ChangeRateResult result = service.calculateChangeRate(newTrade, newTradeInfo);
+
+        // then
+        assertThat(result.changeRate()).isEqualTo(0.0);
+        assertThat(result.shouldUpdate()).isFalse();
+    }
 }

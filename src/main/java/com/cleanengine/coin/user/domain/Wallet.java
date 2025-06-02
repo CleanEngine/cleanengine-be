@@ -43,4 +43,16 @@ public class Wallet {
         wallet.setRoi(0.0);
         return wallet;
     }
+
+    public void decreaseSize(Double orderSize) {
+        if(orderSize <= 0){
+            throw new IllegalArgumentException("orderSize must be greater than zero.");
+        }
+
+        if(this.getSize() < orderSize){
+            throw new IllegalArgumentException("Cannot decrease size. Available size: " + this.getSize() + ", requested: " + orderSize);
+        }
+
+        this.size = this.getSize() - orderSize;
+    }
 }

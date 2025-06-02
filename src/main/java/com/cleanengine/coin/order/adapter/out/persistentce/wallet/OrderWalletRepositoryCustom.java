@@ -4,6 +4,6 @@ import com.cleanengine.coin.user.domain.Wallet;
 
 import java.util.Optional;
 
-public interface WalletExternalRepositoryCustom {
+public interface OrderWalletRepositoryCustom {
     Optional<Wallet> findWalletBy(Integer userId, String ticker);
 }

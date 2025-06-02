@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class WalletExternalRepositoryCustomImpl implements WalletExternalRepositoryCustom {
+public class OrderWalletRepositoryCustomImpl implements OrderWalletRepositoryCustom {
     private final EntityManager em;
 
     @Override

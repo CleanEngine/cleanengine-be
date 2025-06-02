@@ -1,22 +1,25 @@
 package com.cleanengine.coin.order.application.strategy;
 
-import com.cleanengine.coin.order.adapter.out.persistentce.account.AccountExternalRepository;
+import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
-import com.cleanengine.coin.order.application.port.out.AccountUpdatePort;
 import com.cleanengine.coin.order.application.port.out.PublishOrderCreatedPort;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.domainservice.CreateBuyOrderDomainService;
 import com.cleanengine.coin.order.domain.domainservice.CreateOrderDomainService;
+import com.cleanengine.coin.user.domain.Account;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.FieldError;
+
+import java.util.List;
 
 @Component
 public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<BuyOrder>> {
     private final BuyOrderRepository buyOrderRepository;
-    private final AccountUpdatePort accountUpdatePort;
     private final CreateBuyOrderDomainService createOrderDomainService;
 
     @Override
@@ -31,7 +34,15 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
 
     @Override
     protected void keepHoldings(BuyOrder order) throws RuntimeException {
-        accountUpdatePort.lockDepositForBuyOrder(order.getUserId(), order.getLockedDeposit());
+        Double lockedDeposit = order.getLockedDeposit();
+
+        Account account = accountRepository.findByUserId(order.getUserId())
+                .orElseThrow(() -> new DomainValidationException("Account not found",
+                        List.of(new FieldError("account", "userId", "user might not exist"))));
+
+        account.decreaseCash(lockedDeposit);
+
+        accountRepository.save(account);
     }
 
     @Override
@@ -46,14 +57,12 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
 
     public BuyOrderStrategy(PublishOrderCreatedPort publishOrderCreatedPort,
                             AssetService assetService,
-                            WalletExternalRepository walletRepository,
-                            AccountExternalRepository accountRepository,
+                            OrderWalletRepository orderWalletRepository,
+                            OrderAccountRepository orderAccountRepository,
                             BuyOrderRepository buyOrderRepository,
-                            AccountUpdatePort accountUpdatePort,
                             CreateBuyOrderDomainService createOrderDomainService) {
-        super(publishOrderCreatedPort, assetService, walletRepository, accountRepository);
+        super(publishOrderCreatedPort, assetService, orderWalletRepository, orderAccountRepository);
         this.buyOrderRepository = buyOrderRepository;
-        this.accountUpdatePort = accountUpdatePort;
         this.createOrderDomainService = createOrderDomainService;
     }
 }

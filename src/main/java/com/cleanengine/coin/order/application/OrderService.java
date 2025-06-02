@@ -3,7 +3,9 @@ package com.cleanengine.coin.order.application;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.order.application.strategy.CreateOrderStrategy;
-import jakarta.validation.Valid;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -12,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
 import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
@@ -21,9 +24,11 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 @Validated
 public class OrderService {
     private final List<CreateOrderStrategy<?, ?>> createOrderStrategies;
+    private final Validator validator;
 
     @Transactional
-    public OrderInfo<?> createOrder(@Valid OrderCommand.CreateOrder createOrder){
+    public OrderInfo<?> createOrder(OrderCommand.CreateOrder createOrder){
+        validateCreateOrder(createOrder);
         CreateOrderStrategy<?, ?> createOrderStrategy = createOrderStrategies.stream()
                 .filter(strategy -> strategy.supports(createOrder.isBuyOrder())).findFirst().orElseThrow();
 
@@ -38,5 +43,13 @@ public class OrderService {
                 false, orderSize, price, LocalDateTime.now(), true);
 
         return createOrder(createOrder);
+    }
+
+    protected void validateCreateOrder(OrderCommand.CreateOrder createOrder) {
+        Set<ConstraintViolation<OrderCommand.CreateOrder>> violations = validator.validate(createOrder);
+
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
     }
 }

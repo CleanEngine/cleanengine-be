@@ -1,7 +1,7 @@
 package com.cleanengine.coin.configuration.bootstrap;
 
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.User;
@@ -24,7 +24,7 @@ import java.util.List;
 public class DBInitRunner implements CommandLineRunner {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
-    private final WalletExternalRepository walletExternalRepository;
+    private final OrderWalletRepository orderWalletRepository;
     private final AssetRepository assetRepository;
 
     @Transactional
@@ -58,7 +58,7 @@ public class DBInitRunner implements CommandLineRunner {
         wallet2.setTicker("TRUMP");
         wallet2.setAccountId(account.getId());
         wallet2.setSize(500_000_000.0);
-        walletExternalRepository.saveAll(List.of(wallet, wallet2));
+        orderWalletRepository.saveAll(List.of(wallet, wallet2));
     }
 
     @Transactional
@@ -80,7 +80,7 @@ public class DBInitRunner implements CommandLineRunner {
         wallet2.setTicker("TRUMP");
         wallet2.setAccountId(account.getId());
         wallet2.setSize(0.0);
-        walletExternalRepository.saveAll(List.of(wallet, wallet2));
+        orderWalletRepository.saveAll(List.of(wallet, wallet2));
     }
 
     @Transactional

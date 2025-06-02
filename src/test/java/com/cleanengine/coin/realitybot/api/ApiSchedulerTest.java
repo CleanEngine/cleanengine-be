@@ -4,7 +4,7 @@ import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.order.infra.AssetRepository;
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.cleanengine.coin.realitybot.parser.TickParser;
-import com.cleanengine.coin.realitybot.service.ApiVWAPService;
+import com.cleanengine.coin.realitybot.domain.APIVWAPState;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;
 import com.cleanengine.coin.realitybot.service.TickServiceManager;
 import org.junit.jupiter.api.Test;
@@ -14,8 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.mockito.Mockito.*;
 
@@ -32,11 +30,9 @@ public class ApiSchedulerTest {
     @Mock
     private OrderGenerateService orderGenerateService;
     @Mock
-    ApiVWAPService apiVWAPService;
+    APIVWAPState apiVWAPState;
     @Mock
     private TickServiceManager tickServiceManager;
-    @Mock
-    private Map<String,Long> lastSequentialIdMap = new ConcurrentHashMap<>();
     @Mock
     private AssetRepository assetRepository;
 
@@ -65,8 +61,8 @@ public class ApiSchedulerTest {
         when(assetRepository.findAll()).thenReturn(assets);
         when(apiClient.get(anyString())).thenReturn("[{data:...}]");
         when(tickParser.parseGson(anyString())).thenReturn(testTicks);
-        when(tickServiceManager.getService(anyString())).thenReturn(apiVWAPService);
-        doNothing().when(apiVWAPService).addTick(any());
+        when(tickServiceManager.getService(anyString())).thenReturn(apiVWAPState);
+        doNothing().when(apiVWAPState).addTick(any());
         System.out.println(assets.size());
         //when
         apiScheduler.MarketAllRequest();

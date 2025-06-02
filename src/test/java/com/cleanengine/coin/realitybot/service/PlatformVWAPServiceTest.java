@@ -1,6 +1,6 @@
 package com.cleanengine.coin.realitybot.service;
 
-import com.cleanengine.coin.realitybot.vo.VWAPState;
+import com.cleanengine.coin.realitybot.domain.PlatformVWAPState;
 import com.cleanengine.coin.trade.entity.Trade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ public class PlatformVWAPServiceTest {
     private PlatformVWAPService platformVWAPService;
 
     @Mock
-    private VWAPState vwapState;
+    private PlatformVWAPState platformVwapState;
 
     @DisplayName("10개 이하일 때, APIVWAP 기준으로 랜덤값이 반환되는 지")
     @Test
@@ -64,14 +64,14 @@ public class PlatformVWAPServiceTest {
                 new Trade(11, "BTC", LocalDateTime.now(), 2, 1, 20000.0, 10.0)  // 200000
         );
         double apiVWAP = 1000.0;
-        when(vwapState.getVWAP()).thenReturn(15000.0);
-        platformVWAPService.vwapMap.put(ticker,vwapState);
+        when(platformVwapState.getVWAP()).thenReturn(15000.0);
+        platformVWAPService.vwapMap.put(ticker, platformVwapState);
         //when
         double result  = platformVWAPService.calculateVWAPbyTrades(ticker, trades, apiVWAP);
 
         //then
-        verify(vwapState).calculateVWAPbyTrades(trades);
-        verify(vwapState).getVWAP();
+        verify(platformVwapState).addTrades(trades);
+        verify(platformVwapState).getVWAP();
         assertEquals( 15000.0,result);
     }
     //todo generatevwap null확인안함

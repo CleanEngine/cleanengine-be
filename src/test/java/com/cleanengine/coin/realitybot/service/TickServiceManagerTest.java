@@ -1,9 +1,8 @@
 package com.cleanengine.coin.realitybot.service;
 
+import com.cleanengine.coin.realitybot.domain.APIVWAPState;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +16,7 @@ public class TickServiceManagerTest {
         //given
         String ticker = "BTC";
         //when
-        ApiVWAPService service = tickServiceManager.getService(ticker);
+        APIVWAPState service = tickServiceManager.getService(ticker);
         //then
         assertNotNull(service);
     }
@@ -27,8 +26,8 @@ public class TickServiceManagerTest {
         //given
         String ticker = "BTC";
         //when
-        ApiVWAPService service1 = tickServiceManager.getService(ticker);
-        ApiVWAPService service2 = tickServiceManager.getService(ticker);
+        APIVWAPState service1 = tickServiceManager.getService(ticker);
+        APIVWAPState service2 = tickServiceManager.getService(ticker);
         //then
         assertSame(service1, service2);
     }
@@ -38,8 +37,8 @@ public class TickServiceManagerTest {
     void checksOthers() {
         //given
         //when
-        ApiVWAPService service1 = tickServiceManager.getService("BTC");
-        ApiVWAPService service2 = tickServiceManager.getService("TRUMP");
+        APIVWAPState service1 = tickServiceManager.getService("BTC");
+        APIVWAPState service2 = tickServiceManager.getService("TRUMP");
         //then
         assertNotSame(service1, service2);
     }

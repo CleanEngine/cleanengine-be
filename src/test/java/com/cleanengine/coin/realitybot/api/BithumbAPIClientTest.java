@@ -102,7 +102,7 @@ public class BithumbAPIClientTest {
         Response mockresponse = new Response.Builder()
                 .request(mockrequest)
                 .protocol(Protocol.HTTP_1_1)
-                .code(400)
+                .code(200)
                 .message("OK")
                 .body(responseBody)
                 .build();
@@ -127,7 +127,7 @@ public class BithumbAPIClientTest {
         Response mockresponse = new Response.Builder()
                 .request(mockrequest)
                 .protocol(Protocol.HTTP_1_1)
-                .code(200)
+                .code(400)
                 .message("OK")
                 .body(responseBody)
                 .build();
@@ -164,6 +164,31 @@ public class BithumbAPIClientTest {
         when(call.execute()).thenThrow(new IOException("API 요청 중 예외 발생"));
 
         //then
-        assertThrows(RuntimeException.class, () -> bithumbAPIClient.getOpeningPrice(ticker));
+        assertThrows(RuntimeException.class, () -> bithumbAPIClient.get(ticker));
+    }
+
+    @DisplayName("ticker가 잘못된 요청이 들어갔을 때  log를 띄우는 지")
+    @Test
+    void callFailbyWrongTickertoGet() throws IOException {
+        //given
+
+        ResponseBody responseBody = ResponseBody.create(failJson, MediaType.get("application/json"));
+        Request mockrequest = new Request.Builder().url("http://localhost").build();
+        Response mockresponse = new Response.Builder()
+                .request(mockrequest)
+                .protocol(Protocol.HTTP_1_1)
+                .code(400)
+                .message("OK")
+                .body(responseBody)
+                .build();
+
+        when(client.newCall(any())).thenReturn(call);
+        when(call.execute()).thenReturn(mockresponse);
+
+        //when
+        String response = bithumbAPIClient.get(ticker);
+
+        //then
+        assertTrue(response.contains("{}"));
     }
 }

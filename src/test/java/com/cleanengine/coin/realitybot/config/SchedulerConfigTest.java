@@ -10,12 +10,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
-import org.springframework.scheduling.config.Task;
 
-import java.lang.reflect.Field;
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -33,16 +32,14 @@ public class SchedulerConfigTest {
     SchedulerConfig schedulerConfig;
 
     @BeforeEach
-    void setUp() throws NoSuchFieldException, IllegalAccessException {
-        Field fixedRateField = SchedulerConfig.class.getDeclaredField("fixedRate");
-        fixedRateField.setAccessible(true);
-        fixedRateField.set(schedulerConfig, Duration.ofSeconds(1));
+    void setUp() {
+        schedulerConfig = new SchedulerConfig(apiScheduler,Duration.ofMillis(500));
     }
 
 
     @DisplayName("fixedrate를 적용 후 정상 작동하는 지")
     @Test
-    void testConfigureTasksOnFixedRate() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+    void testConfigureTasksOnFixedRate() throws InterruptedException {
         //when
         schedulerConfig.configureTasks(scheduledTaskRegistrar);
 
@@ -62,7 +59,7 @@ public class SchedulerConfigTest {
         verify(apiScheduler).MarketAllRequest(); //작동 검증
 
         Duration interval = intervalCaptor.getValue();
-        assertEquals(Duration.ofSeconds(1), interval);
+        assertEquals(Duration.ofMillis(500), interval);
     }
     @DisplayName("marketallrequest가 예외 발생 시 에러를 던지는 지 확인")
     @Test

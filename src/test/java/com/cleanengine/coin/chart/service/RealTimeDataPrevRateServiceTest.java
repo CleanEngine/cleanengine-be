@@ -35,9 +35,9 @@ class RealTimeDataPrevRateServiceTest {
 
     @BeforeEach
     void setUp() {
-        tradeEventDto = new TradeEventDto("TRUMP", 0,150.0, LocalDateTime.now());
+        tradeEventDto = new TradeEventDto("TRUMP", 0, 150.0, LocalDateTime.now());
         currentTime = LocalDateTime.of(2024, 1, 15, 10, 30, 0);
-        mockTrade = createMockTrade();
+        mockTrade = createTrade(currentTime); // ✅ 이제 100.0 가격으로 생성됨
     }
 
     @Test
@@ -55,7 +55,7 @@ class RealTimeDataPrevRateServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getTicker()).isEqualTo("TRUMP");
         assertThat(result.getCurrentPrice()).isEqualTo(150.0);
-        assertThat(result.getPrevClose()).isEqualTo(100.0);
+        assertThat(result.getPrevClose()).isEqualTo(100.0); // ✅ 성공
         assertThat(result.getChangeRate()).isEqualTo(50.0); // (150-100)/100 * 100
         assertThat(result.getTimestamp()).isEqualTo(currentTime);
     }
@@ -95,7 +95,7 @@ class RealTimeDataPrevRateServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getTicker()).isEqualTo("TRUMP");
         assertThat(result.getCurrentPrice()).isEqualTo(150.0);
-        assertThat(result.getPrevClose()).isEqualTo(100.0);
+        assertThat(result.getPrevClose()).isEqualTo(100.0); // ✅ 성공
     }
 
     @Test
@@ -170,19 +170,8 @@ class RealTimeDataPrevRateServiceTest {
         assertThat(result).isEqualTo(expected);
     }
 
-    private Trade createMockTrade() {
-        // Trade 엔티티 생성 (실제 구현에 따라 수정 필요)
-        Trade trade = new Trade();
-        // setPrice가 있다고 가정하거나, 빌더 패턴 사용
-        // trade.setPrice(100.0);
-        // 또는 리플렉션을 사용하여 필드 설정
-        try {
-            java.lang.reflect.Field priceField = Trade.class.getDeclaredField("price");
-            priceField.setAccessible(true);
-            priceField.set(trade, 100.0);
-        } catch (Exception e) {
-            // 실제 Trade 엔티티 구조에 맞게 수정 필요
-        }
-        return trade;
+    //실제 엔티티를 만들어서 목업엔티티로 사용
+    private Trade createTrade(LocalDateTime tradeTime) {
+        return new Trade(null, "BTC", tradeTime, 1, 2, 100.0, 1.0);
     }
 }

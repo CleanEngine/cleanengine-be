@@ -56,7 +56,7 @@ class MinuteOhlcDataServiceImplTest {
         assertThat(result).isNotEmpty();
         assertThat(result).hasSize(2); // 2분간의 데이터
 
-        RealTimeOhlcDto firstMinute = result.get(0);
+        RealTimeOhlcDto firstMinute = result.getFirst();
         assertThat(firstMinute.getTicker()).isEqualTo("BTC");
         assertThat(firstMinute.getOpen()).isEqualTo(100.0);
         assertThat(firstMinute.getHigh()).isEqualTo(150.0);
@@ -299,6 +299,7 @@ class MinuteOhlcDataServiceImplTest {
         assertThat(result.volume()).isEqualTo(3.75); // 1.5 + 2.25
     }
 
+    // =====리플렉션 제거=====
     private List<Trade> createMockTrades() {
         return List.of(
                 // 첫 번째 분 (10:30)
@@ -310,22 +311,23 @@ class MinuteOhlcDataServiceImplTest {
         );
     }
 
+    /**
+     * Trade 엔티티 생성 - @AllArgsConstructor 사용하여 리플렉션 제거
+     *
+     * @param tradeTime 거래 시간
+     * @param price 가격
+     * @param size 거래량
+     * @return Trade 객체
+     */
     private Trade createTrade(LocalDateTime tradeTime, Double price, Double size) {
-        Trade trade = new Trade();
-        try {
-            // 리플렉션을 사용하여 필드 설정
-            setField(trade, "tradeTime", tradeTime);
-            setField(trade, "price", price);
-            setField(trade, "size", size);
-        } catch (Exception e) {
-            throw new RuntimeException("Trade 객체 생성 실패", e);
-        }
-        return trade;
-    }
-
-    private void setField(Object target, String fieldName, Object value) throws Exception {
-        java.lang.reflect.Field field = Trade.class.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
+        return new Trade(
+                null,       // id (자동 생성) 실제 db에 들어가는게 아니기때문에 null로 설정
+                "BTC",          // ticker
+                tradeTime,      // tradeTime
+                1,              // buyUserId (더미 값)
+                2,              // sellUserId (더미 값)
+                price,          // price
+                size            // size
+        );
     }
 }

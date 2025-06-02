@@ -4,9 +4,9 @@ import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.order.infra.AssetRepository;
 import com.cleanengine.coin.realitybot.dto.Ticks;
-import com.cleanengine.coin.realitybot.service.ApiVWAPService;
-import com.cleanengine.coin.realitybot.service.OrderGenerateService;
 import com.cleanengine.coin.realitybot.parser.TickParser;
+import com.cleanengine.coin.realitybot.domain.APIVWAPState;
+import com.cleanengine.coin.realitybot.service.OrderGenerateService;
 import com.cleanengine.coin.realitybot.service.TickServiceManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class ApiScheduler {
         for (Asset ticker : tickers){
             String tickerName = ticker.getTicker();
             MarketDataRequest(tickerName);
-            Thread.sleep(500);
+//            Thread.sleep(500);
         }
     }
 
@@ -45,21 +45,21 @@ public class ApiScheduler {
         String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
         List<Ticks> gson = tickParser.parseGson(rawJson); //json을 list로 변환
 
-        ApiVWAPService apiVWAPService = tickServiceManager.getService(ticker);
+        APIVWAPState apiVWAPState = tickServiceManager.getService(ticker);
         long lastSeqId = lastSequentialIdMap.getOrDefault(ticker,0L);
 
         //api 중복검사하여 queue에 저장하기
         for (int i = gson.size()-1; i >=0 ; i--) {//2차 : 10 - 역순으로 정렬되어 - 순회해야 함.
             Ticks ticks = gson.get(i);
             if (ticks.getSequential_id() > lastSeqId){ //중복 검증용
-                apiVWAPService.addTick(ticks);
+                apiVWAPState.addTick(ticks);
                 lastSeqId = Math.max(lastSeqId, ticks.getSequential_id()); //중복 id 갱신
 
             }
         }
         lastSequentialIdMap.put(ticker,lastSeqId);
-        double vwap = apiVWAPService.getVWAP();
-        double volume = apiVWAPService.getAvgVolumePerOrder();
+        double vwap = apiVWAPState.getVWAP();
+        double volume = apiVWAPState.getAvgVolumePerOrder();
         orderGenerateService.generateOrder(ticker,vwap,volume); //1tick 당 매수/매도 3개씩 제작
 //        log.info("작동확인 {}의 가격 : {} , 볼륨 : {}",ticker, vwap, volume);
     }

@@ -1,6 +1,6 @@
 package com.cleanengine.coin.realitybot.service;
 
-import com.cleanengine.coin.realitybot.vo.VWAPState;
+import com.cleanengine.coin.realitybot.domain.PlatformVWAPState;
 import com.cleanengine.coin.trade.entity.Trade;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,15 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @Slf4j
 public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예정임
-    Map<String,VWAPState> vwapMap = new ConcurrentHashMap<>();
+    Map<String, PlatformVWAPState> vwapMap = new ConcurrentHashMap<>();
 
     public double calculateVWAPbyTrades(String ticker,List<Trade> trades,double apiVWAP) {
-        VWAPState state = vwapMap.computeIfAbsent(ticker, VWAPState::new);
+        PlatformVWAPState state = vwapMap.computeIfAbsent(ticker, PlatformVWAPState::new);
             if (trades.size() < 10){
                 //체결 내역이 10개 이하일 경우 자체 계산
                 return generateVWAP(apiVWAP);
             }
-        state.calculateVWAPbyTrades(trades);
+        state.addTrades(trades);
         return state.getVWAP();
     }
 

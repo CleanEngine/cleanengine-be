@@ -1,7 +1,6 @@
 package com.cleanengine.coin.realitybot.config;
 
 import com.cleanengine.coin.realitybot.api.ApiScheduler;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -12,16 +11,20 @@ import java.time.Duration;
 
 @Configuration
 @EnableScheduling
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class SchedulerConfig implements SchedulingConfigurer {
 
     //멀티쓰레드 환경 x
 //    @Autowired
 //    private TaskScheduler apiScheduler;
     private final ApiScheduler apiScheduler;
-
     @Value("${bot-handler.fixed-rate}")
-    private Duration fixedRate;
+    private final Duration fixedRate;
+
+    protected SchedulerConfig(ApiScheduler apiScheduler, @Value("${bot-handler.fixed-rate}") Duration fixedRate) {
+        this.apiScheduler = apiScheduler;
+        this.fixedRate = fixedRate;
+    }
 
     @Override
     public void configureTasks(ScheduledTaskRegistrar registrar) {

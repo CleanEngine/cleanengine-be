@@ -23,9 +23,6 @@ public class BithumbAPIClientTest {
     @InjectMocks
     BithumbAPIClient bithumbAPIClient;
 
-    @Test
-    void get() {
-    }
     private String ticker = "BTC";
     private String tradeJson = "  {\n" +
             "    \"market\": \"KRW-BTC\",\n" +
@@ -77,7 +74,7 @@ public class BithumbAPIClientTest {
         Response mockresponse = new Response.Builder()
                 .request(mockrequest)
                 .protocol(Protocol.HTTP_1_1)
-                .code(400)
+                .code(200)
                 .message("OK")
                 .body(responseBody)
                 .build();

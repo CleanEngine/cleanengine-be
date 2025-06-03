@@ -28,6 +28,7 @@ public class ApiScheduler {
     private final TickServiceManager tickServiceManager;
     private final Map<String,Long> lastSequentialIdMap = new ConcurrentHashMap<>();
     private final AssetRepository assetRepository;
+    private final CoinoneAPIClient coinoneAPIClient;
     private String ticker;
 
 //    @Scheduled(fixedRate = 5000)
@@ -42,7 +43,8 @@ public class ApiScheduler {
 
     public void MarketDataRequest(String ticker){
         this.ticker = ticker;
-        String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
+//        String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
+        String rawJson = getMarketDataWithFallback(ticker);
         List<Ticks> gson = tickParser.parseGson(rawJson); //json을 list로 변환
 
         APIVWAPState apiVWAPState = tickServiceManager.getService(ticker);
@@ -72,6 +74,23 @@ public class ApiScheduler {
 //        orderQueueManagerService.logAllOrders();
 //        virtualTradeService.printOrderSummary();
     }*/
+public String getMarketDataWithFallback(String ticker) {
+    try {
+//        String bithumbJson = bithumbAPIClient.get(ticker);
+        String bithumbJson = null;
 
+        // 예외가 없었어도 비정상 응답일 수 있음 → 예: 빈 JSON 또는 에러 코드
+        if (bithumbJson == null || bithumbJson.isBlank() || bithumbJson.contains("\"result\":\"error\"")) {
+            log.warn("Bithumb 응답 비정상, Coinone으로 대체 요청");
+            return coinoneAPIClient.get(ticker);
+        }
+
+        return bithumbJson;
+
+    } catch (Exception e) {
+        log.error("Bithumb API 오류 발생: {} → Coinone으로 대체 요청", e.getMessage());
+        return coinoneAPIClient.get(ticker);
+    }
+}
 
 }

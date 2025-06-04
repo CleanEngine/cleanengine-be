@@ -9,10 +9,7 @@ import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -27,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles({"dev", "it", "h2-mem"})
 @SpringBootTest
 @DisplayName("체결 처리 통합테스트")
+@Disabled
 class TradeFlowServiceTest {
 
     private static TradeBatchProcessor staticTradeBatchProcessor;

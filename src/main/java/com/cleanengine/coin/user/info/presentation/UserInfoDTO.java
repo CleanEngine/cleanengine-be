@@ -10,7 +10,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class UserInfoDTO {
 
     private Integer userId;
@@ -25,5 +24,18 @@ public class UserInfoDTO {
     private Double cash;
 
     private List<Wallet> wallets;
+
+    private UserInfoDTO(Integer userId, String email, String nickname, String provider, Double cash, List<Wallet> wallets) {
+        this.userId = userId;
+        this.email = email;
+        this.nickname = nickname;
+        this.provider = provider;
+        this.cash = cash;
+        this.wallets = wallets;
+    }
+
+    public static UserInfoDTO of(Integer userId, String email, String nickname, String provider, Double cash, List<Wallet> wallets) {
+        return new UserInfoDTO(userId, email, nickname, provider, cash, wallets);
+    }
 
 }

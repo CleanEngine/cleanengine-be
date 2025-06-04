@@ -41,8 +41,7 @@ public class TradeBatchProcessor implements ApplicationRunner {
 
     private void processTrades() {
         for (String ticker : tickers) {
-            TradeQueueManager tradeQueueManager = new TradeQueueManager(waitingOrdersManager.getWaitingOrders(ticker),
-                    tradeFlowService);
+            TradeQueueManager tradeQueueManager = new TradeQueueManager(tradeFlowService);
             tradeQueueManagers.put(ticker, tradeQueueManager); // 정상 종료를 위해 저장
 
             ExecutorService tradeExecutor = Executors.newSingleThreadExecutor(r -> {
@@ -51,22 +50,11 @@ public class TradeBatchProcessor implements ApplicationRunner {
                 return thread;
             });
             executors.add(tradeExecutor);
-
-            tradeExecutor.submit(() -> {
-                try {
-                    tradeQueueManager.run();
-                } catch (Exception e) {
-                    log.error("Error in trade loop for {}: {}",ticker, e.getMessage());
-                }
-            });
         }
     }
 
     @PreDestroy
     public void shutdown() {
-        // 무한루프 종료
-        tradeQueueManagers.forEach((ticker, manager) -> manager.stop());
-
         // 스레드풀 종료
         for (ExecutorService executor : executors) {
             try {

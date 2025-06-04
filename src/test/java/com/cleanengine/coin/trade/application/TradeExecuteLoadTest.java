@@ -20,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.time.LocalDateTime;
 
 @SpringBootTest
-public class TradeExecuteLoadTest {
+class TradeExecuteLoadTest {
 
     @Autowired
     TradeBatchProcessor tradeBatchProcessor;
@@ -50,16 +50,14 @@ public class TradeExecuteLoadTest {
     @Test
     void basicLoadTestWith1000OrdersEachSide() {
         // given 1000건의 매수, 매도 주문 요청
-        String ticker = this.ticker;
-
         for (int i = 0; i < 1000; i++) {
             OrderCommand.CreateOrder sellOrderCommand = new OrderCommand.CreateOrder(ticker, 1,
                     false, false, 30.0, 40.0, LocalDateTime.now(),false);
-            OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(sellOrderCommand);
+            orderService.createOrder(sellOrderCommand);
 
             OrderCommand.CreateOrder buyOrderCommand = new OrderCommand.CreateOrder(ticker, 2,
                     true, false, 30.0, 40.0, LocalDateTime.now(),false);
-            OrderInfo.BuyOrderInfo buyOrderInfo = (OrderInfo.BuyOrderInfo) orderService.createOrder(buyOrderCommand);
+            orderService.createOrder(buyOrderCommand);
         }
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
         PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);

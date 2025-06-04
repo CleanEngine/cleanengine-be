@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.sonarqube" version "6.0.1.5171"
+	id 'jacoco'
 }
 
 group = 'com.cleanengine'
@@ -21,6 +23,26 @@ configurations {
 
 repositories {
 	mavenCentral()
+}
+
+jacoco { //추가함
+	toolVersion = "0.8.13"
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+
+//	afterEvaluate {
+//		getClassDirectories().setFrom(files(classDirectories.files.collect{
+//			fileTree(dir : it, includes: [
+//					"com/cleanengine/coin/realitybot/**"
+//			])
+//		}))
+//	}
 }
 
 dependencies {
@@ -45,8 +67,13 @@ dependencies {
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers:3.4.5'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:mariadb'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	testImplementation 'org.junit.platform:junit-platform-suite:1.10.0'
 	// Spring Security + OAuth2
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
@@ -58,5 +85,22 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform{
+		excludeTags 'testcontainers'
+	}
+	finalizedBy jacocoTestReport
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "CleanEngine_cleanengine-be_2b6f2f63-fa39-426c-b9c7-8aa127fd14d8"
+    property "sonar.projectName", "cleanengine-be"
+    property "sonar.host.url", System.getenv('SONAR_HOST_URL') ?: 'http://localhost:9000'
+    property "sonar.token", System.getenv('SONAR_TOKEN') ?: ''
+    property "sonar.java.source", '21'
+    property "sonar.java.target", '21'
+    property "sonar.sourceEncoding", "UTF-8"
+    property "sonar.java.coveragePlugin", "jacoco"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+  }
 }

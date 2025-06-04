@@ -3,11 +3,12 @@
 
     <property name="LOG_PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %-5level %logger{36} - %msg%n"/>
     <property name="LOG_DIR" value="./logs"/>
+    <property name="LOG_LEVEL" value="${LOG_LEVEL:-INFO}"/>
 
     <!-- 공통: 콘솔 출력 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
+            <level>${LOG_LEVEL}</level>
         </filter>
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
@@ -29,7 +30,7 @@
                 <fileNamePattern>${LOG_DIR}/was1.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
                 <maxFileSize>10MB</maxFileSize>
                 <maxHistory>30</maxHistory>
-                <totalSizeCap>100MB</totalSizeCap>
+                <totalSizeCap>50MB</totalSizeCap>
             </rollingPolicy>
         </appender>
 
@@ -37,6 +38,11 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </root>
+
+        <logger name="com.cleanengine.coin" level="${LOG_LEVEL}" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
     </springProfile>
 
     <!-- local, dev 환경: 콘솔만 출력 -->
@@ -44,6 +50,10 @@
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
+
+        <logger name="com.cleanengine.coin" level="${LOG_LEVEL}" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
     </springProfile>
 
 </configuration>

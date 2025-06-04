@@ -1,8 +1,8 @@
 package com.cleanengine.coin.configuration.bootstrap;
 
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
-import com.cleanengine.coin.order.infra.AssetRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.User;
 import com.cleanengine.coin.user.domain.Wallet;
@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Component
-@Profile({"dev & !it"})
+@Profile({"(dev & !it & !mariadb-local) | h2-mem"})
 @Order(1)
 @RequiredArgsConstructor
 public class DBInitRunner implements CommandLineRunner {
@@ -30,9 +30,13 @@ public class DBInitRunner implements CommandLineRunner {
     @Transactional
     @Override
     public void run(String... args) throws Exception {
-        initSellBotData();
-        initBuyBotData();
-        initAssetData();
+        if(userRepository.count() == 0){
+            initSellBotData();
+            initBuyBotData();
+        }
+        if(assetRepository.count() == 0){
+            initAssetData();
+        }
     }
 
     @Transactional
@@ -83,7 +87,7 @@ public class DBInitRunner implements CommandLineRunner {
     protected void initAssetData() {
         assetRepository.saveAll(List.of(
                 new Asset("BTC", "비트코인"),
-                new Asset("TRUMP", "트럼프")
+                new Asset("TRUMP", "오피셜 트럼프")
         ));
     }
 }

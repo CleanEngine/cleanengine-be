@@ -1,17 +1,13 @@
 package com.cleanengine.coin.user.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "account")
 @NoArgsConstructor
-@AllArgsConstructor
 public class Account {
 
     @Id
@@ -24,6 +20,19 @@ public class Account {
 
     @Column(name = "cash", nullable = false)
     private Double cash;
+
+    @Builder
+    private Account(Integer userId, Double cash) {
+        this.userId = userId;
+        this.cash = cash;
+    }
+
+    public static Account of(Integer userId, Double cash) {
+        return Account.builder()
+                .userId(userId)
+                .cash(cash)
+                .build();
+    }
 
     // Cash 증가
     public Account increaseCash(Double amount) {

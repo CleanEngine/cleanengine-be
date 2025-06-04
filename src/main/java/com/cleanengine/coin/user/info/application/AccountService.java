@@ -17,4 +17,9 @@ public class AccountService {
         return accountRepository.findByUserId(userId).orElse(null);
     }
 
+    public Account createNewAccount(Integer userId, double cash) {
+        Account account = Account.of(userId, cash);
+        return accountRepository.save(account);
+    }
+
 }

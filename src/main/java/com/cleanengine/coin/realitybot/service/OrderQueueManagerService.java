@@ -2,14 +2,16 @@ package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.realitybot.dto.TestOrder;
 import lombok.Getter;
-import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
 @Getter
-@Component
+//@Component
 public class OrderQueueManagerService {
+    /*해당 코드는 초기 개별 모듈로 작업할 때 가상의 체결을 만드는 코드였습니다.
+    * 이젠 쓰이지 않는 코드이나 어떤 에러가 발생할 때 재사용하기 위한 용도로 삭제하지 않았습니다.
+    * */
 
     //체결용 출력
     private final PriorityQueue<TestOrder> buyqueue = new PriorityQueue<>(new Comparator<TestOrder>() {

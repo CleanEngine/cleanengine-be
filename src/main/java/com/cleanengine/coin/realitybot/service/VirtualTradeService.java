@@ -1,11 +1,10 @@
 package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.realitybot.dto.TestOrder;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@Service
+//@Service
 public class VirtualTradeService {
     private final OrderQueueManagerService queueManager;
     private final PlatformVWAPService platformVWAPService;
@@ -14,8 +13,10 @@ public class VirtualTradeService {
         this.platformVWAPService = platformVWAPService;
         this.queueManager = queueManager;
     }
+    /*해당 코드는 초기 개별 모듈로 작업할 때 가상의 체결을 만드는 코드였습니다.
+     * 이젠 쓰이지 않는 코드이나 어떤 에러가 발생할 때 재사용하기 위한 용도로 삭제하지 않았습니다.
+     * */
 
-    //todo 비활성화 예정 BUT recordTrade()를 받아와야함.
     //가상 주문 매칭 및 체결 처리를 담당하는 서비스
     public void matchOrder(){
         //매수, 매도 주문 큐 관리
@@ -26,10 +27,6 @@ public class VirtualTradeService {
             //주문 추출
             TestOrder buyOrder = buyQueue.peek(); //가장 높은 매수 주문
             TestOrder sellOrder = sellQueue.peek(); // 가장 낮은 매도 주문
-            /*//모니터링용
-            System.out.println("=== queue확인 - 매수큐 가격 : "+buyOrder.getPrice()+", 수량 : "+buyOrder.getVolume()+"===");
-            System.out.println("=== queue확인 - 매도큐 가격 : "+sellOrder.getPrice()+", 수량 : "+sellOrder.getVolume()+"===");
-*/
 
             //체결 조건 부여 : 현재 느슨한 체결 (1:1은 문제 발생/어짜피 매서드 호출 힘너무 쓰면 안됨)
             //매수 희망가 >= 매도 희망가
@@ -51,9 +48,8 @@ public class VirtualTradeService {
             if (buyOrder.getVolume() <= 0) buyQueue.poll();
             if (sellOrder.getVolume() <= 0) sellQueue.poll();
 
-            //VWAP 계산을 위한 거래 기록 TODO JPA로 받아온 값이 들어가야 함
-            platformVWAPService.recordTrade(matchedPrice,matchedVolume);
-            } //쌓이긴 하는데 100원따리로 쌓임 , generateorder가 0원 받을 때 해결해야 함.
+//            platformVWAPService.recordTrade(matchedPrice,matchedVolume);
+            }
             else {
                 break;
             }
@@ -77,9 +73,6 @@ public class VirtualTradeService {
                 if ((int)buyOrder.getPrice() >= (int)sellOrder.getPrice()){
                     double matchVolume = Math.min(buyOrder.getVolume(), sellOrder.getVolume());
                     if (matchVolume <=0) continue;
-//                    System.out.printf("=== 체결 완료 : %.1f / %.4f \n",sellOrder.getPrice(),matchVolume);
-                    platformVWAPService.recordTrade(sellOrder.getPrice(),matchVolume);
-
                     buyOrder.setVolume(buyOrder.getVolume() - matchVolume);
                     sellOrder.setVolume(sellOrder.getVolume() - matchVolume);
 
@@ -95,7 +88,6 @@ public class VirtualTradeService {
 
             }
         }
-//        System.out.println("===exctued 값 buy : "+excutedBuy+"sell"+excutedSell);
         queueManager.getBuyqueue().removeAll(excutedBuy);
         queueManager.getSellqueue().removeAll(excutedSell);
 

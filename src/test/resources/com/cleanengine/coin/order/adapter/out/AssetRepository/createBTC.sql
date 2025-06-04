@@ -1,0 +1,1 @@
+INSERT INTO asset(ticker, name) VALUES ('BTC', '비트코인');

@@ -39,7 +39,7 @@
             <appender-ref ref="FILE"/>
         </root>
 
-        <logger name="com.cleanengine.coin" level="${LOG_LEVEL}">
+        <logger name="com.cleanengine.coin" level="${LOG_LEVEL}" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </logger>
@@ -51,7 +51,7 @@
             <appender-ref ref="CONSOLE"/>
         </root>
 
-        <logger name="com.cleanengine.coin" level="${LOG_LEVEL}">
+        <logger name="com.cleanengine.coin" level="${LOG_LEVEL}" additivity="false">
             <appender-ref ref="CONSOLE"/>
         </logger>
     </springProfile>

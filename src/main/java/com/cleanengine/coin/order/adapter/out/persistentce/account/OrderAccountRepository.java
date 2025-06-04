@@ -5,7 +5,6 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;
 
-public interface AccountExternalRepository extends CrudRepository<Account, Integer> {
-    // TODO null 대처 해야
+public interface OrderAccountRepository extends CrudRepository<Account, Integer> {
     Optional<Account> findByUserId(Integer userId);
 }

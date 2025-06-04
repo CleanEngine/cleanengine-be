@@ -1,13 +1,13 @@
 package com.cleanengine.coin.order.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.validation.FieldError;
-import com.cleanengine.coin.common.error.DomainValidationException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,7 +19,6 @@ import java.util.List;
 @AttributeOverride(name="id", column=@Column(name="buy_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Setter
 public class BuyOrder extends Order implements Comparable<BuyOrder> {
     @Column(name="locked_deposit", nullable = false, updatable = false)
     private Double lockedDeposit;
@@ -27,26 +26,17 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
     @Column(name="remaining_deposit", nullable = false)
     private Double remainingDeposit;
 
-    public static BuyOrder createMarketBuyOrder(String ticker, Integer userId, Double price,
+    public static BuyOrder createMarketBuyOrder(String ticker, Integer userId, Double deposit,
                                                 LocalDateTime createdAt, Boolean isBot) {
+        // TODO command 객체의 validation으로 추출
         List<FieldError> errors = new ArrayList<>();
-        if(price == null){
-            errors.add(new FieldError("BuyOrder", "price", "price cannot be null"));
+        if(deposit == null){
+            errors.add(new FieldError("BuyOrder", "deposit", "deposit cannot be null"));
         }
         handleValidationErrors(errors);
 
-        BuyOrder buyOrder = new BuyOrder();
-        buyOrder.ticker = ticker;
-        buyOrder.userId = userId;
-        buyOrder.state = OrderStatus.WAIT;
-        buyOrder.lockedDeposit = price;
-        buyOrder.orderSize = null;
-        buyOrder.price = null;
-        buyOrder.createdAt = createdAt;
-        buyOrder.isMarketOrder = true;
-        buyOrder.remainingDeposit = buyOrder.lockedDeposit;
-        buyOrder.remainingSize = null;
-        buyOrder.isBot = isBot;
+        BuyOrder buyOrder = new BuyOrder(null, ticker, userId, OrderStatus.WAIT, null,
+                null, null, createdAt, true, isBot, deposit, deposit);
         return buyOrder;
     }
   
@@ -61,26 +51,10 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
         }
         handleValidationErrors(errors);
 
-        BuyOrder buyOrder = new BuyOrder();
-        buyOrder.ticker = ticker;
-        buyOrder.userId = userId;
-        buyOrder.state = OrderStatus.WAIT;
-        buyOrder.lockedDeposit = orderSize * price;
-        buyOrder.orderSize = orderSize;
-        buyOrder.price = price;
-        buyOrder.createdAt = createdAt;
-        buyOrder.isMarketOrder = false;
-        buyOrder.remainingDeposit = buyOrder.lockedDeposit;
-        buyOrder.remainingSize = orderSize;
-        buyOrder.isBot = isBot;
+        Double deposit = orderSize * price;
+        BuyOrder buyOrder = new BuyOrder(null, ticker, userId, OrderStatus.WAIT, orderSize, price,
+                orderSize, createdAt, false, isBot, deposit, deposit);
         return buyOrder;
-    }
-
-    private static void handleValidationErrors(List<FieldError> errors) {
-        if(errors.size() > 0){
-            throw new DomainValidationException(
-                    "Validation Error occurred Creating BuyOrder", errors);
-        }
     }
 
     @Override
@@ -98,6 +72,10 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
     }
 
     public void decreaseRemainingDeposit(Double amount) {
+        if(amount == null){
+            throw new IllegalArgumentException("감소시킬 양은 null일 수 없습니다.");
+        }
+
         if (remainingDeposit >= amount) {
             remainingDeposit -= amount;
         } else {
@@ -105,12 +83,19 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
         }
     }
 
+    @Override
     public void decreaseRemainingSize(Double amount) {
-        if (remainingSize >= amount) {
-            remainingSize -= amount;
-        } else {
-            throw new IllegalArgumentException("주문의 잔여 수량은 0 이상이어야 합니다.");
+        if(isMarketOrder){
+            throw new IllegalArgumentException("시장가 매수 주문은 잔량을 수정할 수 없습니다.");
         }
+        super.decreaseRemainingSize(amount);
     }
 
+    protected BuyOrder(Long id, String ticker, Integer userId, OrderStatus state, Double orderSize,
+                       Double price, Double remainingSize, LocalDateTime createdAt, Boolean isMarketOrder, Boolean isBot,
+                       Double lockedDeposit, Double remainingDeposit) {
+        super(id, ticker, userId, state, orderSize, price, remainingSize, createdAt, isMarketOrder, isBot);
+        this.lockedDeposit = lockedDeposit;
+        this.remainingDeposit = remainingDeposit;
+    }
 }

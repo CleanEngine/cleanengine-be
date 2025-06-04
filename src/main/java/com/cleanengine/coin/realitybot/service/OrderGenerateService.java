@@ -2,8 +2,8 @@ package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
 import com.cleanengine.coin.order.application.OrderService;
-import com.cleanengine.coin.order.adapter.out.persistentce.account.AccountExternalRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
@@ -31,8 +31,8 @@ public class OrderGenerateService {
     private final OrderService orderService;
     private final TradeRepository tradeRepository;
     private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
-    private final WalletExternalRepository walletExternalRepository;
-    private final AccountExternalRepository accountExternalRepository;
+    private final OrderWalletRepository orderWalletRepository;
+    private final OrderAccountRepository accountExternalRepository;
     private String ticker;
 
 
@@ -183,12 +183,12 @@ public class OrderGenerateService {
 
     protected void resetBot(String ticker){
         this.ticker = ticker;
-        Wallet wallet = walletExternalRepository.findWalletBy(SELL_ORDER_BOT_ID,ticker).get();
+        Wallet wallet = orderWalletRepository.findWalletBy(SELL_ORDER_BOT_ID,ticker).get();
         wallet.setSize(500_000_000.0);
-        Wallet wallet2 = walletExternalRepository.findWalletBy(BUY_ORDER_BOT_ID,ticker).get();
+        Wallet wallet2 = orderWalletRepository.findWalletBy(BUY_ORDER_BOT_ID,ticker).get();
         wallet2.setSize(0.0);
-        walletExternalRepository.save(wallet);
-        walletExternalRepository.save(wallet2);
+        orderWalletRepository.save(wallet);
+        orderWalletRepository.save(wallet2);
 
         Account account = accountExternalRepository.findByUserId(SELL_ORDER_BOT_ID).get();
         account.setCash(0.0);

@@ -43,8 +43,8 @@ public class ApiScheduler {
 
     public void MarketDataRequest(String ticker){
         this.ticker = ticker;
-//        String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
-        String rawJson = getMarketDataWithFallback(ticker);
+        String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
+//        String rawJson = getMarketDataWithFallback(ticker);
         List<Ticks> gson = tickParser.parseGson(rawJson); //json을 list로 변환
 
         APIVWAPState apiVWAPState = tickServiceManager.getService(ticker);
@@ -74,7 +74,7 @@ public class ApiScheduler {
 //        orderQueueManagerService.logAllOrders();
 //        virtualTradeService.printOrderSummary();
     }*/
-public String getMarketDataWithFallback(String ticker) {
+/*public String getMarketDataWithFallback(String ticker) {
     try {
 //        String bithumbJson = bithumbAPIClient.get(ticker);
         String bithumbJson = null;
@@ -91,6 +91,6 @@ public String getMarketDataWithFallback(String ticker) {
         log.error("Bithumb API 오류 발생: {} → Coinone으로 대체 요청", e.getMessage());
         return coinoneAPIClient.get(ticker);
     }
-}
+}*/
 
 }

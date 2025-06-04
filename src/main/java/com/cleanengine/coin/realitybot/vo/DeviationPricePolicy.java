@@ -25,12 +25,22 @@ public class DeviationPricePolicy {
         double weight = getCorrectionWeight(deviation);
         double closeness = 0.5 + (weight * 0.3); // 보간 가중치: 0.7 ~ 1.0 -> 0.5
 
-        double targetVWAP = (trendLineRate > 0) //만약 closeness 를 0.5 입력시 중간값
-                ? apiVWAP + (platformSell - apiVWAP) * closeness  // 고평가 → platformSell(25000) → apiVWAP(16000) 사이 가중치 %로 유도
-                : apiVWAP - (apiVWAP - platformBuy) * closeness; // 저평가 → platformBuy(12000) ← apiVWAP(16000) 사이 가중치 %로 유도
+//        double targetVWAP = (trendLineRate > 0) //만약 closeness 를 0.5 입력시 중간값
+//                ? apiVWAP + (platformSell - apiVWAP) * closeness  // 고평가 → platformSell(25000) → apiVWAP(16000) 사이 가중치 %로 유도
+//                : apiVWAP - (apiVWAP - platformBuy) * closeness; // 저평가 → platformBuy(12000) ← apiVWAP(16000) 사이 가중치 %로 유도
+        double sellTarget, buyTarget;
+        if (trendLineRate > 0) {
+            // sell은 platformSell에서 apiVWAP 쪽으로 낮춤
+             sellTarget = apiVWAP + (platformSell - apiVWAP) * closeness;
+             buyTarget  = apiVWAP + (platformBuy - apiVWAP) * closeness;
+        } else {
+            // 저평가일 경우: 가격을 올림
+             sellTarget = apiVWAP - (apiVWAP - platformSell) * closeness;
+             buyTarget  = apiVWAP - (apiVWAP - platformBuy) * closeness;
+            }
 
-        double adjustedSell = normalizeToUnit(interpolate(platformSell,targetVWAP ,weight),unitPrice);
-        double adjustedBuy = normalizeToUnit(interpolate(platformBuy,targetVWAP ,weight),unitPrice);
+        double adjustedSell = normalizeToUnit(interpolate(platformSell,sellTarget ,weight),unitPrice);
+        double adjustedBuy = normalizeToUnit(interpolate(platformBuy,buyTarget ,weight),unitPrice);
 
         return new AdjustPrice(adjustedSell,adjustedBuy);
 

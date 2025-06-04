@@ -17,14 +17,14 @@ import java.util.List;
 @Getter
 public class TickParser {
     private final Gson gson = new Gson();
-    private final CoinoneTicksAdapter coinoneAdapter;
-    private final TickParser tickParser;
+//    private final CoinoneTicksAdapter coinoneAdapter;
+//    private final TickParser tickParser;
 
     public List<Ticks> parseGson(String json) {
-        if (exchange.equalsIgnoreCase("coinone") || json.contains("transactions")) {
-            CoinoneTicksResponse response = gson.fromJson(json, CoinoneTicksResponse.class);
-            return coinoneAdapter.convertToTicks(response, "KRW-" + ticker.toUpperCase());
-        } else
+//        if (exchange.equalsIgnoreCase("coinone") || json.contains("transactions")) {
+//            CoinoneTicksResponse response = gson.fromJson(json, CoinoneTicksResponse.class);
+//            return coinoneAdapter.convertToTicks(response, "KRW-" + ticker.toUpperCase());
+//        } else
         return gson.fromJson(json, new TypeToken<List<Ticks>>() {}.getType());
     }
     /*

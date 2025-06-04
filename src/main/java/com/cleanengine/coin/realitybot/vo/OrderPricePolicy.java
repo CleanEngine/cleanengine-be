@@ -19,17 +19,17 @@ public class OrderPricePolicy {
         double priceOffset = unitPrice * level;
         double sellPrice, buyPrice;
         double randomOffset =  Math.abs(getRandomOffset(platformVWAP,getDynamicMaxRate(trendLineRate)));
+        double basePrice = normalizeToUnit(platformVWAP, unitPrice); //기준 가격 (호가 단위 정규화)
 
 
         if (level == 1){ //1level일 경우 주문이 겹치도록 설정
-            double basePrice = normalizeToUnit(platformVWAP, unitPrice); //기준 가격 (호가 단위 정규화)
             //체결을 위해 매수가 올리고, 매도가 내리는 계산 적용
             sellPrice = normalizeToUnit(basePrice - randomOffset,unitPrice);
             buyPrice = normalizeToUnit(basePrice + randomOffset,unitPrice);
         }
         //2~3 단계 : orderbook 단위 주문
         else {
-            randomOffset =  getRandomOffset(platformVWAP,0.01);
+            randomOffset =  getRandomOffset(platformVWAP,0.001);
             //체결 확률 증가용 코드
             sellPrice = normalizeToUnit(platformVWAP + priceOffset - randomOffset,unitPrice);
             buyPrice = normalizeToUnit(platformVWAP - priceOffset + randomOffset,unitPrice);

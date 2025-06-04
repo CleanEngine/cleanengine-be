@@ -40,4 +40,29 @@ public class OrderPricePolicyTest {
         assertTrue(price.sell() - price.buy() >= minExpectedDiff,
                 "레벨 5는 충분한 가격 차이를 가져야 함");
     }
+
+    @RepeatedTest(5)
+    @DisplayName("Level 2~3: 가격 차이는 허용 범위 내, 호가 단위로 정규화됨")
+    void testLevel2To3_priceDiffWithinRange() {
+        for (int level = 2; level <= 3; level++) {
+            double platformVWAP = 20000.0;
+            double unitPrice = 50.0;
+            double trendLineRate = -0.02;
+
+            OrderPricePolicy.OrderPrice price = policy.calculatePrice(level, platformVWAP, unitPrice, trendLineRate);
+
+            double priceDiff = price.sell() - price.buy();
+            double priceOffset = unitPrice * level;
+            double maxRandomOffset = platformVWAP * 0.01;
+            double maxAllowedDiff = (priceOffset + maxRandomOffset) * 2;
+
+            System.out.printf("level=%d, sell=%.1f, buy=%.1f, diff=%.1f, maxAllowed=%.1f%n",
+                    level, price.sell(), price.buy(), priceDiff, maxAllowedDiff);
+
+            assertTrue(Math.abs(priceDiff) <= maxAllowedDiff,
+                    String.format("가격 차이 %.1f 이 최대 허용 범위 %.1f 초과", priceDiff, maxAllowedDiff));
+            assertEquals(0, price.sell() % unitPrice, "매도 가격은 호가 단위여야 함");
+            assertEquals(0, price.buy() % unitPrice, "매수 가격은 호가 단위여야 함");
+        }
+    }
 }

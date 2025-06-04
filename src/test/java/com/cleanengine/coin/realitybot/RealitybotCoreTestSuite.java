@@ -16,6 +16,8 @@ import com.cleanengine.coin.realitybot.parser.TickParserTest;
 import com.cleanengine.coin.realitybot.service.PlatformVWAPServiceTest;
 import com.cleanengine.coin.realitybot.service.TickServiceManagerTest;
 import com.cleanengine.coin.realitybot.service.VWAPerrorInJectionSchedulerTest;
+import com.cleanengine.coin.realitybot.vo.DeviationPricePolicyTest;
+import com.cleanengine.coin.realitybot.vo.OrderPricePolicyTest;
 import com.cleanengine.coin.realitybot.vo.UnitPricePolicyTest;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
@@ -39,6 +41,8 @@ import org.junit.platform.suite.api.Suite;
         TickParserTest.class,
         OpeningPriceParserTest.class,
         VWAPerrorInJectionSchedulerTest.class,
+        OrderPricePolicyTest.class,
+        DeviationPricePolicyTest.class
 })
 public class RealitybotCoreTestSuite {
 }

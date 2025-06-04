@@ -30,7 +30,7 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
         activeOrders(ticker).saveOrder(order);
 
         boolean isBuyOrder = order instanceof BuyOrder;
-        orderBookDomainService.updateOrderBookOnNewOrder(ticker, isBuyOrder, order.getPrice(), order.getOrderSize());
+        orderBookDomainService.updateOrderBookOnNewOrder(ticker, isBuyOrder, order.getPrice(), order.getRemainingSize());
 
         sendOrderBookUpdated(ticker);
     }

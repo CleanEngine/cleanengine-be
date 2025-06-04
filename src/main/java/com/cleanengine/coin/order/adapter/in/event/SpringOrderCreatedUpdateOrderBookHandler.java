@@ -11,7 +11,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class SpringOrderCreatedUpdateOrderBookHandler {
     private final UpdateOrderBookUsecase updateOrderBookUsecase;
 
-    @TransactionalEventListener(OrderCreated.class)
+    @TransactionalEventListener
     public void handleOrderCreated(OrderCreated event) {
         updateOrderBookUsecase.updateOrderBookOnNewOrder(event.order());
     }

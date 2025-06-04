@@ -22,8 +22,8 @@ public class WalletService {
         return walletRepository.findByAccountId(accountId);
     }
 
-    public Wallet save(Wallet Wallet) {
-        return walletRepository.save(Wallet);
+    public Wallet save(Wallet wallet) {
+        return walletRepository.save(wallet);
     }
 
     public Wallet findWalletByUserIdAndTicker(Integer userId, String ticker) {

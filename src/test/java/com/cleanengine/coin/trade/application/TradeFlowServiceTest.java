@@ -3,7 +3,6 @@ package com.cleanengine.coin.trade.application;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
 import com.cleanengine.coin.order.domain.BuyOrder;
-import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
@@ -28,11 +27,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles({"dev", "it", "h2-mem"})
 @SpringBootTest
 @DisplayName("체결 처리 통합테스트")
-public class TradeFlowServiceTest {
+class TradeFlowServiceTest {
 
     private static TradeBatchProcessor staticTradeBatchProcessor;
 
-    private final double MINIMUM_ORDER_SIZE = 0.00000001;
+    private static final double MINIMUM_ORDER_SIZE = 0.00000001;
 
     @Autowired
     BuyOrderRepository buyOrderRepository;
@@ -49,24 +48,6 @@ public class TradeFlowServiceTest {
 
     private final String ticker = "BTC";
 
-    private void addBuyOrdersToQueueManager(List<BuyOrder> orders){
-        if (orders.isEmpty()) return;
-        String ticker = orders.getFirst().getTicker();
-        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
-        for(com.cleanengine.coin.order.domain.Order order : orders){
-            waitingOrders.addOrder(order);
-        }
-    }
-
-    private void addSellOrdersToQueueManager(List<SellOrder> orders){
-        if (orders.isEmpty()) return;
-        String ticker = orders.getFirst().getTicker();
-        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
-        for(Order order : orders){
-            waitingOrders.addOrder(order);
-        }
-    }
-
     @BeforeEach
     void setUp() {
         if (staticTradeBatchProcessor == null) {
@@ -82,19 +63,13 @@ public class TradeFlowServiceTest {
     @AfterAll
     static void cleanup() {
         staticTradeBatchProcessor.shutdown();
-        // 모든 스레드가 정리될 때까지 잠시 대기
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     // TODO : 모든 케이스에서 각 객체의 값까지 정합성이 맞는지 테스트 필요
 
     @DisplayName("지정가매수-지정가매도 완전체결")
     @Test
-    public void testLimitToLimitCompleteTrade() {
+    void testLimitToLimitCompleteTrade() {
         double orderSize = 10.0;
         double price = 130_000_000.0;
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, orderSize, price, LocalDateTime.now(), false);
@@ -142,7 +117,7 @@ public class TradeFlowServiceTest {
 
     @DisplayName("지정가매수-지정가매도 매도부분체결")
     @Test
-    public void testLimitToLimitPartialTrade1() {
+    void testLimitToLimitPartialTrade1() {
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 5.0, 130_000_000.0, LocalDateTime.now(), false);
         SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
 
@@ -181,7 +156,7 @@ public class TradeFlowServiceTest {
 
     @DisplayName("지정가매수-지정가매도 매수부분체결")
     @Test
-    public void testLimitToLimitPartialTrade2() {
+    void testLimitToLimitPartialTrade2() {
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
         SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 5.0, 130_000_000.0, LocalDateTime.now(), false);
 
@@ -220,7 +195,7 @@ public class TradeFlowServiceTest {
 
     @DisplayName("시장가매수-지정가매도 완전체결")
     @Test
-    public void testMarketToLimitCompleteTrade1() {
+    void testMarketToLimitCompleteTrade1() {
         BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(ticker, 1, 1_300_000_000.0, LocalDateTime.now(), false);
         SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
 
@@ -259,7 +234,7 @@ public class TradeFlowServiceTest {
 
     @DisplayName("지정가매수-시장가매도 완전체결")
     @Test
-    public void testMarketToLimitCompleteTrade2() {
+    void testMarketToLimitCompleteTrade2() {
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
         SellOrder sellOrder = SellOrder.createMarketSellOrder(ticker, 2, 10.0, LocalDateTime.now(), false);
 
@@ -298,7 +273,7 @@ public class TradeFlowServiceTest {
 
     @DisplayName("시장가매수-지정가매도 매도부분체결")
     @Test
-    public void testMarketToLimitPartialTrade1() {
+    void testMarketToLimitPartialTrade1() {
         BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(ticker, 1, 130_000_000.0, LocalDateTime.now(), false);
         SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
 
@@ -337,7 +312,7 @@ public class TradeFlowServiceTest {
 
     @DisplayName("시장가매수-지정가매도 매수부분체결")
     @Test
-    public void testMarketToLimitPartialTrade2() {
+    void testMarketToLimitPartialTrade2() {
         BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(ticker, 1, 1_300_000_000.0, LocalDateTime.now(), false);
         SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 1.0, 130_000_000.0, LocalDateTime.now(), false);
 
@@ -381,7 +356,7 @@ public class TradeFlowServiceTest {
 
     @DisplayName("지정가매수-시장가매도 매수부분체결")
     @Test
-    public void testMarketToLimitPartialTrade3() {
+    void testMarketToLimitPartialTrade3() {
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
         SellOrder sellOrder = SellOrder.createMarketSellOrder(ticker, 2, 1.0, LocalDateTime.now(), false);
 
@@ -420,7 +395,7 @@ public class TradeFlowServiceTest {
 
     @DisplayName("지정가매수-시장가매도 매도부분체결")
     @Test
-    public void testMarketToLimitPartialTrade4() {
+    void testMarketToLimitPartialTrade4() {
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 1.0, 130_000_000.0, LocalDateTime.now(), false);
         SellOrder sellOrder = SellOrder.createMarketSellOrder(ticker, 2, 10.0, LocalDateTime.now(), false);
 
@@ -457,24 +432,4 @@ public class TradeFlowServiceTest {
         assertEquals(1, waitingOrders.getSellOrderPriorityQueueStore(OrderType.MARKET).size(), "남은 시장가 매도 주문이 없어야 합니다.");
     }
 
-//    @DisplayName("여러 지정가매수-지정가매도 완전체결")
-//    @Test
-//    public void testMultiLimitToLimitCompleteTrade1() {
-//        List<BuyOrder> limitBuyOrdersWithDifferentCreatedTimesAsc = createLimitBuyOrdersWithDifferentCreatedTimesAsc();
-//        List<BuyOrder> marketBuyOrdersWithDifferentPricesAsc = createMarketBuyOrdersWithDifferentPricesAsc();
-//        addBuyOrdersToQueueManager(limitBuyOrdersWithDifferentCreatedTimesAsc);
-//        addBuyOrdersToQueueManager(marketBuyOrdersWithDifferentPricesAsc);
-//
-//        List<SellOrder> limitSellOrdersWithDifferentCreatedTimesAsc = createLimitSellOrdersWithDifferentCreatedTimesAsc();
-//        List<SellOrder> marketSellOrdersWithDifferentCreatedTimesAsc = createMarketSellOrdersWithDifferentCreatedTimesAsc();
-//        addSellOrdersToQueueManager(limitSellOrdersWithDifferentCreatedTimesAsc);
-//        addSellOrdersToQueueManager(marketSellOrdersWithDifferentCreatedTimesAsc);
-//
-//        OrderQueueManager orderQueueManager = orderQueueManagerPool.getOrderQueueManager("BTC");
-//
-//
-//
-//        System.out.println(orderQueueManager);
-//        ;
-//    }
 }

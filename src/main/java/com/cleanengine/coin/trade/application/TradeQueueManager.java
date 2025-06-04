@@ -22,6 +22,7 @@ public class TradeQueueManager {
             try {
                 tradeFlowService.execMatchAndTrade(ticker);
             } catch (Exception e) {
+                // TODO : 무한루프 방지 회복처리
                 log.error("Error processing trades for {}: {}", this.ticker, e.getMessage());
             }
         }

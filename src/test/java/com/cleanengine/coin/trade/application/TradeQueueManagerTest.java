@@ -12,9 +12,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.Level;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 class TradeQueueManagerTest {
 

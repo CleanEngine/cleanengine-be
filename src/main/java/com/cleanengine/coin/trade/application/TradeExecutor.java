@@ -13,6 +13,7 @@ import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.application.AccountService;
 import com.cleanengine.coin.user.info.application.WalletService;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class TradeExecutor {
     private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
     private final TradeService tradeService;
 
+    @Transactional
     public void executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
         BuyOrder buyOrder = tradePair.getBuyOrder();
         SellOrder sellOrder = tradePair.getSellOrder();
@@ -68,13 +70,9 @@ public class TradeExecutor {
 
         // 예수금 처리
         //   - 매수 잔여금액 반환
-        if (isMarketOrder(buyOrder)) {
-            ; // TODO : 시장가 거래 시 1원 단위 등 작은 금액이 남을 수도 있는데 처리방안
-        } else {
-            if (buyOrder.getPrice() > tradedPrice) { // 매도 호가보다 높은 가격에 매수를 시도한 경우, 차액 반환
-                double totalRefundAmount = (buyOrder.getPrice() - tradedPrice) * tradedSize;
-                this.increaseAccountCash(buyOrder, totalRefundAmount);
-            }
+        if (!isMarketOrder(buyOrder) && buyOrder.getPrice() > tradedPrice) {  // 매도 호가보다 높은 가격에 매수를 시도한 경우, 차액 반환
+            double totalRefundAmount = (buyOrder.getPrice() - tradedPrice) * tradedSize;
+            this.increaseAccountCash(buyOrder, totalRefundAmount);
         }
 
         //   - 매도 예수금 처리
@@ -190,11 +188,11 @@ public class TradeExecutor {
         order.setState(OrderStatus.DONE);
     }
 
-    private static Boolean isMarketOrder(Order order) {
+    private static boolean isMarketOrder(Order order) {
         return order.getIsMarketOrder();
     }
 
-    private static Boolean isLimitOrder(Order order) {
+    private static boolean isLimitOrder(Order order) {
         return !order.getIsMarketOrder();
     }
 

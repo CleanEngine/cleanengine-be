@@ -1,6 +1,6 @@
 name: CI/CD Deploy and Start services
 
-run-name: Deploy to ECR and Start services by ${{github.actor}}
+run-name: Deploy and Start services by ${{github.actor}}
 
 on:
   push:

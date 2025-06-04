@@ -5,6 +5,7 @@ import com.cleanengine.coin.tool.extension.MariaDBTestContainerExtension;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -22,6 +23,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
  */
 @DataJpaTest
 @Disabled
+@Tag("testcontainers")
 @ActiveProfiles({"dev", "it"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(MariaDBTestContainerExtension.class)

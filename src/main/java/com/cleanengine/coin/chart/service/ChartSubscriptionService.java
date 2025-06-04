@@ -26,20 +26,28 @@ public class ChartSubscriptionService {
     실시간 체결 내역 구독
      */
     public void subscribeRealTimeTradeRate(String ticker) {
+        validateTicker(ticker);
         log.debug("실시간 체결 정보 티커 구독 추가: {}", ticker);
         realTimeTradeRateSubscribedTickers.add(ticker);
     }
+
     //구독 해지
     public void unsubscribeRealTimeTradeRate(String ticker) {
+        validateTicker(ticker);
         log.debug("실시간 체결 정보 티커 구독 해지: {}", ticker);
         realTimeTradeRateSubscribedTickers.remove(ticker);
     }
+
     //모든 구독 종목 반환
     public Set<String> getAllRealTimeTradeRateSubscribedTickers() {
         return realTimeTradeRateSubscribedTickers;
     }
+
     //종목에 대한 구독 여부
     public boolean isSubscribedToRealTimeTradeRate(String ticker) {
+        if (ticker == null || ticker.trim().isEmpty()) {
+            return false; // 유효하지 않은 티커는 구독되지 않은 것으로 처리
+        }
         return realTimeTradeRateSubscribedTickers.contains(ticker);
     }
 
@@ -48,11 +56,13 @@ public class ChartSubscriptionService {
      * 실시간 OHLC 티커 구독 추가
      */
     public void subscribeRealTimeOhlc(String ticker) {
+        validateTicker(ticker);
         log.debug("실시간 OHLC 티커 구독 추가: {}", ticker);
         realTimeOhlcSubscribedTickers.add(ticker);
     }
 
     public void unsubscribeRealTimeOhlc(String ticker) {
+        validateTicker(ticker);
         log.debug("실시간 OHLC 티커 구독 해지: {}", ticker);
         realTimeOhlcSubscribedTickers.remove(ticker);
     }
@@ -66,25 +76,45 @@ public class ChartSubscriptionService {
     }
 
     public boolean isSubscribedToRealTimeOhlc(String ticker) {
+        if (ticker == null || ticker.trim().isEmpty()) {
+            return false; // 유효하지 않은 티커는 구독되지 않은 것으로 처리
+        }
         return realTimeOhlcSubscribedTickers.contains(ticker);
     }
+
 
     /*
     전날 종가 변동률 구독 추가,삭제,조회
      */
     public void subscribePrevRate(String ticker) {
+        validateTicker(ticker);
         log.debug("전날 종가 변동률 티커 구독 추가: {}", ticker);
         PrevRateSubscribedTickers.add(ticker);
     }
+
     public void unsubscribePrevRate(String ticker) {
+        validateTicker(ticker);
         log.debug("전날 종가 변동률 티커 구독 해지: {}", ticker);
         PrevRateSubscribedTickers.remove(ticker);
     }
+
     public Set<String> getAllPrevRateSubscribedTickers(String ticker) {
         return PrevRateSubscribedTickers;
     }
 
     public boolean isSubscribedToPrevRate(String ticker) {
+        if (ticker == null || ticker.trim().isEmpty()) {
+            return false; // 유효하지 않은 티커는 구독되지 않은 것으로 처리
+        }
         return PrevRateSubscribedTickers.contains(ticker);
     }
+
+    //CCmap은 null을 허용시키기때문에 null 종목이 들어가도 npe발생안되는 이슈 테스트에서 발견
+    //검증 로직 추가
+    private void validateTicker(String ticker) {
+        if (ticker == null || ticker.trim().isEmpty()) {
+            throw new IllegalArgumentException("유효하지 않은 티커입니다: " + ticker);
+        }
+    }
+
 }

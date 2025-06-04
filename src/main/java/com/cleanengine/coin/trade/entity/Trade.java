@@ -37,4 +37,18 @@ public class Trade {
 
     @Column(name = "size", nullable = false)
     private Double size;
+
+    public Trade(String ticker, LocalDateTime tradeTime, Integer buyUserId, Integer sellUserId, Double price, Double size) {
+        this.ticker = ticker;
+        this.tradeTime = tradeTime;
+        this.buyUserId = buyUserId;
+        this.sellUserId = sellUserId;
+        this.price = price;
+        this.size = size;
+    }
+
+    public static Trade of(String ticker, LocalDateTime tradeTime, Integer buyUserId, Integer sellUserId, Double price, Double size) {
+        return new Trade(ticker, tradeTime, buyUserId, sellUserId, price, size);
+    }
+
 }

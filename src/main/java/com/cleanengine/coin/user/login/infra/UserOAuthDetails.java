@@ -2,15 +2,10 @@ package com.cleanengine.coin.user.login.infra;
 
 import com.cleanengine.coin.user.domain.OAuth;
 import com.cleanengine.coin.user.domain.User;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserOAuthDetails {
 
     private Integer userId;
@@ -23,11 +18,29 @@ public class UserOAuthDetails {
 
     private String name;
 
-    public UserOAuthDetails(User user, OAuth oAuth) {
-        this.userId = user.getId();
-        this.provider = oAuth.getProvider();
-        this.providerUserId = oAuth.getProviderUserId();
-        this.email = oAuth.getEmail();
-        this.name = oAuth.getNickname();
+    @Builder
+    private UserOAuthDetails(Integer userId, String provider, String providerUserId, String email, String name) {
+        this.userId = userId;
+        this.provider = provider;
+        this.providerUserId = providerUserId;
+        this.email = email;
+        this.name = name;
     }
+
+    public static UserOAuthDetails of(User user, OAuth oAuth) {
+        return UserOAuthDetails.builder()
+                .userId(user.getId())
+                .provider(oAuth.getProvider())
+                .providerUserId(oAuth.getProviderUserId())
+                .email(oAuth.getEmail())
+                .name(oAuth.getNickname())
+                .build();
+    }
+
+    public static UserOAuthDetails of(int userId) {
+        return UserOAuthDetails.builder()
+                .userId(userId)
+                .build();
+    }
+
 }

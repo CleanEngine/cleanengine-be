@@ -1,6 +1,8 @@
 package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
@@ -8,8 +10,6 @@ import com.cleanengine.coin.order.application.event.OrderCreated;
 import com.cleanengine.coin.order.application.port.out.PublishOrderCreatedPort;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.domainservice.CreateOrderDomainService;
-import com.cleanengine.coin.order.adapter.out.persistentce.account.AccountExternalRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import lombok.AllArgsConstructor;
@@ -21,8 +21,8 @@ import java.util.List;
 public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?>> {
     protected final PublishOrderCreatedPort publishOrderCreatedPort;
     protected final AssetService assetService;
-    protected final WalletExternalRepository walletRepository;
-    protected final AccountExternalRepository accountRepository;
+    protected final OrderWalletRepository walletRepository;
+    protected final OrderAccountRepository accountRepository;
 
     public S processCreatingOrder(OrderCommand.CreateOrder createOrderCommand){
         validateTicker(createOrderCommand.ticker());
@@ -58,6 +58,7 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
         return order;
     }
 
+    // TODO 책임이 너무 많은
     protected void createWalletIfNeeded(Integer userId, String ticker){
         if(walletRepository.findWalletBy(userId, ticker).isEmpty()){
             Account account = accountRepository.findByUserId(userId).orElseThrow();

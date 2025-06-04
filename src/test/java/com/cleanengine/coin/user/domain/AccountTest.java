@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("계좌 단위테스트")
 class AccountTest {
 
     @DisplayName("계좌의 예수금을 5000만큼 증가시킨다.")
@@ -40,10 +41,7 @@ class AccountTest {
         Account account = Account.of(1, 6000.0);
 
         // when, then
-        account.decreaseCash(5000.0);
-
-        // then
-        assertEquals(1000.0, account.getCash());
+        assertEquals(1000.0, account.decreaseCash(5000.0).getCash());
     }
 
     @DisplayName("계좌의 예수금을 0만큼 감소시키면 예외가 발생한다.")

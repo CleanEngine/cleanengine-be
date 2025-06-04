@@ -1,22 +1,25 @@
 package com.cleanengine.coin.order.application.strategy;
 
-import com.cleanengine.coin.order.adapter.out.persistentce.account.AccountExternalRepository;
+import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.WalletExternalRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.order.application.port.out.PublishOrderCreatedPort;
-import com.cleanengine.coin.order.application.port.out.WalletUpdatePort;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateOrderDomainService;
 import com.cleanengine.coin.order.domain.domainservice.CreateSellOrderDomainService;
+import com.cleanengine.coin.user.domain.Wallet;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.FieldError;
+
+import java.util.List;
 
 @Component
 public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.SellOrderInfo> {
     private final SellOrderRepository sellOrderRepository;
-    private final WalletUpdatePort walletUpdatePort;
     private final CreateSellOrderDomainService createOrderDomainService;
 
     @Override
@@ -31,7 +34,20 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
 
     @Override
     protected void keepHoldings(SellOrder order) throws RuntimeException {
-        walletUpdatePort.lockAssetForSellOrder(order.getUserId(), order.getTicker(), order.getOrderSize());
+        Integer userId = order.getUserId();
+        String ticker = order.getTicker();
+        Double orderSize = order.getOrderSize();
+
+        Wallet wallet = walletRepository
+                .findWalletBy(userId, ticker)
+                .orElseThrow(()->
+                        new DomainValidationException("Wallet not found",
+                                List.of(new FieldError("wallet", "userId", "user might not exist"),
+                                        new FieldError("wallet", "ticker", "ticker might be wrong"))));
+
+        wallet.decreaseSize(orderSize);
+
+        walletRepository.save(wallet);
     }
 
     @Override
@@ -46,14 +62,12 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
 
     public SellOrderStrategy(PublishOrderCreatedPort publishOrderCreatedPort,
                              AssetService assetService,
-                             WalletExternalRepository walletRepository,
-                             AccountExternalRepository accountRepository,
+                             OrderWalletRepository orderWalletRepository,
+                             OrderAccountRepository orderAccountRepository,
                              SellOrderRepository sellOrderRepository,
-                             WalletUpdatePort walletUpdatePort,
                              CreateSellOrderDomainService createOrderDomainService) {
-        super(publishOrderCreatedPort, assetService, walletRepository, accountRepository);
+        super(publishOrderCreatedPort, assetService, orderWalletRepository, orderAccountRepository);
         this.sellOrderRepository = sellOrderRepository;
-        this.walletUpdatePort = walletUpdatePort;
         this.createOrderDomainService = createOrderDomainService;
     }
 }

@@ -16,7 +16,7 @@ public class SpringOrderCreatedAddQueueHandler {
     private final WaitingOrdersManager waitingOrdersManager;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    @TransactionalEventListener(OrderCreated.class)
+    @TransactionalEventListener
     public void handleOrderCreated(OrderCreated event) {
         Order order = event.order();
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(order.getTicker());

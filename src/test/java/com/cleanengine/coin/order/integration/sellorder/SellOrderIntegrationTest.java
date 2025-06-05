@@ -1,10 +1,10 @@
 package com.cleanengine.coin.order.integration.sellorder;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.order.application.OrderCommand;
-import com.cleanengine.coin.order.application.OrderInfo;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.OrderService;
-import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
+import com.cleanengine.coin.order.application.dto.OrderCommand;
+import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.user.domain.Wallet;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ public class SellOrderIntegrationTest {
     OrderService orderService;
 
     @Autowired
-    WalletExternalRepository walletRepository;
+    OrderWalletRepository orderWalletRepository;
 
     @DisplayName("충분한 가상화폐가 있는 유저가 시장가 매도주문 생성시 주문이 생성됨.")
     @Sql("classpath:db/user/user_enough_holdings.sql")
@@ -35,7 +35,7 @@ public class SellOrderIntegrationTest {
                 false, true, 30.0, null, LocalDateTime.now(),false);
 
         OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(command);
-        Wallet wallet = walletRepository.findWalletBy(3, "BTC").orElseThrow();
+        Wallet wallet = orderWalletRepository.findWalletBy(3, "BTC").orElseThrow();
 
         assertNotNull(sellOrderInfo.getId());
         assertEquals(200000-30.0, wallet.getSize());
@@ -49,7 +49,7 @@ public class SellOrderIntegrationTest {
                 false, false, 30.0, 40.0, LocalDateTime.now(),false);
 
         OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(command);
-        Wallet wallet = walletRepository.findWalletBy(3, "BTC").orElseThrow();
+        Wallet wallet = orderWalletRepository.findWalletBy(3, "BTC").orElseThrow();
 
         assertNotNull(sellOrderInfo.getId());
         assertEquals(200000-30.0, wallet.getSize());
@@ -62,20 +62,20 @@ public class SellOrderIntegrationTest {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, true, 30.0, null, LocalDateTime.now(),false);
 
-        assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
+        assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(command));
     }
 
-    @DisplayName("가상화폐가 없는 유저가 지정가 매도주문 생성시 DomainValidationException을 반환함.")
+    @DisplayName("가상화폐가 없는 유저가 지정가 매도주문 생성시 IllegalArgumentException을 반환함.")
     @Sql("classpath:db/user/user_zero_holdings.sql")
     @Test
     void givenZeroMoneyUser_WhenCreateLimitSellOrder_ThenExceptionIsThrown() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
                 false, false, 30.0, 40.0, LocalDateTime.now(),false);
 
-        assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
+        assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(command));
     }
 
-    @DisplayName("orderSize를 누락한 시장가 매도주문이 들어올 경우 DomainValidationException을 반환함.")
+    @DisplayName("orderSize를 누락한 시장가 매도주문이 들어올 경우 IllegalArgumentException을 반환함.")
     @Test
     void givenCommandWithoutOrderSize_WhenCreateMarketSellOrder_ThenExceptionIsThrown() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
@@ -115,7 +115,7 @@ public class SellOrderIntegrationTest {
             System.out.println(e.getMessage());
         }
 
-        Wallet wallet = walletRepository.findWalletBy(3, "BTC").orElseThrow();
+        Wallet wallet = orderWalletRepository.findWalletBy(3, "BTC").orElseThrow();
         assertNotNull(wallet);
         assertEquals("BTC", wallet.getTicker());
     }

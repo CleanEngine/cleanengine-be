@@ -1,12 +1,12 @@
 package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.order.application.OrderService;
-import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
-import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
 import com.cleanengine.coin.realitybot.vo.DeviationPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderVolumePolicy;
+import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
@@ -37,11 +37,11 @@ public class OrderGenerateService {
     private final OrderService orderService;
     private final TradeRepository tradeRepository;
     private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
-    private final WalletExternalRepository walletExternalRepository;
-    private final AccountExternalRepository accountExternalRepository;
     private final OrderPricePolicy orderPricePolicy;
     private final DeviationPricePolicy deviationPricePolicy;
     private final OrderVolumePolicy orderVolumePolicy;
+    private final OrderWalletRepository orderWalletRepository;
+    private final OrderAccountRepository accountExternalRepository;
     private String ticker;
 
 
@@ -80,9 +80,9 @@ public class OrderGenerateService {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
+//            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
 
-            DecimalFormat df = new DecimalFormat("#,##0.00");
+           /* DecimalFormat df = new DecimalFormat("#,##0.00");
             DecimalFormat dfv = new DecimalFormat("#,###.########");
             //모니터링용
             System.out.println("sellPrice = " + df.format(sellPrice));
@@ -93,13 +93,13 @@ public class OrderGenerateService {
 
             System.out.println("====================================");
             System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
-
+*/
         }
-        System.out.println("📦"+ticker+" [체결 기록 Top 10]");
+        /*System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.8f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
-        );
+        );*/
     }
 
     private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) throws IllegalArgumentException {
@@ -125,12 +125,12 @@ public class OrderGenerateService {
 
     protected void resetBot(String ticker){
         this.ticker = ticker;
-        Wallet wallet = walletExternalRepository.findWalletBy(SELL_ORDER_BOT_ID,ticker).get();
+        Wallet wallet = orderWalletRepository.findWalletBy(SELL_ORDER_BOT_ID,ticker).get();
         wallet.setSize(500_000_000.0);
-        Wallet wallet2 = walletExternalRepository.findWalletBy(BUY_ORDER_BOT_ID,ticker).get();
+        Wallet wallet2 = orderWalletRepository.findWalletBy(BUY_ORDER_BOT_ID,ticker).get();
         wallet2.setSize(0.0);
-        walletExternalRepository.save(wallet);
-        walletExternalRepository.save(wallet2);
+        orderWalletRepository.save(wallet);
+        orderWalletRepository.save(wallet2);
 
         Account account = accountExternalRepository.findByUserId(SELL_ORDER_BOT_ID).get();
         account.setCash(0.0);

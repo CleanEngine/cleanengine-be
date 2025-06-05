@@ -1,12 +1,10 @@
 package com.cleanengine.coin.trade.application;
 
-import com.cleanengine.coin.chart.dto.TradeEventDto;
-import com.cleanengine.coin.order.application.queue.OrderQueueManagerPool;
-import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
+import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -21,27 +19,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@Service
 @Order(4)
+@Slf4j
+@RequiredArgsConstructor
+@Service
 public class TradeBatchProcessor implements ApplicationRunner {
 
-    Logger logger = LoggerFactory.getLogger(TradeBatchProcessor.class);
-
-    private final OrderQueueManagerPool orderQueueManagerPool;
-    private final TradeService tradeService;
+    private final WaitingOrdersManager waitingOrdersManager;
+    private final TradeFlowService tradeFlowService;
     private final List<ExecutorService> executors = new ArrayList<>();
 
     @Getter
     private final Map<String, TradeQueueManager> tradeQueueManagers = new HashMap<>();
-    private final UpdateOrderBookUsecase updateOrderBookUsecase;
 
     @Value("${order.tickers}") String[] tickers;
-
-    public TradeBatchProcessor(OrderQueueManagerPool orderQueueManagerPool, TradeService tradeService, UpdateOrderBookUsecase updateOrderBookUsecase) {
-        this.orderQueueManagerPool = orderQueueManagerPool;
-        this.tradeService = tradeService;
-        this.updateOrderBookUsecase = updateOrderBookUsecase;
-    }
 
     @Override
     public void run(ApplicationArguments args) {
@@ -50,9 +41,7 @@ public class TradeBatchProcessor implements ApplicationRunner {
 
     private void processTrades() {
         for (String ticker : tickers) {
-            TradeQueueManager tradeQueueManager = new TradeQueueManager(orderQueueManagerPool.getOrderQueueManager(ticker),
-                    updateOrderBookUsecase,
-                    tradeService);
+            TradeQueueManager tradeQueueManager = new TradeQueueManager(tradeFlowService);
             tradeQueueManagers.put(ticker, tradeQueueManager); // 정상 종료를 위해 저장
 
             ExecutorService tradeExecutor = Executors.newSingleThreadExecutor(r -> {
@@ -61,22 +50,11 @@ public class TradeBatchProcessor implements ApplicationRunner {
                 return thread;
             });
             executors.add(tradeExecutor);
-
-            tradeExecutor.submit(() -> {
-                try {
-                    tradeQueueManager.run();
-                } catch (Exception e) {
-                    logger.error("Error in trade loop for {}: {}",ticker, e.getMessage());
-                }
-            });
         }
     }
 
     @PreDestroy
     public void shutdown() {
-        // 무한루프 종료
-        tradeQueueManagers.forEach((ticker, manager) -> manager.stop());
-
         // 스레드풀 종료
         for (ExecutorService executor : executors) {
             try {
@@ -87,7 +65,7 @@ public class TradeBatchProcessor implements ApplicationRunner {
                     executor.shutdownNow();
                     // 추가로 1초 더 대기
                     if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
-                        System.err.println("스레드풀이 완전히 종료되지 않았습니다");
+                        log.error("스레드풀이 완전히 종료되지 않았습니다");
                     }
                 }
             } catch (InterruptedException e) {
@@ -95,11 +73,6 @@ public class TradeBatchProcessor implements ApplicationRunner {
                 Thread.currentThread().interrupt();
             }
         }
-    }
-
-    @Deprecated
-    public TradeEventDto retrieveTradeEventDto(String ticker) {
-        return null;
     }
 
 }

@@ -1,13 +1,13 @@
 package com.cleanengine.coin.order.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.validation.FieldError;
-import com.cleanengine.coin.common.error.DomainValidationException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,7 +18,6 @@ import java.util.List;
 @AttributeOverride(name="id", column=@Column(name="sell_order_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Setter
 public class SellOrder extends Order implements Comparable<SellOrder> {
     public static SellOrder createMarketSellOrder(String ticker, Integer userId, Double orderSize,
                                                   LocalDateTime createdAt, Boolean isBot) {
@@ -29,16 +28,8 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
 
         handleValidationErrors(errors);
 
-        SellOrder sellOrder = new SellOrder();
-        sellOrder.ticker = ticker;
-        sellOrder.userId = userId;
-        sellOrder.state = OrderStatus.WAIT;
-        sellOrder.orderSize = orderSize;
-        sellOrder.price = null;
-        sellOrder.createdAt = createdAt;
-        sellOrder.isMarketOrder = true;
-        sellOrder.remainingSize = orderSize;
-        sellOrder.isBot = isBot;
+        SellOrder sellOrder = new SellOrder(null, ticker, userId, OrderStatus.WAIT, orderSize, null,
+                orderSize, createdAt, true, isBot);
         return sellOrder;
     }
 
@@ -54,24 +45,9 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
 
         handleValidationErrors(errors);
 
-        SellOrder sellOrder = new SellOrder();
-        sellOrder.ticker = ticker;
-        sellOrder.userId = userId;
-        sellOrder.state = OrderStatus.WAIT;
-        sellOrder.orderSize = orderSize;
-        sellOrder.price = price;
-        sellOrder.createdAt = createdAt;
-        sellOrder.isMarketOrder = false;
-        sellOrder.remainingSize = orderSize;
-        sellOrder.isBot = isBot;
+        SellOrder sellOrder = new SellOrder(null, ticker, userId, OrderStatus.WAIT, orderSize, price,
+                orderSize, createdAt, false, isBot);
         return sellOrder;
-    }
-
-    private static void handleValidationErrors(List<FieldError> errors) {
-        if(errors.size() > 0){
-            throw new DomainValidationException(
-                    "Validation Error occurred Creating SellOrder", errors);
-        }
     }
 
     @Override
@@ -84,16 +60,11 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
         }
         
         // 생성 시간 비교
-        
         return this.createdAt.compareTo(order.createdAt);
     }
 
-    public void decreaseRemainingSize(Double amount) {
-        if (remainingSize >= amount) {
-            remainingSize -= amount;
-        } else {
-            throw new IllegalArgumentException("주문의 잔여 수량은 0 이상이어야 합니다.");
-        }
+    protected SellOrder(Long id, String ticker, Integer userId, OrderStatus state, Double orderSize,
+                       Double price, Double remainingSize, LocalDateTime createdAt, Boolean isMarketOrder, Boolean isBot) {
+        super(id, ticker, userId, state, orderSize, price, remainingSize, createdAt, isMarketOrder, isBot);
     }
-
 }

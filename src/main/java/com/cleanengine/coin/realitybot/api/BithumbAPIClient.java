@@ -37,7 +37,7 @@ public class BithumbAPIClient {
                 .build();
         try (Response response = client.newCall(request).execute()){
             if ((response.code() == 400)){
-                log.warn("잘못된 ticker를 입력하였습니다. 입력된 ticker : {}",ticker);
+                log.warn("DB asset 최신화가 필요합니다 : {}",ticker);
             }
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());
@@ -56,7 +56,7 @@ public class BithumbAPIClient {
                 .build();
         try (Response response = client.newCall(request).execute()){
             if ((response.code() == 400)){
-                log.warn("잘못된 ticker를 입력하였습니다. 입력된 ticker : {}",ticker);
+                log.warn("DB asset 최신화가 필요합니다 : {}",ticker);
             }
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());

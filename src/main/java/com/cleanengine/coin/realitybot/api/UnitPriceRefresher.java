@@ -1,7 +1,7 @@
 package com.cleanengine.coin.realitybot.api;
 
+import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.infra.AssetRepository;
 import com.cleanengine.coin.realitybot.dto.OpeningPrice;
 import com.cleanengine.coin.realitybot.parser.OpeningPriceParser;
 import com.cleanengine.coin.realitybot.vo.UnitPricePolicy;

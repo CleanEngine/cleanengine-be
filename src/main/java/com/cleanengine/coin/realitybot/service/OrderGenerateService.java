@@ -1,9 +1,9 @@
 package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
+import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
@@ -170,7 +170,7 @@ public class OrderGenerateService {
         
         try {
             orderService.createOrderWithBot(ticker, isBuy, volume, price);
-        } catch (DomainValidationException e) {
+        } catch (IllegalArgumentException e) {
             log.debug("잔량 부족: {}", e.getMessage());
             try {
                 resetBot(ticker);

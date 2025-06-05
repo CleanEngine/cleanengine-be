@@ -1,6 +1,5 @@
 package com.cleanengine.coin.realitybot.service;
 
-import com.cleanengine.coin.common.error.DomainValidationException;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.external.adapter.account.AccountExternalRepository;
 import com.cleanengine.coin.order.external.adapter.wallet.WalletExternalRepository;
@@ -103,17 +102,17 @@ public class OrderGenerateService {
         );
     }
 
-    private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) {
+    private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) throws IllegalArgumentException {
         if (volume <= 0 || price <= 0){
             log.error("잘못된 주문이 발생 [종목 : {}] ,[isBuy : {}] ,[금액 : {}] ,[수량 : {}] 주문은 생성 취소",ticker,isBuy,
                     new DecimalFormat("#,###.########").format(price),
                     new DecimalFormat("#,###.########").format(volume));
             return;
-        } 
-        
+        }
+
         try {
             orderService.createOrderWithBot(ticker, isBuy, volume, price);
-        } catch (DomainValidationException e) {
+        } catch (IllegalArgumentException e) {
             log.debug("잔량 부족: {}", e.getMessage());
             try {
                 resetBot(ticker);

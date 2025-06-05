@@ -2,10 +2,6 @@ package com.cleanengine.coin.realitybot.dto;
 
 import lombok.*;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 @Getter
 @Setter
 @Builder

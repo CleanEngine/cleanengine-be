@@ -13,41 +13,31 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class BithumbAPIClient {
+public class CoinoneAPIClient {
     private final OkHttpClient client;
     private String ticker;
 
 
     public String get(String ticker){ //API를 responseBody에 담아 반환
         this.ticker = ticker;
-//        client = new OkHttpClient();
-//        gson = new Gson();
-
-//        try {
-//            Thread.sleep(2500);
-//        } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        }
-
-
         Request request = new Request.Builder()
-                .url("https://api.bithumb.com/v1/trades/ticks?market=krw-"+ticker+"&count=10")
+                .url("https://api.coinone.co.kr/public/v2/trades/KRW/"+ticker+"?size=10")
                 .get()
                 .addHeader("accept", "application/json")
                 .build();
         try (Response response = client.newCall(request).execute()){
             if ((response.code() == 400)){
-                log.warn("DB asset 최신화가 필요합니다 : {}",ticker);
+                log.warn("잘못된 ticker를 입력하였습니다. 입력된 ticker : {}",ticker);
             }
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());
-            log.debug("{}의 Bithumb API 응답 : {}",ticker,responseBody);
+            log.info("{}의 Bithumb API 응답 : {}",ticker,responseBody);
             return responseBody;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    public String getOpeningPrice(String ticker){
+/*    public String getOpeningPrice(String ticker){
         this.ticker = ticker;
         Request request = new Request.Builder()
                 .url("https://api.bithumb.com/v1/ticker?markets=KRW-"+ticker)
@@ -56,7 +46,7 @@ public class BithumbAPIClient {
                 .build();
         try (Response response = client.newCall(request).execute()){
             if ((response.code() == 400)){
-                log.warn("DB asset 최신화가 필요합니다 : {}",ticker);
+                log.warn("잘못된 ticker를 입력하였습니다. 입력된 ticker : {}",ticker);
             }
             String responseBody = response.body().string();
 //            return gson.toJson(response.body().string());
@@ -65,6 +55,6 @@ public class BithumbAPIClient {
         } catch (IOException e) {
             throw new RuntimeException("API 요청 중 예외 발생",e);
         }
-    }
+    }*/
 
 }

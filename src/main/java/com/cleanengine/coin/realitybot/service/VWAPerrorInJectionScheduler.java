@@ -25,7 +25,7 @@ public class VWAPerrorInJectionScheduler {
         this.shouldInject = true;
     }
 
-    @Scheduled(fixedRate = 60000) // 혹은 따로 수동 호출도 가능
+    @Scheduled(fixedRate = 30000) // 혹은 따로 수동 호출도 가능
     public void injectFakeTrade() {
         if (!shouldInject || hasInjected) return;
 

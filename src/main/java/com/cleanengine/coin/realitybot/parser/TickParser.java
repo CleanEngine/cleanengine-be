@@ -1,5 +1,6 @@
-package com.cleanengine.coin.realitybot.service;
+package com.cleanengine.coin.realitybot.parser;
 
+import com.cleanengine.coin.realitybot.dto.CoinoneTicksResponse;
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -15,9 +16,15 @@ import java.util.List;
 @Slf4j
 @Getter
 public class TickParser {
-    private static final Gson gson = new Gson();
+    private final Gson gson = new Gson();
+//    private final CoinoneTicksAdapter coinoneAdapter;
+//    private final TickParser tickParser;
 
-    public static List<Ticks> parseGson(String json) {
+    public List<Ticks> parseGson(String json) {
+//        if (exchange.equalsIgnoreCase("coinone") || json.contains("transactions")) {
+//            CoinoneTicksResponse response = gson.fromJson(json, CoinoneTicksResponse.class);
+//            return coinoneAdapter.convertToTicks(response, "KRW-" + ticker.toUpperCase());
+//        } else
         return gson.fromJson(json, new TypeToken<List<Ticks>>() {}.getType());
     }
     /*

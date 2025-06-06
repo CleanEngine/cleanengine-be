@@ -64,7 +64,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             oAuthRepository.save(newOAuth);
             accountService.createNewAccount(newUser.getId(), CommonValues.INITIAL_USER_CASH);
 
-            return new CustomOAuth2User(UserOAuthDetails.of(newUser, newOAuth));
+            UserOAuthDetails newUserOAuthDetails = UserOAuthDetails.of(newUser, newOAuth);
+            return CustomOAuth2User.of(newUserOAuthDetails);
         }
         else {
             OAuth existOAuth = oAuthRepository.findByProviderAndProviderUserId(provider, providerUserId);
@@ -74,7 +75,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             // TODO : KAKAO Token 관련 정보 추가
             oAuthRepository.save(existOAuth);
 
-            return new CustomOAuth2User(existData);
+            return CustomOAuth2User.of(existData);
         }
     }
 

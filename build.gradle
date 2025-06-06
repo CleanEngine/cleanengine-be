@@ -25,6 +25,7 @@ repositories {
 	mavenCentral()
 }
 
+
 jacoco { //추가함
 	toolVersion = "0.8.13"
 }

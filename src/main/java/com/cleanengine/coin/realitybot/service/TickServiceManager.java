@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.service;
 
+import com.cleanengine.coin.realitybot.domain.APIVWAPState;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -11,8 +12,8 @@ public class TickServiceManager {
     * 초기엔 전역에서 vwap을 계산하거나 sequentialid를 변수에 담았으나 인스턴스가 종목별로 생성되어야 해서 작성되었습니다.
     * ConcurrentHashMap을 통해 중복 검사 후 종목명으로 만들어진 게 없다면 새로 만듭니다.
     * */
-    private final Map<String, ApiVWAPService> tickServiceMap = new ConcurrentHashMap<>();
-    public ApiVWAPService getService(String ticker) {
-        return tickServiceMap.computeIfAbsent(ticker, t -> new ApiVWAPService());
+    private final Map<String, APIVWAPState> tickServiceMap = new ConcurrentHashMap<>();
+    public APIVWAPState getService(String ticker) {
+        return tickServiceMap.computeIfAbsent(ticker, t -> new APIVWAPState());
     }
 }

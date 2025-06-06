@@ -31,7 +31,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = super.loadUser(userRequest);
+        OAuth2User oAuth2User = doSuperLoadMethod(userRequest);
 
         OAuth2Response oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
         /* 추후 OAuth 플랫폼 추가 시 이런 식으로 Response 분기처리
@@ -71,12 +71,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             OAuth existOAuth = oAuthRepository.findByProviderAndProviderUserId(provider, providerUserId);
 
             existOAuth.setEmail(email);
-            existOAuth.setNickname(oAuth2Response.getName());
-            // TODO : KAKAO Token 관련 정보 추가
+            existOAuth.setNickname(name);
             oAuthRepository.save(existOAuth);
+
+            existData.update(existOAuth);
 
             return CustomOAuth2User.of(existData);
         }
+    }
+
+    protected OAuth2User doSuperLoadMethod(OAuth2UserRequest userRequest) {
+        return super.loadUser(userRequest);
     }
 
 }

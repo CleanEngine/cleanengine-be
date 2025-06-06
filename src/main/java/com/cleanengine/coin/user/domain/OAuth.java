@@ -1,7 +1,6 @@
 package com.cleanengine.coin.user.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "oauth")
 @NoArgsConstructor
-@AllArgsConstructor
 public class OAuth {
 
     @Id

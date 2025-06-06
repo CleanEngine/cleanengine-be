@@ -36,7 +36,6 @@ public class OrderGenerateService {
     private final PlatformVWAPService platformVWAPService;
     private final OrderService orderService;
     private final TradeRepository tradeRepository;
-    private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
     private final OrderPricePolicy orderPricePolicy;
     private final DeviationPricePolicy deviationPricePolicy;
     private final OrderVolumePolicy orderVolumePolicy;
@@ -80,8 +79,6 @@ public class OrderGenerateService {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-//            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
-
            /* DecimalFormat df = new DecimalFormat("#,##0.00");
             DecimalFormat dfv = new DecimalFormat("#,###.########");
             //모니터링용

@@ -18,7 +18,7 @@ public class TradeQueueManager {
         this.tradeFlowService = tradeFlowService;
     }
 
-    @EventListener @Async
+    @EventListener
     public void handleOrderInserted(OrderInsertedToQueue event) {
         try {
             tradeFlowService.execMatchAndTrade(event.order().getTicker());

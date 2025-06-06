@@ -29,7 +29,7 @@ public class WalletService {
     public Wallet findWalletByUserIdAndTicker(Integer userId, String ticker) {
         int accountId = accountRepository.findByUserId(userId).orElseThrow().getId();
         return walletRepository.findByAccountIdAndTicker(accountId, ticker)
-                .orElseGet(() -> Wallet.generateEmptyWallet(ticker, accountId));
+                .orElseGet(() -> Wallet.of(ticker, accountId));
     }
 
 }

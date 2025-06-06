@@ -8,8 +8,11 @@ import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.cleanengine.coin.realitybot.parser.TickParser;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;
 import com.cleanengine.coin.realitybot.service.TickServiceManager;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,16 +32,20 @@ public class ApiScheduler {
     private final Map<String,Long> lastSequentialIdMap = new ConcurrentHashMap<>();
     private final AssetRepository assetRepository;
     private final CoinoneAPIClient coinoneAPIClient;
+    private final MeterRegistry meterRegistry;
     private String ticker;
 
-//    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 5000)
     public void MarketAllRequest() throws InterruptedException {
-        List<Asset> tickers = assetRepository.findAll();
-        for (Asset ticker : tickers){
-            String tickerName = ticker.getTicker();
-            MarketDataRequest(tickerName);
+        Timer timer = meterRegistry.timer("apischeduler.request.duration");
+        timer.record(() -> {
+            List<Asset> tickers = assetRepository.findAll();
+            for (Asset ticker : tickers) {
+                String tickerName = ticker.getTicker();
+                MarketDataRequest(tickerName);
 //            Thread.sleep(500);
-        }
+            }
+        });
     }
 
     public void MarketDataRequest(String ticker){

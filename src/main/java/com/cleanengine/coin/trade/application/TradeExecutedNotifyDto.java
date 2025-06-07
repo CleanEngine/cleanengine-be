@@ -8,11 +8,16 @@ import java.time.LocalDateTime;
 
 @JsonPropertyOrder({ "ticker", "price", "size", "type", "tradedTime"})
 public class TradeExecutedNotifyDto {
-    public String ticker;
-    public Double price;
-    public Double size;
-    public String type;
-    public LocalDateTime tradedTime;
+
+    private String ticker;
+
+    private Double price;
+
+    private Double size;
+
+    private String type;
+
+    private LocalDateTime tradedTime;
 
     @Builder
     private TradeExecutedNotifyDto(String ticker, Double price, Double size, String type, LocalDateTime tradedTime) {

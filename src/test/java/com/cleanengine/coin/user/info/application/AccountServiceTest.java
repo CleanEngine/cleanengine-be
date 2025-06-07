@@ -10,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ActiveProfiles({"dev", "it", "h2-mem"})
+@ActiveProfiles({"dev", "h2-mem"})
 @DisplayName("계좌 서비스 - h2 통합테스트")
 @SpringBootTest
 class AccountServiceTest {
@@ -22,7 +22,7 @@ class AccountServiceTest {
     @Test
     void createNewAccount() {
         // given
-        int userId = 3;
+        int userId = Integer.MAX_VALUE;
         double cash = CommonValues.INITIAL_USER_CASH;
 
         // when
@@ -41,7 +41,7 @@ class AccountServiceTest {
     @Test
     void retrieveAccountByInvalidUserId() {
         // given, when
-        Account account = accountService.retrieveAccountByUserId(1000);
+        Account account = accountService.retrieveAccountByUserId(Integer.MAX_VALUE - 1);
 
         // then
         assertThat(account).isNull();

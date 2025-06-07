@@ -101,7 +101,7 @@ public class UserControllerTest {
 
         verify(userService, times(1)).retrieveUserInfoByUserId(userId);
         verify(accountService, times(1)).retrieveAccountByUserId(userId);
-        verify(walletService, times(1)).retrieveWalletsByAccountId(account.getId());
+        verify(walletService, times(1)).findByAccountId(account.getId());
     }
 
     @Test

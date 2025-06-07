@@ -45,8 +45,9 @@ public class TradeExecutedNotificationHandler {
             TradeExecutedNotifyDto boughtDto = TradeExecutedNotifyDto.of(trade, BID);
             messagingTemplate.convertAndSend("/topic/tradeNotification/" + buyUserId, boughtDto);
         }
-
-        log.debug("{} 체결 이벤트 구독 : {}원에 {}개, 매수인: {}, 매도인: {}", trade.getTicker(), trade.getPrice(), trade.getSize(), buyUserId, sellUserId );
+        if (sellUserId != SELL_ORDER_BOT_ID || buyUserId != BUY_ORDER_BOT_ID) {
+            log.debug("{} 체결 이벤트 구독 : {}원에 {}개, 매수인: {}, 매도인: {}", trade.getTicker(), trade.getPrice(), trade.getSize(), buyUserId, sellUserId );
+        }
     }
 
 }

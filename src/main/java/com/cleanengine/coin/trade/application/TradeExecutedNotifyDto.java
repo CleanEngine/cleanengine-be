@@ -3,10 +3,12 @@ package com.cleanengine.coin.trade.application;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@JsonPropertyOrder({ "ticker", "price", "size", "type", "tradedTime"})
+@Getter
+@JsonPropertyOrder({"ticker", "price", "size", "type", "tradedTime"})
 public class TradeExecutedNotifyDto {
 
     private String ticker;

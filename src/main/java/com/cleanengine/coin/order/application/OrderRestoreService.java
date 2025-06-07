@@ -38,6 +38,6 @@ public class OrderRestoreService implements ApplicationRunner {
     protected void restoreOrder(Order order){
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(order.getTicker());
         waitingOrders.addOrder(order);
-        updateOrderBookUsecase.updateOrderBookOnNewOrder(order);
+        updateOrderBookUsecase.updateOrderBookOnRestored(order);
     }
 }

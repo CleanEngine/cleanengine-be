@@ -31,7 +31,7 @@ class TradeExecutedNotificationHandlerTest {
         handler = new TradeExecutedNotificationHandler(messagingTemplate);
     }
 
-    @DisplayName("정상 체결내역을 리스닝하면 웹소켓으로 전송한다.")
+    @DisplayName("매도인은 봇인 정상 체결내역을 리스닝하면 웹소켓으로 전송한다.")
     @Test
     void shouldSendNotificationsForValidTrade() {
         // given
@@ -42,11 +42,11 @@ class TradeExecutedNotificationHandlerTest {
         handler.notifyAfterTradeExecuted(event);
 
         // then
-        verify(messagingTemplate).convertAndSend(eq("/topic/tradeNotification/1"), any(TradeExecutedNotifyDto.class));
+        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeExecutedNotifyDto.class));
         verify(messagingTemplate).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeExecutedNotifyDto.class));
     }
 
-    @DisplayName("정상 체결내역을 리스닝하면 웹소켓으로 전송한다.")
+    @DisplayName("매수인은 봇인 정상 체결내역을 리스닝하면 웹소켓으로 전송한다.")
     @Test
     void shouldSendNotificationsForValidTrade2() {
         // given
@@ -57,7 +57,7 @@ class TradeExecutedNotificationHandlerTest {
         handler.notifyAfterTradeExecuted(event);
 
         // then
-        verify(messagingTemplate).convertAndSend(eq("/topic/tradeNotification/2"), any(TradeExecutedNotifyDto.class));
+        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeExecutedNotifyDto.class));
         verify(messagingTemplate).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeExecutedNotifyDto.class));
     }
 

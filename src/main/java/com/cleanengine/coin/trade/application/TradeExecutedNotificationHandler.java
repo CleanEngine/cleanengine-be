@@ -36,16 +36,17 @@ public class TradeExecutedNotificationHandler {
             log.error("체결 알림 실패! sellUserId: {}, buyUserId: {}", sellUserId, buyUserId);
             return ;
         }
-        if (sellUserId == SELL_ORDER_BOT_ID && buyUserId == BUY_ORDER_BOT_ID) {
-            return ;
+
+        if (sellUserId != SELL_ORDER_BOT_ID) {
+            TradeExecutedNotifyDto soldDto = TradeExecutedNotifyDto.of(trade, ASK);
+            messagingTemplate.convertAndSend("/topic/tradeNotification/" + sellUserId, soldDto);
+        }
+        if (buyUserId != BUY_ORDER_BOT_ID) {
+            TradeExecutedNotifyDto boughtDto = TradeExecutedNotifyDto.of(trade, BID);
+            messagingTemplate.convertAndSend("/topic/tradeNotification/" + buyUserId, boughtDto);
         }
 
         log.debug("{} 체결 이벤트 구독 : {}원에 {}개, 매수인: {}, 매도인: {}", trade.getTicker(), trade.getPrice(), trade.getSize(), buyUserId, sellUserId );
-
-        TradeExecutedNotifyDto soldDto = TradeExecutedNotifyDto.of(trade, ASK);
-        TradeExecutedNotifyDto boughtDto = TradeExecutedNotifyDto.of(trade, BID);
-        messagingTemplate.convertAndSend("/topic/tradeNotification/" + sellUserId, soldDto);
-        messagingTemplate.convertAndSend("/topic/tradeNotification/" + buyUserId, boughtDto);
     }
 
 }

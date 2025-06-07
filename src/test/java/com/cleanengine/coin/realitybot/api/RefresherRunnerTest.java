@@ -1,8 +1,6 @@
 package com.cleanengine.coin.realitybot.api;
 
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
-import com.cleanengine.coin.realitybot.parser.OpeningPriceParser;
-import com.cleanengine.coin.realitybot.vo.UnitPricePolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,9 +10,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.util.Collections;
 

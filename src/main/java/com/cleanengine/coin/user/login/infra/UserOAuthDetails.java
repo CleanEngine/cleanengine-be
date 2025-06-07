@@ -43,4 +43,9 @@ public class UserOAuthDetails {
                 .build();
     }
 
+    public void update(OAuth oauth) {
+        this.email = oauth.getEmail();
+        this.name = oauth.getNickname();
+    }
+
 }

@@ -83,7 +83,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private static Authentication getAuthentication(Integer userId) {
         UserOAuthDetails userOAuthDetails = UserOAuthDetails.of(userId);
-        CustomOAuth2User customOAuth2User = new CustomOAuth2User(userOAuthDetails);
+        CustomOAuth2User customOAuth2User = CustomOAuth2User.of(userOAuthDetails);
 
         // 스프링 시큐리티 인증 토큰 생성
         return new UsernamePasswordAuthenticationToken(customOAuth2User,

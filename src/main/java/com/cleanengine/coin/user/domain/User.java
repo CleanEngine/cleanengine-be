@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class User {
 
     @Id
@@ -25,5 +24,14 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private User(Integer id, LocalDateTime createdAt) {
+        this.id = id;
+        this.createdAt = createdAt;
+    }
+
+    public static User of(Integer id, LocalDateTime createdAt) {
+        return new User(id, createdAt);
+    }
 
 }

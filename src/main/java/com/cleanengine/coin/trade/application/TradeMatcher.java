@@ -5,7 +5,6 @@ import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
-import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -15,19 +14,9 @@ import java.util.Optional;
 @Component
 public class TradeMatcher {
 
-    private final WaitingOrdersManager waitingOrdersManager;
-
     // 1초마다 로깅
     private long lastLogTime = 0;
     private static final long LOG_INTERVAL = 1000;
-
-    public TradeMatcher(WaitingOrdersManager waitingOrdersManager) {
-        this.waitingOrdersManager = waitingOrdersManager;
-    }
-
-    public WaitingOrders getWaitingOrders(String ticker) {
-        return waitingOrdersManager.getWaitingOrders(ticker);
-    }
 
     public Optional<TradePair<Order, Order>> matchOrders(WaitingOrders waitingOrders) {  // 반환값 : 체결여부
         this.writeQueueLog(waitingOrders);

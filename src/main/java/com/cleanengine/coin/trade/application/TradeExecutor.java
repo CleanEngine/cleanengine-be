@@ -2,7 +2,6 @@ package com.cleanengine.coin.trade.application;
 
 import com.cleanengine.coin.common.error.BusinessException;
 import com.cleanengine.coin.common.response.ErrorStatus;
-import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderStatus;
@@ -13,11 +12,12 @@ import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.application.AccountService;
 import com.cleanengine.coin.user.info.application.WalletService;
-import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -34,7 +34,7 @@ public class TradeExecutor {
     private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
     private final TradeService tradeService;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
         BuyOrder buyOrder = tradePair.getBuyOrder();
         SellOrder sellOrder = tradePair.getSellOrder();
@@ -49,7 +49,7 @@ public class TradeExecutor {
         tradedPrice = tradeUnitPriceAndSize.tradedPrice();
         if (approxEquals(tradedSize, 0.0)) {
             log.debug("체결 중단! 체결 시도 수량 : {}, 매수단가 : {}, 매도단가 : {}", tradedSize, buyOrder.getPrice(), sellOrder.getPrice());
-            return;
+            return ;
         }
         this.writeTradingLog(buyOrder, sellOrder);
 
@@ -89,12 +89,12 @@ public class TradeExecutor {
         tradeExecutedEventPublisher.publish(tradeExecutedEvent);
     }
 
-    public void increaseAccountCash(Order order, Double amount) {
+    private Account increaseAccountCash(Order order, Double amount) {
         Account account = accountService.findAccountByUserId(order.getUserId()).orElseThrow();
-        accountService.save(account.increaseCash(amount));
+        return accountService.save(account.increaseCash(amount));
     }
 
-    public void updateWalletAfterTrade(Order order, String ticker, double tradedSize, double totalTradedPrice) {
+    private Wallet updateWalletAfterTrade(Order order, String ticker, double tradedSize, double totalTradedPrice) {
         if (order instanceof BuyOrder) {
             Wallet buyerWallet = walletService.findWalletByUserIdAndTicker(order.getUserId(), ticker);
             double updatedBuySize = buyerWallet.getSize() + tradedSize;
@@ -103,17 +103,17 @@ public class TradeExecutor {
             buyerWallet.setSize(updatedBuySize);
             buyerWallet.setBuyPrice(updatedBuyPrice);
             // TODO : ROI 계산
-            walletService.save(buyerWallet);
+            return walletService.save(buyerWallet);
         } else if (order instanceof SellOrder) {
             // 매도 시에는 평단가 변동 없음
             Wallet sellerWallet = walletService.findWalletByUserIdAndTicker(order.getUserId(), ticker);
-            walletService.save(sellerWallet);
+            return walletService.save(sellerWallet);
         } else {
             throw new BusinessException("Unsupported order type: " + order.getClass().getName(), ErrorStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    public Trade insertNewTrade(String ticker, BuyOrder buyOrder, SellOrder sellOrder, double tradeSize, Double tradePrice) {
+    private Trade insertNewTrade(String ticker, BuyOrder buyOrder, SellOrder sellOrder, double tradeSize, Double tradePrice) {
         Trade newTrade = Trade.of(ticker, LocalDateTime.now(), buyOrder.getUserId(), sellOrder.getUserId(), tradePrice, tradeSize);
 
         return tradeService.save(newTrade);
@@ -184,7 +184,7 @@ public class TradeExecutor {
         }
     }
 
-    public void updateCompletedOrderStatus(Order order) {
+    private void updateCompletedOrderStatus(Order order) {
         order.setState(OrderStatus.DONE);
     }
 

@@ -25,12 +25,21 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
 
     @Override
     public void updateOrderBookOnNewOrder(Order order) {
+        addToOrderBook(order, order.getOrderSize());
+    }
+
+    @Override
+    public void updateOrderBookOnRestored(Order order) {
+        addToOrderBook(order, order.getRemainingSize());
+    }
+
+    private void addToOrderBook(Order order, double size) {
         if(order.getIsMarketOrder()){return;}
         String ticker = order.getTicker();
         activeOrders(ticker).saveOrder(order);
 
         boolean isBuyOrder = order instanceof BuyOrder;
-        orderBookDomainService.updateOrderBookOnNewOrder(ticker, isBuyOrder, order.getPrice(), order.getRemainingSize());
+        orderBookDomainService.updateOrderBookOnNewOrder(ticker, isBuyOrder, order.getPrice(), size);
 
         sendOrderBookUpdated(ticker);
     }

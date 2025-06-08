@@ -12,8 +12,8 @@ import com.cleanengine.coin.trade.entity.Trade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +26,7 @@ public class TradeEventHandler {
 
     //event로 이벤틀 처리해야한다.
     //eventListener는 void로 처리를 해야한다
-    @EventListener
+    @TransactionalEventListener
     public void handleTradeEvent(TradeExecutedEvent event) {
         Trade trade = event.getTrade();
         if (trade == null) {

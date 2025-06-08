@@ -39,3 +39,6 @@ out/
 ### 로컬 환경변수 ###
 local.properties
 /logs
+docker-compose.override.yml
+
+dd-java-agent.jar

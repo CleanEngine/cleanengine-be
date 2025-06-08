@@ -41,7 +41,7 @@ public class UserController {
                 return ApiResponse.fail(ErrorResponse.of(ErrorStatus.UNAUTHORIZED_RESOURCE));
             }
             Account account = accountService.retrieveAccountByUserId(userId);
-            List<Wallet> wallets = walletService.retrieveWalletsByAccountId(account.getId());
+            List<Wallet> wallets = walletService.findByAccountId(account.getId());
             userInfoDTO.setWallets(wallets);
 
             return ApiResponse.success(userInfoDTO, HttpStatus.OK);

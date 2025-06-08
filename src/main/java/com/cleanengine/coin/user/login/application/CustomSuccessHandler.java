@@ -16,14 +16,16 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JWTUtil jwtUtil;
 
-    @Value("${spring.security.cookie.secure}")
-    private boolean isCookieSecure;
+    private final boolean isCookieSecure;
 
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    private final String frontendUrl;
 
-    public CustomSuccessHandler(JWTUtil jwtUtil) {
+    public CustomSuccessHandler(JWTUtil jwtUtil,
+                                @Value("${spring.security.cookie.secure}") boolean isCookieSecure,
+                                @Value("${frontend.url}") String frontendUrl) {
         this.jwtUtil = jwtUtil;
+        this.isCookieSecure = isCookieSecure;
+        this.frontendUrl = frontendUrl;
     }
 
     @Override

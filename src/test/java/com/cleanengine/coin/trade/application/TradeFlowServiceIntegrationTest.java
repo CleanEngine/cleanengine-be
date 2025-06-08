@@ -23,9 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles({"dev", "it", "h2-mem"})
 @SpringBootTest
-@DisplayName("체결 처리 통합테스트")
+@DisplayName("체결처리 h2 통합테스트")
 @Disabled
-class TradeFlowServiceTest {
+class TradeFlowServiceIntegrationTest {
 
     private static TradeBatchProcessor staticTradeBatchProcessor;
 
@@ -41,10 +41,9 @@ class TradeFlowServiceTest {
     TradeBatchProcessor tradeBatchProcessor;
     @Autowired
     private WaitingOrdersManager waitingOrdersManager;
-    @Autowired
-    TradeMatcher tradeMatcher;
 
     private final String ticker = "BTC";
+    private final WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
 
     @BeforeEach
     void setUp() {
@@ -76,7 +75,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -122,7 +120,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -161,7 +158,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -200,7 +196,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -239,7 +234,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -278,7 +272,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -317,7 +310,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -361,7 +353,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 
@@ -400,7 +391,6 @@ class TradeFlowServiceTest {
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
 
-        WaitingOrders waitingOrders = tradeMatcher.getWaitingOrders(ticker);
         waitingOrders.addOrder(buyOrder);
         waitingOrders.addOrder(sellOrder);
 

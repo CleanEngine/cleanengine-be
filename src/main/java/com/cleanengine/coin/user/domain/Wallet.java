@@ -1,10 +1,7 @@
 package com.cleanengine.coin.user.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
@@ -33,6 +30,35 @@ public class Wallet {
 
     @Column(name = "roi")
     private Double roi; // Return on Investment (수익률)
+
+    @Builder
+    private Wallet(String ticker, Integer accountId, Double size, Double buyPrice, Double roi) {
+        this.ticker = ticker;
+        this.accountId = accountId;
+        this.size = size;
+        this.buyPrice = buyPrice;
+        this.roi = roi;
+    }
+
+    public static Wallet of(String ticker, Integer accountId) {
+        return Wallet.builder()
+                .ticker(ticker)
+                .accountId(accountId)
+                .size(0.0)
+                .buyPrice(0.0)
+                .roi(0.0)
+                .build();
+    }
+
+    public static Wallet of(String ticker, Integer accountId, Double size) {
+        return Wallet.builder()
+                .ticker(ticker)
+                .accountId(accountId)
+                .size(size)
+                .buyPrice(0.0)
+                .roi(0.0)
+                .build();
+    }
 
     public static Wallet generateEmptyWallet(String ticker, Integer accountId){
         Wallet wallet = new Wallet();

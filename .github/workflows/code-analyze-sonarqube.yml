@@ -12,6 +12,7 @@ on:
       - 'src/**'
   push:
     branches:
+      - main
       - dev
     paths:
       - 'src/**'

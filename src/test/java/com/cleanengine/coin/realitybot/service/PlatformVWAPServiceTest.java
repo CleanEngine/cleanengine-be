@@ -38,7 +38,7 @@ public class PlatformVWAPServiceTest {
         double apiVWAP = 1000.0; //0.1%의 보정값
 
         //when
-        double result = platformVWAPService.calculateVWAPbyTrades(ticker, trades, apiVWAP);
+        double result = platformVWAPService.calculateVWAPbyTrades(ticker, apiVWAP);
 
         //than
         assertEquals(apiVWAP, result,1);
@@ -67,7 +67,7 @@ public class PlatformVWAPServiceTest {
         when(platformVwapState.getVWAP()).thenReturn(15000.0);
         platformVWAPService.vwapMap.put(ticker, platformVwapState);
         //when
-        double result  = platformVWAPService.calculateVWAPbyTrades(ticker, trades, apiVWAP);
+        double result  = platformVWAPService.calculateVWAPbyTrades(ticker, apiVWAP);
 
         //then
         verify(platformVwapState).addTrades(trades);

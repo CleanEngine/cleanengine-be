@@ -4,11 +4,14 @@ import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.realitybot.domain.APIVWAPState;
+import com.cleanengine.coin.realitybot.domain.VWAPMetricsRecorder;
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.cleanengine.coin.realitybot.parser.TickParser;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;
+import com.cleanengine.coin.realitybot.service.OrderGenerateServicebefore;
 import com.cleanengine.coin.realitybot.service.TickServiceManager;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +35,7 @@ public class ApiScheduler {
     private final Map<String,Long> lastSequentialIdMap = new ConcurrentHashMap<>();
     private final AssetRepository assetRepository;
     private final CoinoneAPIClient coinoneAPIClient;
+    private final VWAPMetricsRecorder recorder;
     private final MeterRegistry meterRegistry;
     private String ticker;
 
@@ -69,7 +73,10 @@ public class ApiScheduler {
         lastSequentialIdMap.put(ticker,lastSeqId);
         double vwap = apiVWAPState.getVWAP();
         double volume = apiVWAPState.getAvgVolumePerOrder();
+        recorder.recordApiVwap(ticker,vwap);
+
         orderGenerateService.generateOrder(ticker,vwap,volume); //1tick 당 매수/매도 3개씩 제작
+
 //        log.info("작동확인 {}의 가격 : {} , 볼륨 : {}",ticker, vwap, volume);
     }
 
@@ -96,7 +103,7 @@ public class ApiScheduler {
 
     } catch (Exception e) {
         log.error("Bithumb API 오류 발생: {} → Coinone으로 대체 요청", e.getMessage());
-        return coinoneAPIClient.get(ticker);
+        return coinoneAPIClient.geta(ticker);
     }
 }*/
 

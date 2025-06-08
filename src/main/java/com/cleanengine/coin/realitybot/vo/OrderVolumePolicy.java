@@ -22,12 +22,19 @@ public class OrderVolumePolicy {
 
         //편차에 따른 거래량 보정 3% -> 최대 2.5배 증가
         double deviation = Math.abs(trendLineRate); //절댓값 반환
-        if (deviation>0.01){ //1% 초과할 경우
-            double power = deviation * 100; //0.03 -> 3%
-//            double multiplier = 1.0 + (power * 0.5); //2.5배 (max로 사용)
-            double multiplier = Math.pow(1.1,power); //2.5배 (max로 사용)
-            rawVolume *= multiplier; //강한 추세 -> 강한 보정
+        double power = deviation * 100; //0.03 -> 3%
+        double multiplier;
+        if (deviation >= 0.1){//1% 초과할 경우
+            multiplier = 1.0 + (power * 0.5); //2.5배 (max로 사용)
+        } else if (deviation >= 0.01){
+            double baseline = 5.0-((deviation - 0.01)/0.09)*2.0;
+            multiplier = baseline + (power * 0.5);
+        } else {
+            multiplier = 1.0 + (power * 0.5);
         }
+//            double multiplier = Math.pow(1.2,power); //2.5배 (max로 사용)
+            rawVolume *= multiplier; //강한 추세 -> 강한 보정
+
 
         //매수-매도 비중 조정
         if (deviation <=0.001) //0.1%일 경우 안정권 , 추가적인 보정 x

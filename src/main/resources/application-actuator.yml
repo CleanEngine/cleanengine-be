@@ -1,3 +1,7 @@
+spring:
+  config:
+    activate:
+      on-profile: metric
 management:
   endpoints:
     web:

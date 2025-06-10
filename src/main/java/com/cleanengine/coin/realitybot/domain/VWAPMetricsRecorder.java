@@ -3,8 +3,6 @@ package com.cleanengine.coin.realitybot.domain;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -38,6 +36,7 @@ public class VWAPMetricsRecorder {
                 ,value,AtomicReference::get);
         orderPriceMap.put(key, value);
     }
+
 
     public void recordApiVwap(String ticker, double price){
         apiVwapMap.computeIfAbsent(ticker, t -> {

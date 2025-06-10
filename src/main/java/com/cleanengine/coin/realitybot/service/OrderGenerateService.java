@@ -43,7 +43,6 @@ public class OrderGenerateService {
     private final OrderVolumePolicy orderVolumePolicy;
     private final OrderWalletRepository orderWalletRepository;
     private final OrderAccountRepository accountExternalRepository;
-    private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
 
     private final VWAPMetricsRecorder recorder;
     private String ticker;
@@ -63,7 +62,6 @@ public class OrderGenerateService {
         recorder.recordPlatformVwap(ticker,platformVWAP);
         //편차 계산 (vwap 기준)
         double trendLineRate = (platformVWAP - apiVWAP)/ apiVWAP;
-        vwaPerrorInJectionScheduler.enableInjection();
         for(int level : orderLevels) { //1주문당 3회 매수매도 처리
             OrderPricePolicy.OrderPrice basePrice = orderPricePolicy.calculatePrice(level,platformVWAP,unitPrice,trendLineRate);
             DeviationPricePolicy.AdjustPrice adjustPrice = deviationPricePolicy.adjust(
@@ -84,7 +82,7 @@ public class OrderGenerateService {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            DecimalFormat df = new DecimalFormat("#,##0.00");
+/*            DecimalFormat df = new DecimalFormat("#,##0.00");
             DecimalFormat dfv = new DecimalFormat("#,###.########");
             //모니터링용
             System.out.println("sellPrice = " + df.format(sellPrice));
@@ -94,7 +92,7 @@ public class OrderGenerateService {
             System.out.println("buyVolume = " + dfv.format(buyVolume));
 
             System.out.println("====================================");
-            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
+            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));*/
         }
         /*System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->

@@ -47,24 +47,21 @@ public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예�
                 break;
             }
         }
-        System.out.println("✅ [갱신] 새로운 기준시간: " + newestTime);
-        System.out.println("🚨 [이전데이터] 기준시간 유지: " + lastTradeTime);
+
         if (!containsSameTime) {
-            System.out.println("작동한다~~~");
             trades = tradeRepository.findByTickerAndTradeTimeGreaterThanEqualOrderByTradeTimeDesc(ticker, lastTradeTime);
             newestTime = trades.get(0).getTradeTime();
             lastTradeTimeMap.put(ticker, newestTime);
-            System.out.println("🌹 [갱신] 10건 이상의 거래 기준으로: " + newestTime);
         }
 
         //=================
         state.addTrades(trades);
 
-        System.out.println("📦"+ticker+" [체결 기록]");
+        /*System.out.println("📦"+ticker+" [체결 기록]");
         state.addTrades(trades);trades.forEach(t ->
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.8f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
-        );
+        );*/
 
 
         return state.getVWAP();

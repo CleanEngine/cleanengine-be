@@ -17,13 +17,6 @@ public class VWAPMetricsRecorder {
     private final ConcurrentHashMap<String, AtomicReference<Double>> apiVwapMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AtomicReference<Double>> platformVwapMap = new ConcurrentHashMap<>();
 
-//    @Bean
-//    public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
-//        return registry -> registry.config()
-//                .commonTags("application", "my-app");  // 모든 메트릭에 자동 추가
-//    }
-
-
     public void recordPrice(String ticker, boolean isBuy, double price){
         String type = isBuy ? "buy" : "sell";
         String timeStamp = Instant.now().toString();

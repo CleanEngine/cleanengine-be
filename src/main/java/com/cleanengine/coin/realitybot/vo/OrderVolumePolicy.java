@@ -55,6 +55,9 @@ public class OrderVolumePolicy {
         if(resultVolume <= 0) {
             //Volume이 0이하일 경우 재 계산
             resultVolume = Math.round(rawVolume * 10000000.0) / 10000000.0;
+            if(resultVolume <= 0){
+                resultVolume = 0.0000001;
+            }
         }
         return resultVolume;
     }

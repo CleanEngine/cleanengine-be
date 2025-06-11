@@ -11,8 +11,12 @@ public class CustomOAuth2User implements OAuth2User {
 
     private final UserOAuthDetails userOAuthDetails;
 
-    public CustomOAuth2User(UserOAuthDetails userOAuthDetails) {
+    private CustomOAuth2User(UserOAuthDetails userOAuthDetails) {
         this.userOAuthDetails = userOAuthDetails;
+    }
+
+    public static CustomOAuth2User of(UserOAuthDetails userOAuthDetails) {
+        return new CustomOAuth2User(userOAuthDetails);
     }
 
     @Override

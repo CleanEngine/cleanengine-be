@@ -20,17 +20,17 @@ public class SchedulerConfig implements SchedulingConfigurer {
 //    private TaskScheduler apiScheduler;
     private final ApiScheduler apiScheduler;
     private final UnitPriceRefresher unitPriceRefresher;
-    @Value("${bot-handler.corn}")
-    private final String corn;
+    @Value("${bot-handler.cron}")
+    private final String cron;
     @Value("${bot-handler.fixed-rate}")
     private final Duration fixedRate;
 
     protected SchedulerConfig(ApiScheduler apiScheduler, @Value("${bot-handler.fixed-rate}") Duration fixedRate, UnitPriceRefresher unitPriceRefresher,
-                              @Value("${bot-handler.corn}")String corn) {
+                              @Value("${bot-handler.cron}")String cron) {
         this.apiScheduler = apiScheduler;
         this.fixedRate = fixedRate;
         this.unitPriceRefresher = unitPriceRefresher;
-        this.corn = corn;
+        this.cron = cron;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }, corn);
+        }, cron);
         registrar.addFixedRateTask(() -> {
             try {
                 apiScheduler.MarketAllRequest();

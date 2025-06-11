@@ -38,6 +38,8 @@ public class TradeExecutor {
     public void executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
         BuyOrder buyOrder = tradePair.getBuyOrder();
         SellOrder sellOrder = tradePair.getSellOrder();
+        log.debug("{} - 체결 시작: 매수[{} {}원 {}개] / 매도[{} {}원 {}개]", ticker, buyOrder.getId(), buyOrder.getPrice(), buyOrder.getRemainingSize(),
+                sellOrder.getId(), sellOrder.getPrice(), sellOrder.getRemainingSize());
 
         double tradedPrice;
         double tradedSize;
@@ -48,10 +50,7 @@ public class TradeExecutor {
         tradedSize = tradeUnitPriceAndSize.tradedSize();
         tradedPrice = tradeUnitPriceAndSize.tradedPrice();
         if (approxEquals(tradedSize, 0.0)) {
-            Order zeroOrder = approxEquals(buyOrder.getRemainingSize(), 0.0) ? buyOrder : sellOrder;
-            throw new TradeZeroOrderException(String.format("체결 중단! 체결 시도 수량 : %s, 매수단가 : %s, 매도단가 : %s",
-                                                            tradedSize, buyOrder.getPrice(), sellOrder.getPrice()),
-                    zeroOrder);
+            this.checkZeroOrderAndThrowException(buyOrder, sellOrder);
         }
         this.writeTradingLog(buyOrder, sellOrder);
 
@@ -89,6 +88,18 @@ public class TradeExecutor {
 
         TradeExecutedEvent tradeExecutedEvent = TradeExecutedEvent.of(trade, buyOrder.getId(), sellOrder.getId());
         tradeExecutedEventPublisher.publish(tradeExecutedEvent);
+    }
+
+    private void checkZeroOrderAndThrowException(BuyOrder buyOrder, SellOrder sellOrder) {
+        Order zeroOrder = null;
+        if (approxEquals(buyOrder.getRemainingDeposit(), 0.0))
+            zeroOrder = buyOrder;
+        else if (approxEquals(sellOrder.getRemainingSize(), 0.0))
+            zeroOrder = sellOrder;
+        if (zeroOrder == null)
+            throw new RuntimeException("수량이 0인 주문이 없는데도 체결 수량이 0인 현상 발생");
+        throw new TradeZeroOrderException(String.format("체결 중단: 체결 수량이 0! 매수단가 : %s, 매도단가 : %s",
+                buyOrder.getPrice(), sellOrder.getPrice()), zeroOrder);
     }
 
     private Account increaseAccountCash(Order order, Double amount) {

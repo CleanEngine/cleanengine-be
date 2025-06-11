@@ -21,20 +21,20 @@ public class VWAPerrorInJectionSchedulerTest {
     TradeRepository tradeRepository;
 
     @InjectMocks
-    VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
+    VWAPErrorInjector vwapErrorInjector;
+
 
     @Test
     @DisplayName("enableInjection() 호출 전에는 작동 안한다")
     void doNotingInjection(){
-       vwaPerrorInJectionScheduler.injectFakeTrade();
+        vwapErrorInjector.injectErrorTrade();
        verify(tradeRepository,never()).save(any());
     }
 
     @Test
     @DisplayName("호출 후에 fateTrade 삽입")
     void injectOnceAfterEnable(){
-        vwaPerrorInJectionScheduler.enableInjection();
-        vwaPerrorInJectionScheduler.injectFakeTrade();
+        vwapErrorInjector.injectErrorTrade();
 
         ArgumentCaptor<Trade> captor = ArgumentCaptor.forClass(Trade.class);
         verify(tradeRepository,times(1)).save(captor.capture());
@@ -42,18 +42,4 @@ public class VWAPerrorInJectionSchedulerTest {
         Trade trade = captor.getValue();
         assertEquals("TRUMP",trade.getTicker());
     }
-    @Test
-    @DisplayName("한 번 삽입 이후 재삽입 되지 않음")
-    void onlyOnecInject(){
-        vwaPerrorInJectionScheduler.enableInjection();
-        verify(tradeRepository, never()).save(any());
-        vwaPerrorInJectionScheduler.injectFakeTrade();
-        verify(tradeRepository,times(1)).save(any());
-
-        vwaPerrorInJectionScheduler.injectFakeTrade();
-        vwaPerrorInJectionScheduler.enableInjection();
-        verify(tradeRepository,times(1)).save(any());
-
-    }
-
 }

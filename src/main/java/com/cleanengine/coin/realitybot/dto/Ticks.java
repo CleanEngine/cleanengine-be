@@ -12,7 +12,7 @@ public class Ticks {
     private String trade_date_utc; // LocalDate
     private String trade_time_utc; // LocalTime
     private String timestamp; //instant 에러 발생
-    private float trade_price;
+    private double trade_price;
     private double trade_volume;
     private float prev_closing_price;
     private double change_price;

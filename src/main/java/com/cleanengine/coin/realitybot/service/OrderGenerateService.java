@@ -1,14 +1,13 @@
 package com.cleanengine.coin.realitybot.service;
 
+import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
+import com.cleanengine.coin.realitybot.domain.VWAPMetricsRecorder;
 import com.cleanengine.coin.realitybot.vo.DeviationPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderVolumePolicy;
-import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +17,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
 import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
@@ -29,19 +26,20 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 @Order(5)
 @RequiredArgsConstructor
 public class OrderGenerateService {
+    private final VWAPMetricsRecorder VWAPMetricsRecorder;
     @Value("${bot-handler.order-level}")
     private int[] orderLevels; //체결 강도
     private double unitPrice = 0; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
     private final UnitPriceRefresher unitPriceRefresher;
     private final PlatformVWAPService platformVWAPService;
     private final OrderService orderService;
-    private final TradeRepository tradeRepository;
-    private final VWAPerrorInJectionScheduler vwaPerrorInJectionScheduler;
     private final OrderPricePolicy orderPricePolicy;
     private final DeviationPricePolicy deviationPricePolicy;
     private final OrderVolumePolicy orderVolumePolicy;
     private final OrderWalletRepository orderWalletRepository;
     private final OrderAccountRepository accountExternalRepository;
+
+    private final VWAPMetricsRecorder recorder;
     private String ticker;
 
 
@@ -51,15 +49,14 @@ public class OrderGenerateService {
         //호가 정책 적용
         this.unitPrice = unitPriceRefresher.getUnitPriceByTicker(ticker);
 
-        //최근 체결 내역 가져오기
-        List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
+//        //최근 체결 내역 가져오기
+//        List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
 
         // Platform 기반 가격 생성 (10개 이하, 10개 이상에 따른 가격 생성)
-        double platformVWAP = platformVWAPService.calculateVWAPbyTrades(ticker,trades,apiVWAP);
-
+        double platformVWAP = platformVWAPService.calculateVWAPbyTrades(ticker,apiVWAP);
+        recorder.recordPlatformVwap(ticker,platformVWAP);
         //편차 계산 (vwap 기준)
         double trendLineRate = (platformVWAP - apiVWAP)/ apiVWAP;
-
         for(int level : orderLevels) { //1주문당 3회 매수매도 처리
             OrderPricePolicy.OrderPrice basePrice = orderPricePolicy.calculatePrice(level,platformVWAP,unitPrice,trendLineRate);
             DeviationPricePolicy.AdjustPrice adjustPrice = deviationPricePolicy.adjust(
@@ -74,15 +71,7 @@ public class OrderGenerateService {
                 createOrderWithFallback(ticker,false, sellVolume, sellPrice);
                 createOrderWithFallback(ticker,true, buyVolume, buyPrice);
 
-
-            try {
-                TimeUnit.MICROSECONDS.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-//            vwaPerrorInJectionScheduler.enableInjection(); //에러 발생기 비활성화
-
-           /* DecimalFormat df = new DecimalFormat("#,##0.00");
+/*            DecimalFormat df = new DecimalFormat("#,##0.00");
             DecimalFormat dfv = new DecimalFormat("#,###.########");
             //모니터링용
             System.out.println("sellPrice = " + df.format(sellPrice));
@@ -92,8 +81,7 @@ public class OrderGenerateService {
             System.out.println("buyVolume = " + dfv.format(buyVolume));
 
             System.out.println("====================================");
-            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));
-*/
+            System.out.println(ticker+"의 현재 시장 vwap :"+df.format(apiVWAP)+" | 현재 플랫폼 vwap :"+df.format(platformVWAP));*/
         }
         /*System.out.println("📦"+ticker+" [체결 기록 Top 10]");
         trades.forEach(t ->
@@ -109,7 +97,7 @@ public class OrderGenerateService {
                     new DecimalFormat("#,###.########").format(volume));
             return;
         }
-
+        recorder.recordPrice(ticker,isBuy,price);
         try {
             orderService.createOrderWithBot(ticker, isBuy, volume, price);
         } catch (IllegalArgumentException e) {

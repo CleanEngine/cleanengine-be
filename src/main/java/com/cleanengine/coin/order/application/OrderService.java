@@ -36,7 +36,7 @@ public class OrderService  {
         return createOrderStrategy.processCreatingOrder(createOrder);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
     public OrderInfo<?> createOrderWithBot(String ticker, Boolean isBuyOrder, Double orderSize, Double price){
         Integer userId = isBuyOrder? BUY_ORDER_BOT_ID : SELL_ORDER_BOT_ID;
 

@@ -86,9 +86,7 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform{
-		excludeTags 'testcontainers'
-	}
+	useJUnitPlatform()
 	finalizedBy jacocoTestReport
 }
 

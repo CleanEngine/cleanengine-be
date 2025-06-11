@@ -35,11 +35,11 @@ public class TradeExecutor {
     private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
     private final TradeService tradeService;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public void executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
         BuyOrder buyOrder = tradePair.getBuyOrder();
         SellOrder sellOrder = tradePair.getSellOrder();
-        log.debug("{} - 체결 시작: 매수[{} {}원 {}개] / 매도[{} {}원 {}개]", ticker, buyOrder.getId(), buyOrder.getPrice(), buyOrder.getRemainingSize(),
+        log.trace("{} - 체결 시작: 매수[{} {}원 {}개] / 매도[{} {}원 {}개]", ticker, buyOrder.getId(), buyOrder.getPrice(), buyOrder.getRemainingSize(),
                 sellOrder.getId(), sellOrder.getPrice(), sellOrder.getRemainingSize());
 
         double tradedPrice;
@@ -51,9 +51,9 @@ public class TradeExecutor {
         tradedSize = tradeUnitPriceAndSize.tradedSize();
         tradedPrice = tradeUnitPriceAndSize.tradedPrice();
         if (approxEquals(tradedSize, 0.0)) {
-            this.checkZeroOrderAndThrowException(buyOrder, sellOrder);
+            TradeExecutor.checkZeroOrderAndThrowException(buyOrder, sellOrder);
         }
-        this.writeTradingLog(buyOrder, sellOrder);
+        TradeExecutor.writeTradingLog(buyOrder, sellOrder);
 
         totalTradedPrice = tradedPrice * tradedSize;
         // 주문 잔여수량, 잔여금액 감소
@@ -64,8 +64,8 @@ public class TradeExecutor {
         sellOrder.decreaseRemainingSize(tradedSize);
 
         // 주문 완전체결 처리(잔여금액 or 잔여수량이 0)
-        this.removeCompletedBuyOrder(waitingOrders, buyOrder);
-        this.removeCompletedSellOrder(waitingOrders, sellOrder);
+        TradeExecutor.removeCompletedBuyOrder(waitingOrders, buyOrder);
+        TradeExecutor.removeCompletedSellOrder(waitingOrders, sellOrder);
 
         tradeService.updateOrder(buyOrder);
         tradeService.updateOrder(sellOrder);
@@ -91,7 +91,7 @@ public class TradeExecutor {
         tradeExecutedEventPublisher.publish(tradeExecutedEvent);
     }
 
-    private void checkZeroOrderAndThrowException(BuyOrder buyOrder, SellOrder sellOrder) {
+    private static void checkZeroOrderAndThrowException(BuyOrder buyOrder, SellOrder sellOrder) {
         Order zeroOrder = null;
         if (approxEquals(buyOrder.getRemainingDeposit(), 0.0))
             zeroOrder = buyOrder;
@@ -103,12 +103,12 @@ public class TradeExecutor {
                 buyOrder.getPrice(), sellOrder.getPrice()), zeroOrder);
     }
 
-    private Account increaseAccountCash(Order order, Double amount) {
+    private void increaseAccountCash(Order order, Double amount) {
         Account account = accountService.findAccountByUserId(order.getUserId()).orElseThrow();
-        return accountService.save(account.increaseCash(amount));
+        accountService.save(account.increaseCash(amount));
     }
 
-    private Wallet updateWalletAfterTrade(Order order, String ticker, double tradedSize, double totalTradedPrice) {
+    private void updateWalletAfterTrade(Order order, String ticker, double tradedSize, double totalTradedPrice) {
         if (order instanceof BuyOrder) {
             Wallet buyerWallet = walletService.findWalletByUserIdAndTicker(order.getUserId(), ticker);
             double updatedBuySize = buyerWallet.getSize() + tradedSize;
@@ -117,11 +117,11 @@ public class TradeExecutor {
             buyerWallet.setSize(updatedBuySize);
             buyerWallet.setBuyPrice(updatedBuyPrice);
             // TODO : ROI 계산
-            return walletService.save(buyerWallet);
+            walletService.save(buyerWallet);
         } else if (order instanceof SellOrder) {
             // 매도 시에는 평단가 변동 없음
             Wallet sellerWallet = walletService.findWalletByUserIdAndTicker(order.getUserId(), ticker);
-            return walletService.save(sellerWallet);
+            walletService.save(sellerWallet);
         } else {
             throw new BusinessException("Unsupported order type: " + order.getClass().getName(), ErrorStatus.INTERNAL_SERVER_ERROR);
         }
@@ -165,7 +165,7 @@ public class TradeExecutor {
         }
     }
 
-    private void writeTradingLog(BuyOrder buyOrder, SellOrder sellOrder) {
+    private static void writeTradingLog(BuyOrder buyOrder, SellOrder sellOrder) {
         log.debug("[{}] 체결 확정!  종목: {}, ({}: {}가 {}로 {}만큼 매수주문), ({}: {}가 {}로 {}만큼 매도주문)",
                 Thread.currentThread().threadId(),
                 buyOrder.getTicker(),
@@ -179,26 +179,26 @@ public class TradeExecutor {
                 sellOrder.getRemainingSize());
     }
 
-    private void removeCompletedBuyOrder(WaitingOrders waitingOrders, BuyOrder order) {
+    private static void removeCompletedBuyOrder(WaitingOrders waitingOrders, BuyOrder order) {
         boolean isOrderCompleted = (isMarketOrder(order) && approxEquals(order.getRemainingDeposit(), 0.0)) ||
                 (isLimitOrder(order) && approxEquals(order.getRemainingSize(), 0.0));
 
         if (isOrderCompleted) {
             waitingOrders.removeOrder(order);
-            this.updateCompletedOrderStatus(order);
+            TradeExecutor.updateCompletedOrderStatus(order);
         }
     }
 
-    private void removeCompletedSellOrder(WaitingOrders waitingOrders, SellOrder order) {
+    private static void removeCompletedSellOrder(WaitingOrders waitingOrders, SellOrder order) {
         boolean isOrderCompleted = approxEquals(order.getRemainingSize(), 0.0);
 
         if (isOrderCompleted) {
             waitingOrders.removeOrder(order);
-            this.updateCompletedOrderStatus(order);
+            TradeExecutor.updateCompletedOrderStatus(order);
         }
     }
 
-    private void updateCompletedOrderStatus(Order order) {
+    private static void updateCompletedOrderStatus(Order order) {
         order.setState(OrderStatus.DONE);
     }
 

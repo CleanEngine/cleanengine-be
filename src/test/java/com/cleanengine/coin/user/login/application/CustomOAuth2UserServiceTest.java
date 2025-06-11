@@ -4,6 +4,7 @@ import com.cleanengine.coin.common.CommonValues;
 import com.cleanengine.coin.user.domain.OAuth;
 import com.cleanengine.coin.user.domain.User;
 import com.cleanengine.coin.user.info.application.AccountService;
+import com.cleanengine.coin.user.info.application.WalletService;
 import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
 import com.cleanengine.coin.user.login.infra.UserOAuthDetails;
 import com.cleanengine.coin.user.info.infra.OAuthRepository;
@@ -42,6 +43,8 @@ class CustomOAuth2UserServiceTest {
     @Mock
     private AccountService accountService;
     @Mock
+    private WalletService walletService;
+    @Mock
     private OAuth2UserRequest userRequest;
     @Mock
     private OAuth2User oAuth2UserFromSuper;
@@ -57,7 +60,7 @@ class CustomOAuth2UserServiceTest {
     @BeforeEach
     void setUp() {
         // DefaultOAuth2UserService.loadUser만 mocking하기 위해 spy 사용
-        customOAuth2UserService = Mockito.spy(new CustomOAuth2UserService(userRepository, oAuthRepository, accountService));
+        customOAuth2UserService = Mockito.spy(new CustomOAuth2UserService(userRepository, oAuthRepository, accountService, walletService));
 
         Map<String, Object> profile = Map.of("nickname", "Test User");
         Map<String, Object> kakaoAccount = Map.of(

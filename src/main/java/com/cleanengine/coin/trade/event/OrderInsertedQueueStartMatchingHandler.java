@@ -2,6 +2,7 @@ package com.cleanengine.coin.trade.event;
 
 import com.cleanengine.coin.order.application.event.OrderInsertedToQueue;
 import com.cleanengine.coin.trade.application.TradeFlowService;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -43,5 +44,10 @@ public class OrderInsertedQueueStartMatchingHandler {
         });
 
         tickerExecutorServices.put(ticker, executorService);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        tickerExecutorServices.values().forEach(ExecutorService::shutdown);
     }
 }

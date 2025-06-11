@@ -3,9 +3,7 @@ package com.cleanengine.coin.trade.application;
 import com.cleanengine.coin.order.application.event.OrderInsertedToQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component

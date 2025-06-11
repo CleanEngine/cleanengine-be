@@ -1,11 +1,9 @@
 package com.cleanengine.coin.trade.application;
 
-import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
+import com.cleanengine.coin.order.application.AssetService;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -21,18 +19,21 @@ import java.util.concurrent.TimeUnit;
 
 @Order(4)
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class TradeBatchProcessor implements ApplicationRunner {
 
-    private final WaitingOrdersManager waitingOrdersManager;
     private final TradeFlowService tradeFlowService;
     private final List<ExecutorService> executors = new ArrayList<>();
 
     @Getter
     private final Map<String, TradeQueueManager> tradeQueueManagers = new HashMap<>();
 
-    @Value("${order.tickers}") String[] tickers;
+    private final List<String> tickers;
+
+    public TradeBatchProcessor(TradeFlowService tradeFlowService, AssetService assetService) {
+        this.tradeFlowService = tradeFlowService;
+        tickers = assetService.getAllAssetTickers();
+    }
 
     @Override
     public void run(ApplicationArguments args) {

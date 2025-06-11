@@ -1,15 +1,13 @@
 package com.cleanengine.coin.realitybot.service;
 
+import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
 import com.cleanengine.coin.realitybot.domain.VWAPMetricsRecorder;
 import com.cleanengine.coin.realitybot.vo.DeviationPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderVolumePolicy;
-import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +17,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
 import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
@@ -37,7 +33,6 @@ public class OrderGenerateService {
     private final UnitPriceRefresher unitPriceRefresher;
     private final PlatformVWAPService platformVWAPService;
     private final OrderService orderService;
-    private final TradeRepository tradeRepository;
     private final OrderPricePolicy orderPricePolicy;
     private final DeviationPricePolicy deviationPricePolicy;
     private final OrderVolumePolicy orderVolumePolicy;
@@ -76,12 +71,6 @@ public class OrderGenerateService {
                 createOrderWithFallback(ticker,false, sellVolume, sellPrice);
                 createOrderWithFallback(ticker,true, buyVolume, buyPrice);
 
-
-            try {
-                TimeUnit.MICROSECONDS.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
 /*            DecimalFormat df = new DecimalFormat("#,##0.00");
             DecimalFormat dfv = new DecimalFormat("#,###.########");
             //모니터링용

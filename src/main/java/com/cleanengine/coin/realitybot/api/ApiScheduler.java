@@ -45,7 +45,6 @@ public class ApiScheduler {
             for (Asset ticker : tickers) {
                 String tickerName = ticker.getTicker();
                 MarketDataRequest(tickerName);
-//            Thread.sleep(500);
             }
         });
     }

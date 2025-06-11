@@ -57,9 +57,9 @@
         <logger name="org.hibernate.SQL" level="${LOG_LEVEL}" additivity="false">
             <appender-ref ref="CONSOLE"/>
         </logger>
-        <logger name="org.hibernate.orm.jdbc.bind" level="${LOG_LEVEL}" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
+<!--        <logger name="org.hibernate.orm.jdbc.bind" level="${LOG_LEVEL}" additivity="false">-->
+<!--            <appender-ref ref="CONSOLE"/>-->
+<!--        </logger>-->
     </springProfile>
 
 </configuration>

@@ -27,7 +27,7 @@ public class OrderService  {
     private final List<CreateOrderStrategy<?, ?>> createOrderStrategies;
     private final Validator validator;
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public OrderInfo<?> createOrder(OrderCommand.CreateOrder createOrder){
         validateCreateOrder(createOrder);
         CreateOrderStrategy<?, ?> createOrderStrategy = createOrderStrategies.stream()

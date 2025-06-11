@@ -15,5 +15,6 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
 //    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000")})
     Optional<Wallet> findByAccountIdAndTicker(Integer accountId, String ticker);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Wallet> findByAccountId(Integer accountId);
 }

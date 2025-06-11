@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -22,11 +23,11 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 @Service
 @RequiredArgsConstructor
 @Validated
-public class OrderService {
+public class OrderService  {
     private final List<CreateOrderStrategy<?, ?>> createOrderStrategies;
     private final Validator validator;
 
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public OrderInfo<?> createOrder(OrderCommand.CreateOrder createOrder){
         validateCreateOrder(createOrder);
         CreateOrderStrategy<?, ?> createOrderStrategy = createOrderStrategies.stream()

@@ -2,6 +2,7 @@ package com.cleanengine.coin.order.adapter.out.persistentce.wallet;
 
 import com.cleanengine.coin.user.domain.Wallet;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ public class OrderWalletRepositoryCustomImpl implements OrderWalletRepositoryCus
                 Wallet.class);
         query.setParameter("userId", userId);
         query.setParameter("ticker", ticker);
+        query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+//        query.setHint("jakarta.persistence.lock.timeout", "3000");
 
         try{
             Wallet wallet = query.getSingleResult();

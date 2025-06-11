@@ -29,8 +29,10 @@ public class TradeFlowService {
                 tradeExecutor.executeTrade(waitingOrders, tradePair.get(), ticker);
                 tradePair = tradeMatcher.matchOrders(waitingOrders);
                 continueProcessing = tradePair.isPresent();
+            } catch (TradeZeroOrderException e) {
+                Order order = e.getOrder();
+                waitingOrdersManager.getWaitingOrders(order.getTicker()).removeOrder(order);
             } catch (Exception e) {
-                // TODO : 회복 필요
                 log.error("Error processing trades for {}: {}", ticker, e.getMessage());
                 continueProcessing = false;
             }

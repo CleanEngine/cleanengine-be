@@ -48,8 +48,10 @@ public class TradeExecutor {
         tradedSize = tradeUnitPriceAndSize.tradedSize();
         tradedPrice = tradeUnitPriceAndSize.tradedPrice();
         if (approxEquals(tradedSize, 0.0)) {
-            log.debug("체결 중단! 체결 시도 수량 : {}, 매수단가 : {}, 매도단가 : {}", tradedSize, buyOrder.getPrice(), sellOrder.getPrice());
-            return ;
+            Order zeroOrder = approxEquals(buyOrder.getRemainingSize(), 0.0) ? buyOrder : sellOrder;
+            throw new TradeZeroOrderException(String.format("체결 중단! 체결 시도 수량 : %s, 매수단가 : %s, 매도단가 : %s",
+                                                            tradedSize, buyOrder.getPrice(), sellOrder.getPrice()),
+                    zeroOrder);
         }
         this.writeTradingLog(buyOrder, sellOrder);
 

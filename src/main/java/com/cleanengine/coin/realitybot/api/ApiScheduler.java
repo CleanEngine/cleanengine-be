@@ -13,7 +13,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -37,7 +36,7 @@ public class ApiScheduler {
     private final MeterRegistry meterRegistry;
     private String ticker;
 
-    @Scheduled(fixedRate = 5000)
+//    @Scheduled(fixedRate = 5000)
     public void MarketAllRequest() throws InterruptedException {
         Timer timer = meterRegistry.timer("apischeduler.request.duration");
         timer.record(() -> {

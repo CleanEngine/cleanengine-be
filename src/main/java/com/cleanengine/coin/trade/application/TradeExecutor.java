@@ -51,9 +51,9 @@ public class TradeExecutor {
         tradedSize = tradeUnitPriceAndSize.tradedSize();
         tradedPrice = tradeUnitPriceAndSize.tradedPrice();
         if (approxEquals(tradedSize, 0.0)) {
-            TradeExecutor.checkZeroOrderAndThrowException(buyOrder, sellOrder);
+            checkZeroOrderAndThrowException(buyOrder, sellOrder);
         }
-        TradeExecutor.writeTradingLog(buyOrder, sellOrder);
+        writeTradingLog(buyOrder, sellOrder);
 
         totalTradedPrice = tradedPrice * tradedSize;
         // 주문 잔여수량, 잔여금액 감소
@@ -64,8 +64,8 @@ public class TradeExecutor {
         sellOrder.decreaseRemainingSize(tradedSize);
 
         // 주문 완전체결 처리(잔여금액 or 잔여수량이 0)
-        TradeExecutor.removeCompletedBuyOrder(waitingOrders, buyOrder);
-        TradeExecutor.removeCompletedSellOrder(waitingOrders, sellOrder);
+        removeCompletedBuyOrder(waitingOrders, buyOrder);
+        removeCompletedSellOrder(waitingOrders, sellOrder);
 
         tradeService.updateOrder(buyOrder);
         tradeService.updateOrder(sellOrder);
@@ -185,7 +185,7 @@ public class TradeExecutor {
 
         if (isOrderCompleted) {
             waitingOrders.removeOrder(order);
-            TradeExecutor.updateCompletedOrderStatus(order);
+            updateCompletedOrderStatus(order);
         }
     }
 
@@ -194,7 +194,7 @@ public class TradeExecutor {
 
         if (isOrderCompleted) {
             waitingOrders.removeOrder(order);
-            TradeExecutor.updateCompletedOrderStatus(order);
+            updateCompletedOrderStatus(order);
         }
     }
 

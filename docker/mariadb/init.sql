@@ -6,6 +6,9 @@ create table account
     user_id    int    not null
 );
 
+create or replace index idx_account_user_id
+    on account (user_id);
+
 create table asset
 (
     ticker varchar(10)  not null
@@ -90,6 +93,9 @@ create table wallet
     size       double      not null,
     ticker     varchar(10) not null
 );
+
+create or replace index idx_wallet_account_id_ticker
+    on wallet (account_id, ticker);
 
 
 

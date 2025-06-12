@@ -39,7 +39,7 @@ public class ApiScheduler {
     private final VWAPMetricsRecorder recorder;
     private final MeterRegistry meterRegistry;
 //    private final BotThreadConfig executor;
-    private final RateLimiter rateLimiter = RateLimiter.create(140.0); //TODO 마켓별로 커스텀 필요
+    private final RateLimiter rateLimiter = RateLimiter.create(140.0); //TODO 마켓별로 커스텀 필요!
     private String ticker;
 
 //    @Scheduled(fixedRate = 5000)
@@ -50,7 +50,7 @@ public class ApiScheduler {
             for (Asset ticker : tickers) {
                 String tickerName = ticker.getTicker();
 //                executor.botThreadPoolExecutor().execute(() -> {
-                    rateLimiter.acquire();
+                    rateLimiter.acquire(); //TODO 초반 테스트시 주석 후 실행 (멀티 스레드와 차이 비교 필요... 초당 140회 절대 불가능함..)
                      log.debug("[{}] 요청 실행: {}", LocalTime.now(), tickerName);
                 getMarketDataRequest(tickerName); //failover 전략 추가
 //                });

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -21,11 +22,9 @@ import org.springframework.test.context.jdbc.SqlConfig;
  * JPA Entity가 MariaDB에서 제대로 매핑되는지 확인을 위한 기본적인 insert/select와 직접 작성한 쿼리를 테스트바랍니다.
  * API단으로 수행하는 통합 테스트는 AcceptanceTest를 사용바랍니다.
  */
-@DataJpaTest
-@Disabled
+@SpringBootTest
 @Tag("testcontainers")
 @ActiveProfiles({"dev", "it"})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(MariaDBTestContainerExtension.class)
 @Import(TimeZoneConfig.class)
 @Sql(
@@ -33,7 +32,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         config=@SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED)
 )
-public abstract class MariaDBAdapterTest {
+public abstract class MariaDBIntegrationTest {
     @PersistenceContext
     protected EntityManager em;
 

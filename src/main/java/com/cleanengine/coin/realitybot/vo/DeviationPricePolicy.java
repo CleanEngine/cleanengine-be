@@ -17,13 +17,18 @@ public class DeviationPricePolicy {
      */
 
     public AdjustPrice adjust(double platformSell,double platformBuy, double trendLineRate, double apiVWAP, double unitPrice){
-        double deviation = Math.abs(trendLineRate);
-
-        if (deviation <= 0.01){
+        double deviation = Math.abs(trendLineRate);//음수값 보정
+        if (deviation <= 0.017){
             return new AdjustPrice(platformSell,platformBuy);
         }
         double weight = getCorrectionWeight(deviation);
-        double closeness = 0.5 + (weight * 0.3); // 보간 가중치: 0.7 ~ 1.0 -> 0.5
+//            double closeness = 1-weight; // 보간 가중치: 0.7 ~ 1.0 -> 0.5
+            double closeness; // 보간 가중치: 0.7 ~ 1.0 -> 0.5
+        if (deviation > 0.07){
+             closeness = Math.max(0.2, 1 - weight);
+        } else {
+            closeness = 0.01;
+        }
 
 //        double targetVWAP = (trendLineRate > 0) //만약 closeness 를 0.5 입력시 중간값
 //                ? apiVWAP + (platformSell - apiVWAP) * closeness  // 고평가 → platformSell(25000) → apiVWAP(16000) 사이 가중치 %로 유도
@@ -39,6 +44,8 @@ public class DeviationPricePolicy {
              buyTarget  = apiVWAP - (apiVWAP - platformBuy) * closeness;
             }
 
+//        double adjustedSell = normalizeToUnit(sellTarget,unitPrice);
+//        double adjustedBuy = normalizeToUnit(buyTarget,unitPrice);
         double adjustedSell = normalizeToUnit(interpolate(platformSell,sellTarget ,weight),unitPrice);
         double adjustedBuy = normalizeToUnit(interpolate(platformBuy,buyTarget ,weight),unitPrice);
 
@@ -70,7 +77,8 @@ public class DeviationPricePolicy {
      * 선형 보간 함수: platformPrice → apiVWAP 사이 보간
      */
     private double interpolate(double platformPrice, double apiVWAP, double weight) {
-        return platformPrice * (1 - weight) + apiVWAP * weight;
+        double interWeight = Math.max(1,weight*1.2);
+        return platformPrice * (1 - interWeight) + apiVWAP * interWeight;
     }
     private double normalizeToUnit(double price, double unitPrice) {
         return Math.round(price / unitPrice) * unitPrice;

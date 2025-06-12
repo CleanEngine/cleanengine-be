@@ -17,8 +17,10 @@ public class APIVWAPState {
         if (ticksQueue.size() >= maxQueueSize) {
             //10개 이상이 되면 선착순으로 제거해나감
         Ticks removed = ticksQueue.poll();
+        if (removed != null){
             calculator.removeTrade(removed.getTrade_price(), removed.getTrade_volume());
-    }
+            }
+        }
         //초기엔 들어온 갯수에 따라 증가시켜서 계산함
         ticksQueue.add(tick);
         calculator.recordTrade(tick.getTrade_price(),tick.getTrade_volume());

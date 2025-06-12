@@ -7,30 +7,21 @@ import com.cleanengine.coin.realitybot.parser.OpeningPriceParser;
 import com.cleanengine.coin.realitybot.vo.UnitPricePolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
-public class UnitPriceRefresher implements ApplicationRunner {
+public class UnitPriceRefresher {
     private final UnitPricePolicy unitPricePolicy;
     private final AssetRepository assetRepository;
     private final BithumbAPIClient bithumbAPIClient;
     private final OpeningPriceParser openingPriceParser;
     private final Map<String ,Double> unitPriceCache = new ConcurrentHashMap<>();
-
-    @Override
-    public void run(ApplicationArguments args){
-        log.info("Running Unit Price Refresher...");
-        initializeUnitPrices();
-    }
 
     public void initializeUnitPrices() {
         List<Asset> tickers = assetRepository.findAll();
@@ -40,16 +31,6 @@ public class UnitPriceRefresher implements ApplicationRunner {
         }
     }
 
-    @Scheduled(cron = "${bot-handler.corn}")
-    public void refreshUnitPrices() {
-        initializeUnitPrices();
-//        List<Asset> tickers = assetRepository.findAll();
-//        for (Asset ticker : tickers){
-//            double unitPrice = fetchOpeningPriceFromAPI(ticker.getTicker());
-//            unitPriceCache.put(ticker.getTicker(),unitPrice);
-//        }
-
-    }
 
     private double fetchOpeningPriceFromAPI(String ticker) {
         String rawJson = bithumbAPIClient.getOpeningPrice(ticker); //api raw데이터

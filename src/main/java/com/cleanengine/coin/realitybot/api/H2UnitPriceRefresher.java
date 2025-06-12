@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class H2UnitPriceRefresher implements ApplicationRunner {
     private final UnitPriceRefresher unitPriceRefresher;
 
+    @Override
     public void run(ApplicationArguments args){
         log.info("Running Unit Price Refresher (h2-mem)...");
         unitPriceRefresher.initializeUnitPrices();

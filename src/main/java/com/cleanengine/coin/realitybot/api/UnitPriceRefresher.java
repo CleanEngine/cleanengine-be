@@ -35,11 +35,16 @@ public class UnitPriceRefresher {
     private double fetchOpeningPriceFromAPI(String ticker) {
         String rawJson = bithumbAPIClient.getOpeningPrice(ticker); //api raw데이터
         OpeningPrice json = openingPriceParser.parseGson(rawJson); //json을 list로 변환
-        double unitprice = unitPricePolicy.getUnitPrice(json.getOpening_price());
-        return unitprice;
+        double unitPrice = unitPricePolicy.getUnitPrice(json.getOpening_price());
+        return unitPrice;
     }
 
     public double getUnitPriceByTicker(String ticker){
-        return unitPriceCache.get(ticker);
+        Double unitPrice = unitPriceCache.get(ticker);
+        if (unitPrice == null){
+            log.warn("등록되지 않은 ticker의 요청 : {}",ticker);
+            throw new IllegalStateException("Ticker [" + ticker + "] has no unit price");
+        }
+         return unitPrice;
     }
 }

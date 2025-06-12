@@ -40,5 +40,3 @@ out/
 local.properties
 /logs
 docker-compose.override.yml
-
-dd-java-agent.jar

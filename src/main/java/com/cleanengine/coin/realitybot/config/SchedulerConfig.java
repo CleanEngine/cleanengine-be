@@ -1,6 +1,7 @@
 package com.cleanengine.coin.realitybot.config;
 
 import com.cleanengine.coin.realitybot.api.ApiScheduler;
+import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -18,17 +19,31 @@ public class SchedulerConfig implements SchedulingConfigurer {
 //    @Autowired
 //    private TaskScheduler apiScheduler;
     private final ApiScheduler apiScheduler;
+    private final UnitPriceRefresher unitPriceRefresher;
+    @Value("${bot-handler.cron}")
+    private final String cron;
     @Value("${bot-handler.fixed-rate}")
     private final Duration fixedRate;
 
-    protected SchedulerConfig(ApiScheduler apiScheduler, @Value("${bot-handler.fixed-rate}") Duration fixedRate) {
+    protected SchedulerConfig(ApiScheduler apiScheduler, @Value("${bot-handler.fixed-rate}") Duration fixedRate, UnitPriceRefresher unitPriceRefresher,
+                              @Value("${bot-handler.cron}")String cron) {
         this.apiScheduler = apiScheduler;
         this.fixedRate = fixedRate;
+        this.unitPriceRefresher = unitPriceRefresher;
+        this.cron = cron;
     }
 
     @Override
     public void configureTasks(ScheduledTaskRegistrar registrar) {
-//        registrar.setScheduler(apiScheduler); //멀티 쓰레드 x
+        unitPriceRefresher.initializeUnitPrices(); //선반영
+
+        registrar.addCronTask(() -> {
+            try {
+                unitPriceRefresher.initializeUnitPrices();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, cron);
         registrar.addFixedRateTask(() -> {
             try {
                 apiScheduler.MarketAllRequest();

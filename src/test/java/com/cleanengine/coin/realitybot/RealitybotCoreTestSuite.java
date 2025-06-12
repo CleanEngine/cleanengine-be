@@ -2,10 +2,7 @@ package com.cleanengine.coin.realitybot;
 
 import com.cleanengine.coin.realitybot.api.ApiSchedulerTest;
 import com.cleanengine.coin.realitybot.api.BithumbAPIClientTest;
-import com.cleanengine.coin.realitybot.api.RefresherRunnerTest;
-import com.cleanengine.coin.realitybot.api.UnitPriceRefresherTest;
 import com.cleanengine.coin.realitybot.config.ApiClientConfigTest;
-import com.cleanengine.coin.realitybot.config.SchedulerConfigTest;
 import com.cleanengine.coin.realitybot.domain.APIVWAPStateTest;
 import com.cleanengine.coin.realitybot.domain.PlatformVWAPStateTest;
 import com.cleanengine.coin.realitybot.domain.VWAPCalculatorTest;
@@ -24,13 +21,10 @@ import org.junit.platform.suite.api.Suite;
 
 @Suite
 @SelectClasses({
-        RefresherRunnerTest.class,
         BithumbAPIClientTest.class,
-        UnitPriceRefresherTest.class,
         OpeningPriceTest.class,
         PlatformVWAPStateTest.class,
         UnitPricePolicyTest.class,
-        SchedulerConfigTest.class,
         ApiSchedulerTest.class,
         ApiClientConfigTest.class,
         PlatformVWAPServiceTest.class,

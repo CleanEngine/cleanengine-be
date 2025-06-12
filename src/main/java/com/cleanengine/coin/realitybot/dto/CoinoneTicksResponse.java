@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,7 +16,7 @@ public class CoinoneTicksResponse {
     private long server_time;
     private String quote_currency;
     private String target_currency;
-    private List<Trades> trades;
+    private List<Trades> transactions;
 
     @Getter
     @Setter
@@ -24,6 +25,7 @@ public class CoinoneTicksResponse {
         private long timestamp;
         private String price;
         private String qty;
-        private boolean is_seller_maker;
+        @JsonProperty("is_seller_maker")
+        private boolean isSellerMaker;
     }
 }

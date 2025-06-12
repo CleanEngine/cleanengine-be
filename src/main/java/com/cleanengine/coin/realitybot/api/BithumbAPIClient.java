@@ -20,16 +20,6 @@ public class BithumbAPIClient {
 
     public String get(String ticker){ //API를 responseBody에 담아 반환
         this.ticker = ticker;
-//        client = new OkHttpClient();
-//        gson = new Gson();
-
-//        try {
-//            Thread.sleep(2500);
-//        } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        }
-
-
         Request request = new Request.Builder()
                 .url("https://api.bithumb.com/v1/trades/ticks?market=krw-"+ticker+"&count=10")
                 .get()

@@ -34,6 +34,7 @@ public class ApiScheduler {
     private final CoinoneAPIClient coinoneAPIClient;
     private final VWAPMetricsRecorder recorder;
     private final MeterRegistry meterRegistry;
+//    private final BotThreadConfig executor;
     private String ticker;
 
 //    @Scheduled(fixedRate = 5000)
@@ -43,7 +44,9 @@ public class ApiScheduler {
             List<Asset> tickers = assetRepository.findAll();
             for (Asset ticker : tickers) {
                 String tickerName = ticker.getTicker();
-                MarketDataRequest(tickerName);
+//                executor.botThreadPoolExecutor().execute(() -> {
+                    MarketDataRequest(tickerName);
+//                });
             }
         });
     }

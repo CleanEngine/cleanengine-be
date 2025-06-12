@@ -1,15 +1,18 @@
 package com.cleanengine.coin.user.login.application;
 
 import com.cleanengine.coin.common.CommonValues;
+import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.OAuth;
 import com.cleanengine.coin.user.domain.User;
 import com.cleanengine.coin.user.info.application.AccountService;
+import com.cleanengine.coin.user.info.application.WalletService;
 import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
 import com.cleanengine.coin.user.login.infra.KakaoResponse;
 import com.cleanengine.coin.user.login.infra.OAuth2Response;
 import com.cleanengine.coin.user.login.infra.UserOAuthDetails;
 import com.cleanengine.coin.user.info.infra.OAuthRepository;
 import com.cleanengine.coin.user.info.infra.UserRepository;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -22,11 +25,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
     private final OAuthRepository oAuthRepository;
     private final AccountService accountService;
+    private final WalletService walletService;
 
-    public CustomOAuth2UserService(UserRepository userRepository, OAuthRepository oAuthRepository, AccountService accountService) {
+    public CustomOAuth2UserService(UserRepository userRepository, OAuthRepository oAuthRepository, AccountService accountService, WalletService walletService) {
         this.userRepository = userRepository;
         this.oAuthRepository = oAuthRepository;
         this.accountService = accountService;
+        this.walletService = walletService;
     }
 
     @Override
@@ -51,21 +56,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         UserOAuthDetails existData = userRepository.findUserByOAuthProviderAndProviderId(provider, providerUserId);
 
         if (existData == null) {
-            User newUser = new User();
-            userRepository.save(newUser);
-
-            OAuth newOAuth = new OAuth();
-            newOAuth.setUserId(newUser.getId());
-            newOAuth.setProvider(provider);
-            newOAuth.setProviderUserId(providerUserId);
-            newOAuth.setEmail(email);
-            newOAuth.setNickname(name);
-            // TODO : KAKAO Token 관련 정보 추가
-            oAuthRepository.save(newOAuth);
-            accountService.createNewAccount(newUser.getId(), CommonValues.INITIAL_USER_CASH);
-
-            UserOAuthDetails newUserOAuthDetails = UserOAuthDetails.of(newUser, newOAuth);
-            return CustomOAuth2User.of(newUserOAuthDetails);
+            return createNewUser(provider, providerUserId, email, name);
         }
         else {
             OAuth existOAuth = oAuthRepository.findByProviderAndProviderUserId(provider, providerUserId);
@@ -78,6 +69,26 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             return CustomOAuth2User.of(existData);
         }
+    }
+
+    @NotNull
+    protected CustomOAuth2User createNewUser(String provider, String providerUserId, String email, String name) {
+        User newUser = new User();
+        userRepository.save(newUser);
+
+        OAuth newOAuth = new OAuth();
+        newOAuth.setUserId(newUser.getId());
+        newOAuth.setProvider(provider);
+        newOAuth.setProviderUserId(providerUserId);
+        newOAuth.setEmail(email);
+        newOAuth.setNickname(name);
+        // TODO : KAKAO Token 관련 정보 추가
+        oAuthRepository.save(newOAuth);
+        Account newAccount = accountService.createNewAccount(newUser.getId(), CommonValues.INITIAL_USER_CASH);
+        walletService.createNewWallets(newAccount.getId());
+
+        UserOAuthDetails newUserOAuthDetails = UserOAuthDetails.of(newUser, newOAuth);
+        return CustomOAuth2User.of(newUserOAuthDetails);
     }
 
     protected OAuth2User doSuperLoadMethod(OAuth2UserRequest userRequest) {

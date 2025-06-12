@@ -1,36 +1,36 @@
 package com.cleanengine.coin.trade.application;
 
 import com.cleanengine.coin.common.domain.port.PriorityQueueStore;
-import com.cleanengine.coin.order.application.OrderService;
-import com.cleanengine.coin.order.application.dto.OrderCommand;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
+import com.cleanengine.coin.order.application.event.OrderInsertedToQueue;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import com.cleanengine.coin.trade.repository.TradeRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-@SpringBootTest
+@ActiveProfiles({"dev", "it", "h2-mem"})
 @Disabled
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@SpringBootTest
 class TradeExecuteLoadTest {
 
     @Autowired
-    TradeBatchProcessor tradeBatchProcessor;
-
-    @Autowired
-    ApplicationArguments applicationArguments;
-
-    @Autowired
-    OrderService orderService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     WaitingOrdersManager waitingOrdersManager;
@@ -38,53 +38,173 @@ class TradeExecuteLoadTest {
     @Autowired
     TradeRepository tradeRepository;
 
+    @Autowired
+    SellOrderRepository sellOrderRepository;
+
+    @Autowired
+    BuyOrderRepository buyOrderRepository;
+
     private final String ticker = "BTC";
+
+    @DisplayName("워밍업: Spring 컨텍스트 및 JVM 최적화")
+    @Order(1)
+    @Test
+    void warmUp() throws InterruptedException {
+        runSingleTest(1000);
+        runSingleTest(10000);
+        runSingleTest(50000);
+    }
 
     @BeforeEach
     void setUp() {
-        tradeBatchProcessor.shutdown();
-        waitingOrdersManager.getWaitingOrders(ticker);
-        // TODO : 티커마다 큐, DB 초기화
-    }
-
-    @DisplayName("1000건의 매수 매도 주문을 요청 후 처리 성능을 조회한다.")
-    @Test
-    void basicLoadTestWith1000OrdersEachSide() {
-        // given 1000건의 매수, 매도 주문 요청
-        for (int i = 0; i < 1000; i++) {
-            OrderCommand.CreateOrder sellOrderCommand = new OrderCommand.CreateOrder(ticker, 1,
-                    false, false, 30.0, 40.0, LocalDateTime.now(),false);
-            orderService.createOrder(sellOrderCommand);
-
-            OrderCommand.CreateOrder buyOrderCommand = new OrderCommand.CreateOrder(ticker, 2,
-                    true, false, 30.0, 40.0, LocalDateTime.now(),false);
-            orderService.createOrder(buyOrderCommand);
-        }
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
-        PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
-        PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
-        System.out.println("buyOrderPriorityQueueStore.size() : " + buyOrderPriorityQueueStore.size());
-        System.out.println("sellOrderPriorityQueueStore.size() : " + sellOrderPriorityQueueStore.size());
-        long testStart = System.currentTimeMillis();
-
+        waitingOrders.clearAllQueues();
+        tradeRepository.deleteAll();
+        sellOrderRepository.deleteAll();
+        buyOrderRepository.deleteAll();
+    }
+    @DisplayName("매수, 매도 각 1000건에 대한 처리 성능을 10회 진행한다.")
+    @Order(2)
+    @Test
+    void basicLoadTestWith1000OrdersEachSide() throws InterruptedException {
+        // given
+        int orderCount = 1000;
+        int repeatCount = 10;
+        List<Long> executionTimes = new ArrayList<>();
+        List<Long> queueInsertTimes = new ArrayList<>();
 
         // when
-        tradeBatchProcessor.run(applicationArguments);
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        for (int i = 0; i < repeatCount; ++i) {
+            long[] times = runSingleTest(orderCount);
+            queueInsertTimes.add(times[0]);
+            executionTimes.add(times[1]);
+            System.out.printf("Run-%d: 큐 삽입 소요시간 = %d ms, 체결 소요시간 = %d ms%n", (i + 1), times[0], times[1]);
         }
 
-        // then
-        tradeBatchProcessor.shutdown();
-        long testEnd = System.currentTimeMillis();
+        // 통계 출력
+        printStatistics(queueInsertTimes, executionTimes, orderCount);
+    }
 
-        System.out.println("trade table size : " + tradeRepository.findAll().size());
+    @DisplayName("매수, 매도 각 10000건에 대한 처리 성능을 10회 진행한다.")
+    @Order(3)
+    @Test
+    void basicLoadTestWith10000OrdersEachSide() throws InterruptedException {
+        // given
+        int orderCount = 10000;
+        int repeatCount = 10;
+        List<Long> executionTimes = new ArrayList<>();
+        List<Long> queueInsertTimes = new ArrayList<>();
 
-        System.out.println("test time : " + (testEnd - testStart) + " ms");
-        System.out.println("buyOrderPriorityQueueStore.size() : " + buyOrderPriorityQueueStore.size());
-        System.out.println("sellOrderPriorityQueueStore.size() : " + sellOrderPriorityQueueStore.size());
+        // when
+        for (int i = 0; i < repeatCount; ++i) {
+            long[] times = runSingleTest(orderCount);
+            queueInsertTimes.add(times[0]);
+            executionTimes.add(times[1]);
+            System.out.printf("Run-%d: 큐 삽입 소요시간 = %d ms, 체결 소요시간 = %d ms%n", (i + 1), times[0], times[1]);
+        }
+
+        // 통계 출력
+        printStatistics(queueInsertTimes, executionTimes, orderCount);
+    }
+
+    @DisplayName("매수, 매도 각 100000건에 대한 처리 성능을 10회 진행한다.")
+    @Order(4)
+    @Test
+    void basicLoadTestWith100000OrdersEachSide() throws InterruptedException {
+        // given
+        int orderCount = 100000;
+        int repeatCount = 10;
+        List<Long> executionTimes = new ArrayList<>();
+        List<Long> queueInsertTimes = new ArrayList<>();
+
+        // when
+        for (int i = 0; i < repeatCount; ++i) {
+            long[] times = runSingleTest(orderCount);
+            queueInsertTimes.add(times[0]);
+            executionTimes.add(times[1]);
+            System.out.printf("Run-%d: 큐 삽입 소요시간 = %d ms, 체결 소요시간 = %d ms%n", (i + 1), times[0], times[1]);
+        }
+
+        // 통계 출력
+        printStatistics(queueInsertTimes, executionTimes, orderCount);
+    }
+
+    private long[] runSingleTest(int orderCount) throws InterruptedException {
+        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
+        long testStart = System.nanoTime();
+
+        // 주문 생성 및 큐 삽입
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+        for (int i = 0; i < orderCount; i++) {
+            executor.submit(() -> {
+                SellOrder limitSellOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), true);
+                BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), true);
+                waitingOrders.addOrder(limitSellOrder);
+                waitingOrders.addOrder(limitBuyOrder);
+            });
+        }
+
+        // 큐 삽입 완료 대기
+        executor.shutdown();
+        boolean queueTerminated = executor.awaitTermination(10, TimeUnit.SECONDS);
+        long queueInsertEnd = System.nanoTime();
+        long queueInsertTime = (queueInsertEnd - testStart) / 1_000_000;
+
+        // 단일 이벤트 발행 (체결 시작)
+        long eventStart = System.nanoTime();
+        SellOrder dummyOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), true);
+        eventPublisher.publishEvent(new OrderInsertedToQueue(dummyOrder));
+
+        long eventEnd = System.nanoTime();
+        long executionTime = (eventEnd - eventStart) / 1_000_000;
+
+        // 결과 출력
+        if (tradeRepository.findAll().size() != orderCount) {
+            PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
+            PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
+            System.out.print("체결 종료 - 체결내역[: " + tradeRepository.findAll().size() + "건]");
+            System.out.println("잔여 주문[매도 " + sellOrderPriorityQueueStore.size() + "건, 매수 " + buyOrderPriorityQueueStore.size() + "건]");
+        }
+
+        // 큐와 DB 초기화
+        waitingOrders.clearAllQueues();
+        tradeRepository.deleteAll();
+        sellOrderRepository.deleteAll();
+        buyOrderRepository.deleteAll();
+
+        return new long[]{queueInsertTime, executionTime};
+    }
+
+    private void printStatistics(List<Long> queueInsertTimes, List<Long> executionTimes, int orderCount) {
+        // 큐 삽입 시간 통계
+        double queueAvg = queueInsertTimes.stream().mapToLong(Long::longValue).average().orElse(0.0);
+        long queueMin = queueInsertTimes.stream().mapToLong(Long::longValue).min().orElse(0);
+        long queueMax = queueInsertTimes.stream().mapToLong(Long::longValue).max().orElse(0);
+        double queueStdDev = calculateStdDev(queueInsertTimes, queueAvg);
+
+        // 체결 시간 통계
+        double executionAvg = executionTimes.stream().mapToLong(Long::longValue).average().orElse(0.0);
+        long executionMin = executionTimes.stream().mapToLong(Long::longValue).min().orElse(0);
+        long executionMax = executionTimes.stream().mapToLong(Long::longValue).max().orElse(0);
+        double executionStdDev = calculateStdDev(executionTimes, executionAvg);
+
+        // 처리량 통계 (체결 시간 기반)
+        double throughputAvg = (orderCount * 2) / (executionAvg / 1000.0);
+        double throughputMin = (orderCount * 2) / (executionMax / 1000.0);
+        double throughputMax = (orderCount * 2) / (executionMin / 1000.0);
+
+        System.out.printf("=== 통계 결과 ===%n");
+        System.out.printf("큐 삽입 시간 - 평균: %.2f ms, 최소: %d ms, 최대: %d ms, 표준편차: %.2f ms%n",
+                queueAvg, queueMin, queueMax, queueStdDev);
+        System.out.printf("체결 시간 - 평균: %.2f ms, 최소: %d ms, 최대: %d ms, 표준편차: %.2f ms%n",
+                executionAvg, executionMin, executionMax, executionStdDev);
+        System.out.printf("처리량 - 평균: %.2f orders/sec, 최소: %.2f orders/sec, 최대: %.2f orders/sec%n",
+                throughputAvg, throughputMin, throughputMax);
+    }
+
+    private double calculateStdDev(List<Long> times, double mean) {
+        double sum = times.stream().mapToDouble(t -> Math.pow(t - mean, 2)).sum();
+        return Math.sqrt(sum / times.size());
     }
 
 }

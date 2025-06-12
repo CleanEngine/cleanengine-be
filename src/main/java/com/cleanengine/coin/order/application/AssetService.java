@@ -33,6 +33,10 @@ public class AssetService {
         return assetRepository.findAll().stream().map(AssetInfo::from).toList();
     }
 
+    public List<String> getAllAssetTickers(){
+        return assetRepository.findAll().stream().map(Asset::getTicker).toList();
+    }
+
     public boolean isAssetExist(String ticker){
         if(assetCacheRepository.isAssetExists(ticker)) return true;
 

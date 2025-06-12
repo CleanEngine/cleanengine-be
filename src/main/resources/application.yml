@@ -40,8 +40,7 @@ spring:
       hibernate:
         jdbc:
           time_zone: Asia/Seoul
-order:
-  tickers: BTC, TRUMP
+
 server:
   forward-headers-strategy: native
 

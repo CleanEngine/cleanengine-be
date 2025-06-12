@@ -6,15 +6,18 @@ import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.realitybot.domain.APIVWAPState;
 import com.cleanengine.coin.realitybot.domain.VWAPMetricsRecorder;
 import com.cleanengine.coin.realitybot.dto.Ticks;
+import com.cleanengine.coin.realitybot.parser.CoinoneTicksAdapter;
 import com.cleanengine.coin.realitybot.parser.TickParser;
 import com.cleanengine.coin.realitybot.service.OrderGenerateService;
 import com.cleanengine.coin.realitybot.service.TickServiceManager;
+import com.google.common.util.concurrent.RateLimiter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,30 +35,35 @@ public class ApiScheduler {
     private final Map<String,Long> lastSequentialIdMap = new ConcurrentHashMap<>();
     private final AssetRepository assetRepository;
     private final CoinoneAPIClient coinoneAPIClient;
+    private final CoinoneTicksAdapter coinoneTicksAdapter;
     private final VWAPMetricsRecorder recorder;
     private final MeterRegistry meterRegistry;
 //    private final BotThreadConfig executor;
+    private final RateLimiter rateLimiter = RateLimiter.create(140.0); //TODO 마켓별로 커스텀 필요
     private String ticker;
 
 //    @Scheduled(fixedRate = 5000)
-    public void MarketAllRequest() throws InterruptedException {
+    public void getMarketAllRequest() throws InterruptedException {
         Timer timer = meterRegistry.timer("apischeduler.request.duration");
         timer.record(() -> {
             List<Asset> tickers = assetRepository.findAll();
             for (Asset ticker : tickers) {
                 String tickerName = ticker.getTicker();
 //                executor.botThreadPoolExecutor().execute(() -> {
-                    MarketDataRequest(tickerName);
+                    rateLimiter.acquire();
+                     log.debug("[{}] 요청 실행: {}", LocalTime.now(), tickerName);
+                getMarketDataRequest(tickerName); //failover 전략 추가
 //                });
             }
         });
     }
 
-    public void MarketDataRequest(String ticker){
+    public void getMarketDataRequest(String ticker){
         this.ticker = ticker;
-        String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
 //        String rawJson = getMarketDataWithFallback(ticker);
-        List<Ticks> gson = tickParser.parseGson(rawJson); //json을 list로 변환
+        List<Ticks> gson = getMarketDataWithFallback(ticker); //json을 list로 변환
+
+        //---------------- 이거 변환소로 바꾸기
 
         APIVWAPState apiVWAPState = tickServiceManager.getService(ticker);
         long lastSeqId = lastSequentialIdMap.getOrDefault(ticker,0L);
@@ -76,34 +84,32 @@ public class ApiScheduler {
 
         orderGenerateService.generateOrder(ticker,vwap,volume); //1tick 당 매수/매도 3개씩 제작
 
-//        log.info("작동확인 {}의 가격 : {} , 볼륨 : {}",ticker, vwap, volume);
+        log.info("작동확인 {}의 가격 : {} , 볼륨 : {}",ticker, vwap, volume);
     }
 
-/*    @Override
-    public void destroy() throws Exception { //담긴 Queue데이터 확인용
-//        log.info("종료 전 큐 데이터 출력");
-//        ticksQueue.forEach(tick -> log.debug(tick.toString())); //
-//        log.info("총 {}건의 데이터 출력 완료",ticksQueue.size());
-//        orderQueueManagerService.logAllOrders();
-//        virtualTradeService.printOrderSummary();
-    }*/
-/*public String getMarketDataWithFallback(String ticker) {
+public List<Ticks> getMarketDataWithFallback(String ticker) {
     try {
-//        String bithumbJson = bithumbAPIClient.get(ticker);
-        String bithumbJson = null;
-
+        String bithumbJson = bithumbAPIClient.get(ticker);
         // 예외가 없었어도 비정상 응답일 수 있음 → 예: 빈 JSON 또는 에러 코드
-        if (bithumbJson == null || bithumbJson.isBlank() || bithumbJson.contains("\"result\":\"error\"")) {
-            log.warn("Bithumb 응답 비정상, Coinone으로 대체 요청");
-            return coinoneAPIClient.get(ticker);
+        if (bithumbJson != null && !bithumbJson.isBlank() && !bithumbJson.contains("\"result\":\"error\"")) {
+            return tickParser.parseGson(bithumbJson);
         }
-
-        return bithumbJson;
-
-    } catch (Exception e) {
-        log.error("Bithumb API 오류 발생: {} → Coinone으로 대체 요청", e.getMessage());
-        return coinoneAPIClient.geta(ticker);
+        log.warn("Bithumb 응답 비정상, Coinone으로 Failover: ticker{}",ticker);
+    }catch (Exception e){
+        log.error("Bithumb API 오류: ticker={}, 오류={}. Coinone으로 Failover", ticker, e.getMessage());
     }
-}*/
+    try {
+        String coinoneJson = coinoneAPIClient.get(ticker);
+        // 예외가 없었어도 비정상 응답일 수 있음 → 예: 빈 JSON 또는 에러 코드
+        if (coinoneJson != null && !coinoneJson.isBlank() && !coinoneJson.contains("\"result\":\"error\"")) {
+            return coinoneTicksAdapter.convertToTicks(coinoneJson);
+        }
+        log.warn("Coinone 응답 비정상: ticker{}",ticker);
+    }catch (Exception e){
+        log.error("Coinone API 오류: ticker={}, 오류={}. Coinone으로 Failover", ticker, e.getMessage());
+    }
+    return List.of();
+
+}
 
 }

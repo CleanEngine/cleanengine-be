@@ -18,13 +18,13 @@ public class ApiController {
     public ResponseEntity<?> getApiData(@PathVariable String tickerName) {
         String upperTickerName = tickerName.toUpperCase();
         System.out.println(upperTickerName);
-        apiScheduler.MarketDataRequest(upperTickerName);
+        apiScheduler.getMarketDataRequest(upperTickerName);
         return ResponseEntity.ok("Triggered marketAllRequest");
     }
 
     @GetMapping("/all")
     public ResponseEntity<?> getApiData() throws InterruptedException {
-        apiScheduler.MarketAllRequest();
+        apiScheduler.getMarketAllRequest();
         return ResponseEntity.ok("Triggered marketAllRequest");
     }
 }

@@ -22,18 +22,14 @@ public class OrderBook {
         if(isBuyOrder){
             BuyOrderBookUnit buyOrderBookUnit = buyOrderBookUnitMap.get(price);
             if(buyOrderBookUnit == null){
-                buyOrderBookUnit = new BuyOrderBookUnit(price, orderSize);
-                buyOrderBookUnitMap.put(price, buyOrderBookUnit);
-                buyOrderBookUnitListSet.add(buyOrderBookUnit);
+                addBuyOrderBookUnit(price, orderSize);
             } else {
                 buyOrderBookUnit.addOrder(orderSize);
             }
         } else {
             SellOrderBookUnit sellOrderBookUnit = sellOrderBookUnitMap.get(price);
             if(sellOrderBookUnit == null){
-                sellOrderBookUnit = new SellOrderBookUnit(price, orderSize);
-                sellOrderBookUnitMap.put(price, sellOrderBookUnit);
-                sellOrderBookUnitListSet.add(sellOrderBookUnit);
+                addSellOrderBookUnit(price, orderSize);
             } else {
                 sellOrderBookUnit.addOrder(orderSize);
             }
@@ -41,19 +37,27 @@ public class OrderBook {
     }
 
     public void updateOrderBookOnTradeExecuted(boolean isBuyOrder, Double price, Double orderSize) {
-        if(isBuyOrder){
+        if(approxEquals(orderSize, 0.0) || approxEquals(price, 0.0)){
+            throw new IllegalArgumentException("orderSize or price cannot be 0.0");
+        }
+
+        if(isBuyOrder) {
             BuyOrderBookUnit buyOrderBookUnit = buyOrderBookUnitMap.get(price);
+            if(buyOrderBookUnit == null) {
+                return;
+            }
             buyOrderBookUnit.executeTrade(orderSize);
             if(approxEquals(buyOrderBookUnit.getSize(), 0.0)){
-                buyOrderBookUnitMap.remove(price);
-                buyOrderBookUnitListSet.remove(buyOrderBookUnit);
+                removeBuyOrderBookUnit(buyOrderBookUnit, price);
             }
         } else {
             SellOrderBookUnit sellOrderBookUnit = sellOrderBookUnitMap.get(price);
+            if(sellOrderBookUnit == null) {
+                return;
+            }
             sellOrderBookUnit.executeTrade(orderSize);
             if(approxEquals(sellOrderBookUnit.getSize(), 0.0)){
-                sellOrderBookUnitMap.remove(price);
-                sellOrderBookUnitListSet.remove(sellOrderBookUnit);
+                removeSellOrderBookUnit(sellOrderBookUnit, price);
             }
         }
     }
@@ -70,5 +74,41 @@ public class OrderBook {
                 .stream()
                 .limit(size)
                 .collect(Collectors.toList());
+    }
+
+    protected synchronized void addBuyOrderBookUnit(Double price, Double size) {
+        BuyOrderBookUnit buyOrderBookUnit = buyOrderBookUnitMap.get(price);
+        if(buyOrderBookUnit != null){
+            return;
+        }
+
+        buyOrderBookUnit = new BuyOrderBookUnit(price, size);
+        buyOrderBookUnitMap.put(price, buyOrderBookUnit);
+        buyOrderBookUnitListSet.add(buyOrderBookUnit);
+    }
+
+    protected synchronized void addSellOrderBookUnit(Double price, Double size) {
+        SellOrderBookUnit sellOrderBookUnit = sellOrderBookUnitMap.get(price);
+        if(sellOrderBookUnit != null){
+            return;
+        }
+
+        sellOrderBookUnit = new SellOrderBookUnit(price, size);
+        sellOrderBookUnitMap.put(price, sellOrderBookUnit);
+        sellOrderBookUnitListSet.add(sellOrderBookUnit);
+    }
+
+    protected synchronized void removeBuyOrderBookUnit(BuyOrderBookUnit buyOrderBookUnit, Double price) {
+        if(approxEquals(buyOrderBookUnit.getSize(), 0.0)) {
+            buyOrderBookUnitMap.remove(price);
+            buyOrderBookUnitListSet.remove(buyOrderBookUnitMap.get(price));
+        }
+    }
+
+    protected synchronized void removeSellOrderBookUnit(SellOrderBookUnit sellOrderBookUnit, Double price) {
+        if(approxEquals(sellOrderBookUnit.getSize(), 0.0)) {
+            sellOrderBookUnitMap.remove(price);
+            sellOrderBookUnitListSet.remove(sellOrderBookUnitMap.get(price));
+        }
     }
 }

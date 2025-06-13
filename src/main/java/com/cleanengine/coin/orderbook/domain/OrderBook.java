@@ -37,7 +37,11 @@ public class OrderBook {
     }
 
     public void updateOrderBookOnTradeExecuted(boolean isBuyOrder, Double price, Double orderSize) {
-        if(isBuyOrder){
+        if(approxEquals(orderSize, 0.0) || approxEquals(price, 0.0)){
+            throw new IllegalArgumentException("orderSize or price cannot be 0.0");
+        }
+
+        if(isBuyOrder) {
             BuyOrderBookUnit buyOrderBookUnit = buyOrderBookUnitMap.get(price);
             if(buyOrderBookUnit == null) {
                 return;

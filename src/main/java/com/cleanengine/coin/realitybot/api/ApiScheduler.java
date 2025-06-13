@@ -44,7 +44,7 @@ public class ApiScheduler {
 
 //    @Scheduled(fixedRate = 5000)
     public void getMarketAllRequest() throws InterruptedException {
-        Timer timer = meterRegistry.timer("apischeduler.request.duration");
+        Timer timer = meterRegistry.timer("market.all.request.duration");
         timer.record(() -> {
             List<Asset> tickers = assetRepository.findAll();
             for (Asset ticker : tickers) {
@@ -60,7 +60,10 @@ public class ApiScheduler {
 
     public void getMarketDataRequest(String ticker){
         this.ticker = ticker;
-//        String rawJson = getMarketDataWithFallback(ticker);
+        Timer apiTimer = Timer.builder("market.data.request.duration")
+                .tag("ticker", ticker)
+                .register(meterRegistry);
+        apiTimer.record(() -> {
         List<Ticks> gson = getMarketDataWithFallback(ticker); //json을 list로 변환
 
         //---------------- 이거 변환소로 바꾸기
@@ -85,6 +88,7 @@ public class ApiScheduler {
         orderGenerateService.generateOrder(ticker,vwap,volume); //1tick 당 매수/매도 3개씩 제작
 
         log.info("작동확인 {}의 가격 : {} , 볼륨 : {}",ticker, vwap, volume);
+        });
     }
 
 public List<Ticks> getMarketDataWithFallback(String ticker) {

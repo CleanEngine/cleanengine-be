@@ -61,5 +61,7 @@ public class VWAPMetricsRecorder {
             return ref;
         }).set(price);
     }
-
+    public void recordErrorRateVwap(String ticker, double apiVwap, double platformVwap){
+        meterRegistry.gauge("vwap.error.rate",Tags.of("ticker",ticker),Math.abs((apiVwap-platformVwap)/apiVwap*100));
+    }
 }

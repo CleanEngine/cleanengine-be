@@ -40,21 +40,17 @@ public class OrderGenerateService {
     private final OrderAccountRepository accountExternalRepository;
 
     private final VWAPMetricsRecorder recorder;
-    private String ticker;
 
 
     public void generateOrder(String ticker, double apiVWAP, double avgVolume) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
-        this.ticker = ticker;
 
         //호가 정책 적용
         this.unitPrice = unitPriceRefresher.getUnitPriceByTicker(ticker);
 
-//        //최근 체결 내역 가져오기
-//        List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
-
         // Platform 기반 가격 생성 (10개 이하, 10개 이상에 따른 가격 생성)
         double platformVWAP = platformVWAPService.calculateVWAPbyTrades(ticker,apiVWAP);
         recorder.recordPlatformVwap(ticker,platformVWAP);
+        recorder.recordErrorRateVwap(ticker, apiVWAP, platformVWAP);
         //편차 계산 (vwap 기준)
         double trendLineRate = (platformVWAP - apiVWAP)/ apiVWAP;
         for(int level : orderLevels) { //1주문당 3회 매수매도 처리
@@ -112,7 +108,6 @@ public class OrderGenerateService {
     }
 
     protected void resetBot(String ticker){
-        this.ticker = ticker;
         Wallet wallet = orderWalletRepository.findWalletBy(SELL_ORDER_BOT_ID,ticker).get();
         wallet.setSize(500_000_000.0);
         Wallet wallet2 = orderWalletRepository.findWalletBy(BUY_ORDER_BOT_ID,ticker).get();

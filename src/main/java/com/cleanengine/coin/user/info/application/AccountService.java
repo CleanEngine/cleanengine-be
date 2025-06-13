@@ -6,6 +6,7 @@ import com.cleanengine.coin.user.info.infra.AccountRepository;
 import com.cleanengine.coin.user.info.infra.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -38,7 +39,7 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void resetBot(String ticker) {
         Account sellBotAccount = accountRepository.findByUserId(SELL_ORDER_BOT_ID).orElseThrow();
         sellBotAccount.setCash(0.0);

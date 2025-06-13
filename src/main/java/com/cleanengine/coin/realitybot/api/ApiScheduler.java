@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
-@WorkingServerProfile
 @RequiredArgsConstructor
 public class ApiScheduler {
 

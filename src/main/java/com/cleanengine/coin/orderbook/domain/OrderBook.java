@@ -101,14 +101,14 @@ public class OrderBook {
     protected synchronized void removeBuyOrderBookUnit(BuyOrderBookUnit buyOrderBookUnit, Double price) {
         if(approxEquals(buyOrderBookUnit.getSize(), 0.0)) {
             buyOrderBookUnitMap.remove(price);
-            buyOrderBookUnitListSet.remove(buyOrderBookUnitMap.get(price));
+            buyOrderBookUnitListSet.remove(buyOrderBookUnit);
         }
     }
 
     protected synchronized void removeSellOrderBookUnit(SellOrderBookUnit sellOrderBookUnit, Double price) {
         if(approxEquals(sellOrderBookUnit.getSize(), 0.0)) {
             sellOrderBookUnitMap.remove(price);
-            sellOrderBookUnitListSet.remove(sellOrderBookUnitMap.get(price));
+            sellOrderBookUnitListSet.remove(sellOrderBookUnit);
         }
     }
 }

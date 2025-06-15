@@ -3,6 +3,9 @@ package com.cleanengine.coin.realitybot.service;
 import com.cleanengine.coin.realitybot.domain.PlatformVWAPState;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +18,22 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예정임
     private final TradeRepository tradeRepository;
-
+    private final MeterRegistry meterRegistry;
     Map<String, PlatformVWAPState> vwapMap = new ConcurrentHashMap<>();
     Map<String, LocalDateTime> lastTradeTimeMap = new ConcurrentHashMap<>();
 
-
+    @WithSpan("db.query.execution")
     public double calculateVWAPbyTrades(String ticker,double apiVWAP) {
+        Timer timer = Timer.builder("db_query_execution_duration_seconds")
+                .tag("query.type", "findTop10ByTicker")
+                .tag("ticker", ticker)
+                .register(meterRegistry);
+
+        return timer.record(()->{
         PlatformVWAPState state = vwapMap.computeIfAbsent(ticker, PlatformVWAPState::new);
         LocalDateTime lastTradeTime = lastTradeTimeMap.get(ticker);
+
+
 
         //최근 체결 내역 가져오기
         List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
@@ -52,6 +63,7 @@ public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예�
         }
 
         //=================
+
         state.addTrades(trades);
 
         /*System.out.println("📦"+ticker+" [체결 기록]");
@@ -59,9 +71,9 @@ public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예�
                 System.out.printf("🕒 %s | 가격: %.0f | 수량: %.8f | 매수: #%d ↔ 매도: #%d%n",
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
         );*/
-
-
         return state.getVWAP();
+
+        });
     }
 
         public double generateVWAP ( double apiVWAP){

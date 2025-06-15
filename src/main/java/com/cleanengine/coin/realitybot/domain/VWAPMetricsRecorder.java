@@ -18,25 +18,21 @@ public class VWAPMetricsRecorder {
     private final ConcurrentHashMap<String, DistributionSummary> orderPriceSummery = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AtomicReference<Double>> apiVwapMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AtomicReference<Double>> platformVwapMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AtomicReference<Double>> errorRateMap = new ConcurrentHashMap<>();
 
     public void recordPrice(String ticker, boolean isBuy, double price){
         String type = isBuy ? "buy" : "sell";
         String timeStamp = Instant.now().toString();
 //        String key = ticker +"|"+type+"|"+timeStamp;
         String key = ticker +"|"+type;
-
-
         AtomicReference<Double> priceRef = orderPriceMap.computeIfAbsent(key, k -> {
-
             AtomicReference<Double> value = new AtomicReference<>(price);
-
             meterRegistry.gauge("order_price",
                     Tags.of("ticker",ticker,"type",type)
                     ,value,AtomicReference::get);
             return value;
         });
         priceRef.set(price);
-
         DistributionSummary summary = orderPriceSummery.computeIfAbsent(key,k ->
                 DistributionSummary.builder("order_price_summary")
                         .tags(Tags.of("ticker",ticker,"type",type))
@@ -62,6 +58,12 @@ public class VWAPMetricsRecorder {
         }).set(price);
     }
     public void recordErrorRateVwap(String ticker, double apiVwap, double platformVwap){
-        meterRegistry.gauge("vwap.error.rate",Tags.of("ticker",ticker),Math.abs((apiVwap-platformVwap)/apiVwap*100));
+        double errorRate = Math.abs((apiVwap-platformVwap)/apiVwap*100);
+        errorRateMap.computeIfAbsent(ticker, t->{
+        AtomicReference<Double> ref = new AtomicReference<>(0.0);
+        meterRegistry.gauge("vwap.error.rate",Tags.of("ticker",ticker),ref,AtomicReference::get);
+        return ref;
+        }).set(errorRate);
+
     }
 }

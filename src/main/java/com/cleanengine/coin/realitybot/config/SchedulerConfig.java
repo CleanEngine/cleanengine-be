@@ -46,8 +46,8 @@ public class SchedulerConfig implements SchedulingConfigurer {
         }, cron);
         registrar.addFixedRateTask(() -> {
             try {
-                apiScheduler.getMarketAllRequest();
-            } catch (InterruptedException e) {
+//                apiScheduler.getMarketAllRequest();
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }, fixedRate);

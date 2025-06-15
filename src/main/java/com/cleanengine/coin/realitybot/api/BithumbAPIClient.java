@@ -1,6 +1,9 @@
 package com.cleanengine.coin.realitybot.api;
 
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -15,11 +18,15 @@ import java.io.IOException;
 @Slf4j
 public class BithumbAPIClient {
     private final OkHttpClient client;
-    private String ticker;
+    private final MeterRegistry meterRegistry;
 
-
+    @WithSpan("bithumb.api.call.excution")
     public String get(String ticker){ //API를 responseBody에 담아 반환
-        this.ticker = ticker;
+        Timer timer = Timer.builder("bithumb_api_call_duration_seconds")
+                .tag("ticker", ticker)
+                .tag("status", "200")
+                .register(meterRegistry);
+        return timer.record(()->{
         Request request = new Request.Builder()
                 .url("https://api.bithumb.com/v1/trades/ticks?market=krw-"+ticker+"&count=10")
                 .get()
@@ -36,9 +43,9 @@ public class BithumbAPIClient {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        });
     }
     public String getOpeningPrice(String ticker){
-        this.ticker = ticker;
         Request request = new Request.Builder()
                 .url("https://api.bithumb.com/v1/ticker?markets=KRW-"+ticker)
                 .get()

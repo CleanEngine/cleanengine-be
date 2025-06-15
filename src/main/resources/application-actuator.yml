@@ -10,3 +10,13 @@ management:
     metrics:
       export:
         enabled: true
+opentelemetry:
+  traces:
+    exporter: otlp
+  metrics:
+    exporter: otlp
+  exporter:
+    otlp:
+      endpoint: http://localhost:4318
+  service:
+    name: my-app

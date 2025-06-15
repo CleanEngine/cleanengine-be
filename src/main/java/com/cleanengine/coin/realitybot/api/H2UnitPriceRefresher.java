@@ -10,11 +10,12 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile("h2-mem")
+@Profile({"(dev & !it & !mariadb-local) | h2-mem"})
 @RequiredArgsConstructor
 public class H2UnitPriceRefresher implements ApplicationRunner {
     private final UnitPriceRefresher unitPriceRefresher;
 
+    @Override
     public void run(ApplicationArguments args){
         log.info("Running Unit Price Refresher (h2-mem)...");
         unitPriceRefresher.initializeUnitPrices();

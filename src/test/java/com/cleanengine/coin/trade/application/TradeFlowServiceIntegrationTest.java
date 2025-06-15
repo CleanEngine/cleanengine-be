@@ -27,8 +27,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @Disabled
 class TradeFlowServiceIntegrationTest {
 
-    private static TradeBatchProcessor staticTradeBatchProcessor;
-
     private static final double MINIMUM_ORDER_SIZE = 0.00000001;
 
     @Autowired
@@ -38,8 +36,6 @@ class TradeFlowServiceIntegrationTest {
     @Autowired
     TradeRepository tradeRepository;
     @Autowired
-    TradeBatchProcessor tradeBatchProcessor;
-    @Autowired
     private WaitingOrdersManager waitingOrdersManager;
 
     private final String ticker = "BTC";
@@ -47,19 +43,11 @@ class TradeFlowServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        if (staticTradeBatchProcessor == null) {
-            staticTradeBatchProcessor = tradeBatchProcessor;
-        }
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
         waitingOrders.clearAllQueues();
         tradeRepository.deleteAll();
         buyOrderRepository.deleteAll();
         sellOrderRepository.deleteAll();
-    }
-
-    @AfterAll
-    static void cleanup() {
-        staticTradeBatchProcessor.shutdown();
     }
 
     // TODO : 모든 케이스에서 각 객체의 값까지 정합성이 맞는지 테스트 필요

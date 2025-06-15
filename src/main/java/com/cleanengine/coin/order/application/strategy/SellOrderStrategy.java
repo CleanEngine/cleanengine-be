@@ -1,9 +1,7 @@
 package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.order.application.port.out.PublishOrderCreatedPort;
@@ -12,6 +10,8 @@ import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.domainservice.CreateOrderDomainService;
 import com.cleanengine.coin.order.domain.domainservice.CreateSellOrderDomainService;
 import com.cleanengine.coin.user.domain.Wallet;
+import com.cleanengine.coin.user.info.infra.AccountRepository;
+import com.cleanengine.coin.user.info.infra.WalletRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;
 
@@ -39,7 +39,7 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
         Double orderSize = order.getOrderSize();
 
         Wallet wallet = walletRepository
-                .findWalletBy(userId, ticker)
+                .findByAccountIdAndTicker(userId, ticker)
                 .orElseThrow(()->
                         new DomainValidationException("Wallet not found",
                                 List.of(new FieldError("wallet", "userId", "user might not exist"),
@@ -62,11 +62,11 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
 
     public SellOrderStrategy(PublishOrderCreatedPort publishOrderCreatedPort,
                              AssetService assetService,
-                             OrderWalletRepository orderWalletRepository,
-                             OrderAccountRepository orderAccountRepository,
+                             WalletRepository walletRepository,
+                             AccountRepository accountRepository,
                              SellOrderRepository sellOrderRepository,
                              CreateSellOrderDomainService createOrderDomainService) {
-        super(publishOrderCreatedPort, assetService, orderWalletRepository, orderAccountRepository);
+        super(publishOrderCreatedPort, assetService, walletRepository, accountRepository);
         this.sellOrderRepository = sellOrderRepository;
         this.createOrderDomainService = createOrderDomainService;
     }

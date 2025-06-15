@@ -1,15 +1,12 @@
 package com.cleanengine.coin.realitybot.service;
 
-import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
 import com.cleanengine.coin.realitybot.domain.VWAPMetricsRecorder;
 import com.cleanengine.coin.realitybot.vo.DeviationPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderVolumePolicy;
-import com.cleanengine.coin.user.domain.Account;
-import com.cleanengine.coin.user.domain.Wallet;
+import com.cleanengine.coin.user.info.application.AccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,36 +15,28 @@ import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
 
-import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
-import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
-
 @Slf4j
 @Service
 @Order(5)
 @RequiredArgsConstructor
 public class OrderGenerateService {
-    private final VWAPMetricsRecorder VWAPMetricsRecorder;
     @Value("${bot-handler.order-level}")
     private int[] orderLevels; //체결 강도
-    private double unitPrice = 0; //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
     private final UnitPriceRefresher unitPriceRefresher;
     private final PlatformVWAPService platformVWAPService;
     private final OrderService orderService;
     private final OrderPricePolicy orderPricePolicy;
     private final DeviationPricePolicy deviationPricePolicy;
     private final OrderVolumePolicy orderVolumePolicy;
-    private final OrderWalletRepository orderWalletRepository;
-    private final OrderAccountRepository accountExternalRepository;
+    private final AccountService accountService;
 
     private final VWAPMetricsRecorder recorder;
-    private String ticker;
-
 
     public void generateOrder(String ticker, double apiVWAP, double avgVolume) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
-        this.ticker = ticker;
 
         //호가 정책 적용
-        this.unitPrice = unitPriceRefresher.getUnitPriceByTicker(ticker);
+        //TODO : 거래쌍 시세에 따른 호가 정책 개발 필요
+        double unitPrice = unitPriceRefresher.getUnitPriceByTicker(ticker);
 
 //        //최근 체결 내역 가져오기
 //        List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
@@ -58,7 +47,7 @@ public class OrderGenerateService {
         //편차 계산 (vwap 기준)
         double trendLineRate = (platformVWAP - apiVWAP)/ apiVWAP;
         for(int level : orderLevels) { //1주문당 3회 매수매도 처리
-            OrderPricePolicy.OrderPrice basePrice = orderPricePolicy.calculatePrice(level,platformVWAP,unitPrice,trendLineRate);
+            OrderPricePolicy.OrderPrice basePrice = orderPricePolicy.calculatePrice(level,platformVWAP, unitPrice,trendLineRate);
             DeviationPricePolicy.AdjustPrice adjustPrice = deviationPricePolicy.adjust(
                     basePrice.sell(), basePrice.buy(), trendLineRate, apiVWAP, unitPrice);
 
@@ -103,29 +92,12 @@ public class OrderGenerateService {
         } catch (IllegalArgumentException e) {
             log.debug("잔량 부족: {}", e.getMessage());
             try {
-                resetBot(ticker);
+                accountService.resetBot(ticker);
                 orderService.createOrderWithBot(ticker, isBuy, volume, price);
             } catch (Exception e1) {
                 log.error("주문 재시도 실패", e1);
             }
         }
-    }
-
-    protected void resetBot(String ticker){
-        this.ticker = ticker;
-        Wallet wallet = orderWalletRepository.findWalletBy(SELL_ORDER_BOT_ID,ticker).get();
-        wallet.setSize(500_000_000.0);
-        Wallet wallet2 = orderWalletRepository.findWalletBy(BUY_ORDER_BOT_ID,ticker).get();
-        wallet2.setSize(0.0);
-        orderWalletRepository.save(wallet);
-        orderWalletRepository.save(wallet2);
-
-        Account account = accountExternalRepository.findByUserId(SELL_ORDER_BOT_ID).get();
-        account.setCash(0.0);
-        Account account2 = accountExternalRepository.findByUserId(BUY_ORDER_BOT_ID).get();
-        account2.setCash(500_000_000.0);
-        accountExternalRepository.save(account);
-        accountExternalRepository.save(account2);
     }
 
 }

@@ -1,9 +1,7 @@
 package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.order.application.port.out.PublishOrderCreatedPort;
@@ -12,6 +10,8 @@ import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.domainservice.CreateBuyOrderDomainService;
 import com.cleanengine.coin.order.domain.domainservice.CreateOrderDomainService;
 import com.cleanengine.coin.user.domain.Account;
+import com.cleanengine.coin.user.info.infra.AccountRepository;
+import com.cleanengine.coin.user.info.infra.WalletRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;
 
@@ -57,11 +57,11 @@ public class BuyOrderStrategy extends CreateOrderStrategy<BuyOrder, OrderInfo<Bu
 
     public BuyOrderStrategy(PublishOrderCreatedPort publishOrderCreatedPort,
                             AssetService assetService,
-                            OrderWalletRepository orderWalletRepository,
-                            OrderAccountRepository orderAccountRepository,
+                            WalletRepository walletRepository,
+                            AccountRepository accountRepository,
                             BuyOrderRepository buyOrderRepository,
                             CreateBuyOrderDomainService createOrderDomainService) {
-        super(publishOrderCreatedPort, assetService, orderWalletRepository, orderAccountRepository);
+        super(publishOrderCreatedPort, assetService, walletRepository, accountRepository);
         this.buyOrderRepository = buyOrderRepository;
         this.createOrderDomainService = createOrderDomainService;
     }

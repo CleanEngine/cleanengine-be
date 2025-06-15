@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  app:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: my-spring-app2
+    volumes:
+      - ../build/libs/coin-0.0.1-SNAPSHOT.jar:/app/coin-0.0.1-SNAPSHOT.jar
+      - /etc/localtime:/etc/localtime:ro
+      - ./opentelemetry-javaagent.jar:/app/opentelemetry-javaagent.jar
+    working_dir: /app
+    command: [ "java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,mariadb-local,actuator,apm" ]
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../docker/local.properties
+    environment:
+      - TZ=Asia/Seoul
+      - OTEL_SERVICE_NAME=my-spring-app
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_LOGS_EXPORTER=none
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_INSTRUMENTATION_METHODS_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005, -javaagent:/app/opentelemetry-javaagent.jar
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - app-network
+      - monitoring-net
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb2
+    ports:
+      - "3306:3306"
+    env_file:
+      - ../docker/local.properties
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ../docker/mariadb/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app-network
+      - monitoring-net
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - monitoring-net
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  mariadb_data:
+    driver: local
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge
+  monitoring-net:
+    name: monitoring-net
+    driver: bridge

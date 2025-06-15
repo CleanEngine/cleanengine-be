@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
-@WorkingServerProfile
 @RequiredArgsConstructor
 public class ApiScheduler {
 
@@ -34,7 +33,6 @@ public class ApiScheduler {
     private final CoinoneAPIClient coinoneAPIClient;
     private final VWAPMetricsRecorder recorder;
     private final MeterRegistry meterRegistry;
-    private String ticker;
 
 //    @Scheduled(fixedRate = 5000)
     public void MarketAllRequest() throws InterruptedException {
@@ -49,7 +47,6 @@ public class ApiScheduler {
     }
 
     public void MarketDataRequest(String ticker){
-        this.ticker = ticker;
         String rawJson = bithumbAPIClient.get(ticker); //api raw데이터
 //        String rawJson = getMarketDataWithFallback(ticker);
         List<Ticks> gson = tickParser.parseGson(rawJson); //json을 list로 변환

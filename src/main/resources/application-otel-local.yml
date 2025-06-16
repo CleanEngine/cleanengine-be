@@ -1,27 +1,18 @@
-receivers:
-  otlp:
-    protocols:
-      http:
-        endpoint: "localhost:4318"
+otel:
+  exporter:
+    otlp:
+      endpoint: http://monitoring-otel-collector:4318
 
-exporters:
-  jaeger:
-    endpoint: "localhost:14250"
-    insecure: true
-  prometheus:
-    endpoint: "localhost:9090"
+  resource:
+    attributes:
+      service.name: monitoring-spring-app
 
-processors:
-  batch:
-    timeout: 5s
+management:
+  tracing:
+    sampling:
+      probability: 1.0  # 모든 요청을 trace로 기록
 
-service:
-  pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [jaeger]
-    metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus]
+logging:
+  level:
+    io.opentelemetry: INFO
+    io.micrometer.tracing: INFO

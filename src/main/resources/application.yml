@@ -46,6 +46,6 @@ server:
   forward-headers-strategy: native
 
 bot-handler:
-  fixed-rate: 5000 #  5초마다 실행
+  fixed-rate: 1000 #  1초마다 실행
   cron : "0 0 0 * * *" # 매일 자정마다 호가
-  order-level : 1,2,3,4,5 #오더북 단계 설정 - 주문량 증가
+  order-level : 1 #오더북 단계 설정 - 주문량 증가

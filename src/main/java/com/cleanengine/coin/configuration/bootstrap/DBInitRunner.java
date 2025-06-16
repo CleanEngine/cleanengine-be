@@ -1,8 +1,8 @@
 package com.cleanengine.coin.configuration.bootstrap;
 
-import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
+import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.User;
 import com.cleanengine.coin.user.domain.Wallet;
@@ -15,6 +15,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -49,16 +50,18 @@ public class DBInitRunner implements CommandLineRunner {
         account.setCash(0.0);
         accountRepository.save(account);
 
-        Wallet wallet = new Wallet();
-        wallet.setTicker("BTC");
-        wallet.setAccountId(account.getId());
-        wallet.setSize(500_000_000.0);
+        List<Wallet> wallets = new ArrayList<>();
 
-        Wallet wallet2 = new Wallet();
-        wallet2.setTicker("TRUMP");
-        wallet2.setAccountId(account.getId());
-        wallet2.setSize(500_000_000.0);
-        orderWalletRepository.saveAll(List.of(wallet, wallet2));
+        String[] tickers = {"BTC", "TRUMP", "ETH", "DOGE", "USDT", "PEPE", "XRP", "SOL", "SUI", "WLD"};
+        for (String ticker : tickers) {
+            Wallet wallet = new Wallet();
+            wallet.setTicker(ticker);
+            wallet.setAccountId(account.getId());
+            wallet.setSize(500_000_000.0);
+            wallets.add(wallet);
+        }
+
+        orderWalletRepository.saveAll(wallets);
     }
 
     @Transactional
@@ -71,23 +74,32 @@ public class DBInitRunner implements CommandLineRunner {
         account.setCash(500_000_000.0);
         accountRepository.save(account);
 
-        Wallet wallet = new Wallet();
-        wallet.setTicker("BTC");
-        wallet.setAccountId(account.getId());
-        wallet.setSize(0.0);
+        List<Wallet> wallets = new ArrayList<>();
 
-        Wallet wallet2 = new Wallet();
-        wallet2.setTicker("TRUMP");
-        wallet2.setAccountId(account.getId());
-        wallet2.setSize(0.0);
-        orderWalletRepository.saveAll(List.of(wallet, wallet2));
+        String[] tickers = {"BTC", "TRUMP", "ETH", "DOGE", "USDT", "PEPE", "XRP", "SOL", "SUI", "WLD"};
+        for (String ticker : tickers) {
+            Wallet wallet = new Wallet();
+            wallet.setTicker(ticker);
+            wallet.setAccountId(account.getId());
+            wallet.setSize(0.0);
+            wallets.add(wallet);
+        }
+        orderWalletRepository.saveAll(wallets);
     }
 
     @Transactional
     protected void initAssetData() {
         assetRepository.saveAll(List.of(
                 new Asset("BTC", "비트코인"),
-                new Asset("TRUMP", "오피셜 트럼프")
+                new Asset("TRUMP", "오피셜 트럼프"),
+                new Asset("ETH", "이더리움"),
+                new Asset("DOGE", "도지코인"),
+                new Asset("USDT", "테더"),
+                new Asset("PEPE", "페페"),
+                new Asset("XRP", "리플"),
+                new Asset("SOL", "솔라나"),
+                new Asset("SUI", "수이"),
+                new Asset("WLD", "월드코인")
         ));
     }
 }

@@ -87,7 +87,6 @@ public class ApiScheduler {
 
         orderGenerateService.generateOrder(ticker,vwap,volume); //1tick 당 매수/매도 3개씩 제작
 
-        log.info("작동확인 {}의 가격 : {} , 볼륨 : {}",ticker, vwap, volume);
         });
     }
 

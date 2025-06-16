@@ -53,8 +53,8 @@ public class OrderPricePolicy {
         return 0.01 + Math.abs(trendLineRate) * 0.5;
     }
 
-    private int normalizeToUnit(double price, double unitPrice){ //호가단위로 변환
-        return (int) ((double)(Math.round(price / unitPrice)) * unitPrice);
+    private double normalizeToUnit(double price, double unitPrice){ //호가단위로 변환
+        return Math.round(price / unitPrice)*unitPrice;
     }
 
     public record OrderPrice(double sell, double buy){}

@@ -6,9 +6,11 @@ import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -19,6 +21,13 @@ public class TradeFlowService {
     private final TradeExecutor tradeExecutor;
     private final WaitingOrdersManager waitingOrdersManager;
 
+    private CountDownLatch testLatch; // 테스트용 후크
+
+    @Profile("trade-load-test")
+    public void setTestLatch(CountDownLatch latch) {
+        this.testLatch = latch;
+    }
+
     public void execMatchAndTrade(String ticker) {
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
         // TODO : peek() 해온 Order 객체들을 lock -> 체결 도중 취소 방지
@@ -28,6 +37,10 @@ public class TradeFlowService {
         while (continueProcessing) {
             try {
                 tradeExecutor.executeTrade(waitingOrders, tradePair.get(), ticker);
+                if (testLatch != null) {
+                    testLatch.countDown();
+                }
+
                 tradePair = tradeMatcher.matchOrders(waitingOrders);
                 continueProcessing = tradePair.isPresent();
             } catch (TradeZeroOrderException e) {

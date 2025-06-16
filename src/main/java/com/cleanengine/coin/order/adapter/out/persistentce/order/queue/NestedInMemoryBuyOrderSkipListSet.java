@@ -20,7 +20,7 @@ public class NestedInMemoryBuyOrderSkipListSet implements PriorityQueueStore<Buy
 
         map.compute(item.getPrice(), (key, buyOrders) -> {
             if(buyOrders == null) {
-                buyOrders = new ConcurrentSkipListSet<>(Comparator.reverseOrder());
+                buyOrders = new ConcurrentSkipListSet<>();
             }
             boolean added = buyOrders.add(item);
             if(added) size.incrementAndGet();

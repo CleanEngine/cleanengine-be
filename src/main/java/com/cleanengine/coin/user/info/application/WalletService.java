@@ -31,6 +31,10 @@ public class WalletService {
         return walletRepository.save(wallet);
     }
 
+    public List<Wallet> saveAll(List<Wallet> wallets) {
+        return walletRepository.saveAll(wallets);
+    }
+
     public Wallet findWalletByUserIdAndTicker(Integer userId, String ticker) {
         int accountId = accountRepository.findByUserId(userId).orElseThrow().getId();
         return walletRepository.findByAccountIdAndTicker(accountId, ticker)

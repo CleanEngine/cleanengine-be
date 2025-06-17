@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.cleanengine.coin.common.CommonValues.approxEquals;
 
@@ -82,8 +83,7 @@ public class TradeExecutor {
         }
 
         // 지갑 누적계산
-        this.updateWalletAfterTrade(buyOrder, ticker, tradedSize, totalTradedPrice);
-        this.updateWalletAfterTrade(sellOrder, ticker, tradedSize, totalTradedPrice);
+        this.updateWalletAfterTrade(buyOrder, sellOrder, ticker, tradedSize, totalTradedPrice);
 
         // 체결내역 저장
         Trade trade = this.insertNewTrade(ticker, buyOrder, sellOrder, tradedSize, tradedPrice);
@@ -91,7 +91,11 @@ public class TradeExecutor {
         TradeExecutedEvent tradeExecutedEvent = TradeExecutedEvent.of(trade, buyOrder.getId(), sellOrder.getId());
         tradeExecutedEventPublisher.publish(tradeExecutedEvent);
     }
+    private Trade insertNewTrade(String ticker, BuyOrder buyOrder, SellOrder sellOrder, double tradeSize, Double tradePrice) {
+        Trade newTrade = Trade.of(ticker, LocalDateTime.now(), buyOrder.getUserId(), sellOrder.getUserId(), tradePrice, tradeSize);
 
+        return tradeService.save(newTrade);
+    }
     private static void checkZeroOrderAndThrowException(BuyOrder buyOrder, SellOrder sellOrder) {
         Order zeroOrder = null;
         if (approxEquals(buyOrder.getRemainingDeposit(), 0.0))
@@ -109,29 +113,17 @@ public class TradeExecutor {
         accountService.save(account.increaseCash(amount));
     }
 
-    private void updateWalletAfterTrade(Order order, String ticker, double tradedSize, double totalTradedPrice) {
-        if (order instanceof BuyOrder) {
-            Wallet buyerWallet = walletService.findWalletByUserIdAndTicker(order.getUserId(), ticker);
-            double updatedBuySize = buyerWallet.getSize() + tradedSize;
-            double currentBuyPrice = buyerWallet.getBuyPrice() == null ? 0.0 : buyerWallet.getBuyPrice();
-            double updatedBuyPrice = ((currentBuyPrice * buyerWallet.getSize()) + totalTradedPrice) / updatedBuySize;
-            buyerWallet.setSize(updatedBuySize);
-            buyerWallet.setBuyPrice(updatedBuyPrice);
-            // TODO : ROI 계산
-            walletService.save(buyerWallet);
-        } else if (order instanceof SellOrder) {
-            // 매도 시에는 평단가 변동 없음
-            Wallet sellerWallet = walletService.findWalletByUserIdAndTicker(order.getUserId(), ticker);
-            walletService.save(sellerWallet);
-        } else {
-            throw new BusinessException("Unsupported order type: " + order.getClass().getName(), ErrorStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    private Trade insertNewTrade(String ticker, BuyOrder buyOrder, SellOrder sellOrder, double tradeSize, Double tradePrice) {
-        Trade newTrade = Trade.of(ticker, LocalDateTime.now(), buyOrder.getUserId(), sellOrder.getUserId(), tradePrice, tradeSize);
-
-        return tradeService.save(newTrade);
+    private void updateWalletAfterTrade(BuyOrder buyOrder, SellOrder sellOrder, String ticker, double tradedSize, double totalTradedPrice) {
+        Wallet buyerWallet = walletService.findWalletByUserIdAndTicker(buyOrder.getUserId(), ticker);
+        double updatedBuySize = buyerWallet.getSize() + tradedSize;
+        double currentBuyPrice = buyerWallet.getBuyPrice() == null ? 0.0 : buyerWallet.getBuyPrice();
+        double updatedBuyPrice = ((currentBuyPrice * buyerWallet.getSize()) + totalTradedPrice) / updatedBuySize;
+        buyerWallet.setSize(updatedBuySize);
+        buyerWallet.setBuyPrice(updatedBuyPrice);
+        // TODO : ROI 계산
+        // 매도 시에는 평단가 변동 없음
+        Wallet sellerWallet = walletService.findWalletByUserIdAndTicker(sellOrder.getUserId(), ticker);
+        walletService.saveAll(List.of(buyerWallet, sellerWallet));
     }
 
     private static TradeUnitPriceAndSize getTradeUnitPriceAndSize(BuyOrder buyOrder, SellOrder sellOrder) {

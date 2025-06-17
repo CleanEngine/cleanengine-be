@@ -45,9 +45,7 @@ public class ChartSubscriptionService {
 
     //종목에 대한 구독 여부
     public boolean isSubscribedToRealTimeTradeRate(String ticker) {
-        if (ticker == null || ticker.trim().isEmpty()) {
-            return false; // 유효하지 않은 티커는 구독되지 않은 것으로 처리
-        }
+        validateTicker(ticker);
         return realTimeTradeRateSubscribedTickers.contains(ticker);
     }
 
@@ -76,9 +74,7 @@ public class ChartSubscriptionService {
     }
 
     public boolean isSubscribedToRealTimeOhlc(String ticker) {
-        if (ticker == null || ticker.trim().isEmpty()) {
-            return false; // 유효하지 않은 티커는 구독되지 않은 것으로 처리
-        }
+        validateTicker(ticker);
         return realTimeOhlcSubscribedTickers.contains(ticker);
     }
 
@@ -103,9 +99,7 @@ public class ChartSubscriptionService {
     }
 
     public boolean isSubscribedToPrevRate(String ticker) {
-        if (ticker == null || ticker.trim().isEmpty()) {
-            return false; // 유효하지 않은 티커는 구독되지 않은 것으로 처리
-        }
+        validateTicker(ticker);
         return PrevRateSubscribedTickers.contains(ticker);
     }
 

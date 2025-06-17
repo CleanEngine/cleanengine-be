@@ -33,6 +33,7 @@ public class TradeExecutor {
     private final AccountService accountService;
     @Getter
     private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
+    private final TradeOrderCompletedEventPublisher tradeOrderCompletedEventPublisher;
     private final TradeService tradeService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
@@ -64,8 +65,7 @@ public class TradeExecutor {
         sellOrder.decreaseRemainingSize(tradedSize);
 
         // 주문 완전체결 처리(잔여금액 or 잔여수량이 0)
-        removeCompletedBuyOrder(waitingOrders, buyOrder);
-        removeCompletedSellOrder(waitingOrders, sellOrder);
+        removeCompletedOrders(waitingOrders, buyOrder, sellOrder);
 
         tradeService.updateOrder(buyOrder);
         tradeService.updateOrder(sellOrder);
@@ -180,23 +180,30 @@ public class TradeExecutor {
                 sellOrder.getRemainingSize());
     }
 
-    private static void removeCompletedBuyOrder(WaitingOrders waitingOrders, BuyOrder order) {
-        boolean isOrderCompleted = (isMarketOrder(order) && approxEquals(order.getRemainingDeposit(), 0.0)) ||
-                (isLimitOrder(order) && approxEquals(order.getRemainingSize(), 0.0));
+    private void removeCompletedOrders(WaitingOrders waitingOrders, BuyOrder buyOrder, SellOrder sellOrder) {
+        removeCompletedOrder(waitingOrders, buyOrder);
+        removeCompletedOrder(waitingOrders, sellOrder);
+    }
+
+    private void removeCompletedOrder(WaitingOrders waitingOrders, Order order) {
+        boolean isOrderCompleted = false;
+
+        if (order instanceof BuyOrder buyOrder) {
+            isOrderCompleted = (isMarketOrder(buyOrder) && approxEquals(buyOrder.getRemainingDeposit(), 0.0)) ||
+                (isLimitOrder(buyOrder) && approxEquals(buyOrder.getRemainingSize(), 0.0));
+        } else if (order instanceof SellOrder sellOrder) {
+            isOrderCompleted = approxEquals(sellOrder.getRemainingSize(), 0.0);
+        }
 
         if (isOrderCompleted) {
             waitingOrders.removeOrder(order);
             updateCompletedOrderStatus(order);
+            publishOrderCompletionEvent(order);
         }
     }
 
-    private static void removeCompletedSellOrder(WaitingOrders waitingOrders, SellOrder order) {
-        boolean isOrderCompleted = approxEquals(order.getRemainingSize(), 0.0);
-
-        if (isOrderCompleted) {
-            waitingOrders.removeOrder(order);
-            updateCompletedOrderStatus(order);
-        }
+    private void publishOrderCompletionEvent(Order order) {
+        tradeOrderCompletedEventPublisher.publish(TradeOrderCompletedEventImpl.of(order));
     }
 
     private static void updateCompletedOrderStatus(Order order) {

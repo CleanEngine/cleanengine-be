@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@ActiveProfiles({"dev", "it", "h2-mem", "trade-load-test"})
+@ActiveProfiles({"dev", "it", "mariadb-local", "trade-load-test"})
 //@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest

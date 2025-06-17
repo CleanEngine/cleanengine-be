@@ -1,0 +1,42 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+    timeout: 500ms
+    send_batch_size: 8192
+    send_batch_max_size: 16384
+
+  spanmetrics:
+    metrics_exporter: prometheus
+    latency_histogram_buckets: [100us, 1ms, 2ms, 6ms, 10ms, 100ms, 250ms, 500ms, 1s]
+    dimensions:
+      - service.name
+      - span.name
+      - span.kind
+      - status.code
+
+exporters:
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, spanmetrics]
+      exporters: [jaeger]
+
+    # 메트릭 데이터 처리 파이프라인
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]

@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.vo;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,6 +13,7 @@ public class OrderPricePolicy {
      * @param trendLineRate  플랫폼과 API VWAP의 편차율
      * @return PricePair (매도/매수 가격)
      */
+    @WithSpan("api.request.02.order.platformvwap.orderprice")
     public OrderPrice calculatePrice(int level,
                                      double platformVWAP,
                                      double unitPrice,

@@ -1,9 +1,9 @@
 package com.cleanengine.coin.realitybot.parser;
 
-import com.cleanengine.coin.realitybot.dto.CoinoneTicksResponse;
 import com.cleanengine.coin.realitybot.dto.Ticks;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +20,7 @@ public class TickParser {
 //    private final CoinoneTicksAdapter coinoneAdapter;
 //    private final TickParser tickParser;
 
+    @WithSpan("api.request.01.market.fallback.parse")
     public List<Ticks> parseGson(String json) {
 //        if (exchange.equalsIgnoreCase("coinone") || json.contains("transactions")) {
 //            CoinoneTicksResponse response = gson.fromJson(json, CoinoneTicksResponse.class);

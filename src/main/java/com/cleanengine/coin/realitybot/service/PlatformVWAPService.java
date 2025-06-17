@@ -22,7 +22,7 @@ public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예�
     Map<String, PlatformVWAPState> vwapMap = new ConcurrentHashMap<>();
     Map<String, LocalDateTime> lastTradeTimeMap = new ConcurrentHashMap<>();
 
-    @WithSpan("db.query.execution")
+    @WithSpan("api.request.02.order.platformvwap")
     public double calculateVWAPbyTrades(String ticker,double apiVWAP) {
         Timer timer = Timer.builder("db_query_execution_duration_seconds")
                 .tag("query.type", "findTop10ByTicker")

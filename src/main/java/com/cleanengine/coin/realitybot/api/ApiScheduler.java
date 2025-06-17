@@ -13,6 +13,7 @@ import com.cleanengine.coin.realitybot.service.TickServiceManager;
 import com.google.common.util.concurrent.RateLimiter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -57,7 +58,7 @@ public class ApiScheduler {
             }
         });
     }
-
+    @WithSpan("api.request.01.market")
     public void getMarketDataRequest(String ticker){
         this.ticker = ticker;
         Timer apiTimer = Timer.builder("market.data.request.duration")
@@ -89,7 +90,7 @@ public class ApiScheduler {
 
         });
     }
-
+@WithSpan("api.request.01.market.fallback")
 public List<Ticks> getMarketDataWithFallback(String ticker) {
     try {
         String bithumbJson = bithumbAPIClient.get(ticker);

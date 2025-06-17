@@ -5,6 +5,7 @@ import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.realitybot.dto.OpeningPrice;
 import com.cleanengine.coin.realitybot.parser.OpeningPriceParser;
 import com.cleanengine.coin.realitybot.vo.UnitPricePolicy;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,7 +39,7 @@ public class UnitPriceRefresher {
         double unitPrice = unitPricePolicy.getUnitPrice(json.getOpening_price());
         return unitPrice;
     }
-
+    @WithSpan("api.request.02.order.unitprice")
     public double getUnitPriceByTicker(String ticker){
         Double unitPrice = unitPriceCache.get(ticker);
         if (unitPrice == null){

@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.vo;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ public class DeviationPricePolicy {
      * @param apiVWAP 외부 기준 가격
      * @return 추가 선형 보정된 가격쌍 (sell, buy)
      */
-
+    @WithSpan("api.request.02.order.platformvwap.deviationprice")
     public AdjustPrice adjust(double platformSell,double platformBuy, double trendLineRate, double apiVWAP, double unitPrice){
         double deviation = Math.abs(trendLineRate);//음수값 보정
         if (deviation <= 0.017){

@@ -1,12 +1,14 @@
 otel:
   exporter:
     otlp:
-      endpoint: http://monitoring-otel-collector:4318
+      endpoint: http://localhost:4318
 
   resource:
     attributes:
       service.name: monitoring-spring-app
-
+  instrumentation:
+    jdbc:
+      enabled: false
 management:
   tracing:
     sampling:

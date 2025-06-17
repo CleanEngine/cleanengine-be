@@ -10,6 +10,7 @@ import com.cleanengine.coin.realitybot.vo.OrderPricePolicy;
 import com.cleanengine.coin.realitybot.vo.OrderVolumePolicy;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +43,7 @@ public class OrderGenerateService {
     private final VWAPMetricsRecorder recorder;
 
 
+    @WithSpan("api.request.02.order")
     public void generateOrder(String ticker, double apiVWAP, double avgVolume) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
 
         //호가 정책 적용
@@ -85,7 +87,7 @@ public class OrderGenerateService {
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
         );*/
     }
-
+    @WithSpan("api.request.03.create")
     private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) throws IllegalArgumentException {
         if (volume <= 0 || price <= 0){
             log.error("잘못된 주문이 발생 [종목 : {}] ,[isBuy : {}] ,[금액 : {}] ,[수량 : {}] 주문은 생성 취소",ticker,isBuy,

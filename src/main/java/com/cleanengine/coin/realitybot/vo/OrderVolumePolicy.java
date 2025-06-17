@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.vo;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ public class OrderVolumePolicy {
      * @param isBuy 매수면 true, 매도면 false
      * @return 생성된 거래량
      */
-
+    @WithSpan("api.request.02.order.platformvwap.ordervolume")
     public double calculateVolume(double avgVolume, double trendLineRate, boolean isBuy){
         //기본 랜덤 거래량 (0.5~1.5)
         double rawVolume = avgVolume *(0.5*Math.random());

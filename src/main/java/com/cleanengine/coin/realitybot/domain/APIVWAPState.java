@@ -2,17 +2,19 @@ package com.cleanengine.coin.realitybot.domain;
 
 
 import com.cleanengine.coin.realitybot.dto.Ticks;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 
 import java.util.LinkedList;
 import java.util.Queue;
+
 
 @Getter
 public class APIVWAPState {
     private final Queue<Ticks> ticksQueue = new LinkedList<>();
     private  VWAPCalculator calculator = new VWAPCalculator();
     private int maxQueueSize = 10;
-
+    @WithSpan("api.request.call.ticker.apivwap")
     public void addTick(Ticks tick){
         if (ticksQueue.size() >= maxQueueSize) {
             //10개 이상이 되면 선착순으로 제거해나감
@@ -30,10 +32,12 @@ public class APIVWAPState {
 
 
     //n초마다 5회 주문 , api 체결 내역에서 10종목씩 비교
+    @WithSpan("api.request.01.market.apivwap.getVolume")
     public double getAvgVolumePerOrder() {
         return calculator.getTotalVolume() / 50;
     }//todo 에러 인젝션으로 50일때와 5일때 복귀 속도 알아보기
 
+    @WithSpan("api.request.01.market.apivwap.getPrice")
     public double getVWAP(){
         return calculator.getVWAP();
     }

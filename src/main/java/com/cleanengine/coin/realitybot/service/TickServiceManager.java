@@ -1,6 +1,7 @@
 package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.realitybot.domain.APIVWAPState;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -13,6 +14,7 @@ public class TickServiceManager {
     * ConcurrentHashMap을 통해 중복 검사 후 종목명으로 만들어진 게 없다면 새로 만듭니다.
     * */
     private final Map<String, APIVWAPState> tickServiceMap = new ConcurrentHashMap<>();
+    @WithSpan("api.request.01.market.apivwap.maker")
     public APIVWAPState getService(String ticker) {
         return tickServiceMap.computeIfAbsent(ticker, t -> new APIVWAPState());
     }

@@ -2,10 +2,10 @@ package com.cleanengine.coin.trade.repository;
 
 
 import com.cleanengine.coin.trade.entity.Trade;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +22,9 @@ public interface TradeRepository extends JpaRepository<Trade, Integer> {
 
     List<Trade> findByBuyUserIdAndTicker(Integer buyUserId, String ticker);
     List<Trade> findBySellUserIdAndTicker(Integer sellUserId, String ticker);
+
+    @WithSpan("api.request.02.order.platformvwap.db.1st")
     List<Trade> findTop10ByTickerOrderByTradeTimeDesc(String ticker);
+    @WithSpan("api.request.02.order.platformvwap.db.2nd")
     List<Trade> findByTickerAndTradeTimeGreaterThanEqualOrderByTradeTimeDesc(String ticker, LocalDateTime lastTime);
 }

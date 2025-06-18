@@ -55,4 +55,9 @@ public class AccountService {
         walletRepository.save(wallet);
         walletRepository.save(wallet2);
     }
+
+    public int increaseAccountCash(int userId, double amount) {
+        return accountRepository.increaseAccountCash(userId, amount);
+    }
+
 }

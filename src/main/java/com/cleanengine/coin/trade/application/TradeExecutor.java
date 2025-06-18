@@ -106,8 +106,11 @@ public class TradeExecutor {
     }
 
     private void increaseAccountCash(Order order, Double amount) {
-        Account account = accountService.findAccountByUserId(order.getUserId()).orElseThrow();
-        accountService.save(account.increaseCash(amount));
+        int updatedRows = accountService.increaseAccountCash(order.getUserId(), amount);
+
+        if (updatedRows == 0) {
+            throw new RuntimeException("account updatedRows == 0");
+        }
     }
 
     private void updateWalletAfterTrade(BuyOrder buyOrder, SellOrder sellOrder, String ticker, double tradedSize, double totalTradedPrice) {

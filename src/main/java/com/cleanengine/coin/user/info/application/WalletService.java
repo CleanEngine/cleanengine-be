@@ -40,6 +40,10 @@ public class WalletService {
                 .orElseGet(() -> Wallet.of(ticker, accountRepository.findByUserId(userId).orElseThrow().getId()));
     }
 
+    public List<Object[]> findWalletsByUserIdsAndTicker(List<Integer> userIds, String ticker) {
+        return walletRepository.findAllByUserIdsAndTicker(userIds, ticker);
+    }
+
     public void createNewWallets(Integer accountId) {
         assetRepository.findAll()
                 .stream()

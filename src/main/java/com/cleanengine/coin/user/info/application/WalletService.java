@@ -36,9 +36,8 @@ public class WalletService {
     }
 
     public Wallet findWalletByUserIdAndTicker(Integer userId, String ticker) {
-        int accountId = accountRepository.findByUserId(userId).orElseThrow().getId();
-        return walletRepository.findByAccountIdAndTicker(accountId, ticker)
-                .orElseGet(() -> Wallet.of(ticker, accountId));
+        return walletRepository.findByUserIdAndTicker(userId, ticker)
+                .orElseGet(() -> Wallet.of(ticker, accountRepository.findByUserId(userId).orElseThrow().getId()));
     }
 
     public void createNewWallets(Integer accountId) {

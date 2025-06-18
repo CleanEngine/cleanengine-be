@@ -4,14 +4,21 @@ import com.cleanengine.coin.user.domain.Wallet;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface WalletRepository extends JpaRepository<Wallet, Long> {
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Wallet> findByAccountIdAndTicker(Integer accountId, String ticker);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Wallet> findByAccountId(Integer accountId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT w FROM Wallet w JOIN Account a ON w.accountId = a.id WHERE a.userId = :userId AND w.ticker = :ticker")
+    Optional<Wallet> findByUserIdAndTicker(Integer userId, String ticker);
+
 }

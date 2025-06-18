@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.api;
 
+import com.cleanengine.coin.common.annotation.StartNewTrace;
 import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.order.domain.Asset;
@@ -44,6 +45,7 @@ public class ApiScheduler {
     private String ticker;
 
 //    @Scheduled(fixedRate = 5000)
+    @StartNewTrace("api.request")
     public void getMarketAllRequest() throws InterruptedException {
         Timer timer = meterRegistry.timer("market.all.request.duration");
         timer.record(() -> {

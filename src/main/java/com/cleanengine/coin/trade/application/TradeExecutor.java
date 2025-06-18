@@ -6,8 +6,6 @@ import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.user.domain.Account;
-import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.application.AccountService;
 import com.cleanengine.coin.user.info.application.WalletService;
 import lombok.Getter;
@@ -19,9 +17,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.cleanengine.coin.common.CommonValues.approxEquals;
 
@@ -83,7 +78,7 @@ public class TradeExecutor {
         }
 
         // 지갑 누적계산
-        this.updateWalletAfterTrade(buyOrder, sellOrder, ticker, tradedSize, totalTradedPrice);
+        walletService.updateWalletAfterTrade(buyOrder, ticker, tradedSize, totalTradedPrice);
 
         // 체결내역 저장
         Trade trade = Trade.of(ticker, LocalDateTime.now(), buyOrder.getUserId(), sellOrder.getUserId(), tradedPrice, tradedSize);
@@ -111,32 +106,6 @@ public class TradeExecutor {
         if (updatedRows == 0) {
             throw new RuntimeException("account updatedRows == 0");
         }
-    }
-
-    private void updateWalletAfterTrade(BuyOrder buyOrder, SellOrder sellOrder, String ticker, double tradedSize, double totalTradedPrice) {
-        List<Integer> userIds = List.of(buyOrder.getUserId(), sellOrder.getUserId());
-        List<Object[]> results = walletService.findWalletsByUserIdsAndTicker(userIds, ticker);
-        if (results.isEmpty())
-            return;
-        if (results.size() == 1) {
-            throw new RuntimeException("wallets.size() == 1");
-        }
-        Map<Integer, Wallet> walletMap = results.stream()
-                .collect(Collectors.toMap(
-                        result -> (Integer) result[1],
-                        result -> (Wallet) result[0]
-                ));
-        Wallet buyerWallet = walletMap.get(buyOrder.getUserId());
-        Wallet sellerWallet = walletMap.get(sellOrder.getUserId());
-
-        double updatedBuySize = buyerWallet.getSize() + tradedSize;
-        double currentBuyPrice = buyerWallet.getBuyPrice() == null ? 0.0 : buyerWallet.getBuyPrice();
-        double updatedBuyPrice = ((currentBuyPrice * buyerWallet.getSize()) + totalTradedPrice) / updatedBuySize;
-        buyerWallet.setSize(updatedBuySize);
-        buyerWallet.setBuyPrice(updatedBuyPrice);
-        // TODO : ROI 계산
-        // 매도 시에는 평단가 변동 없음
-        walletService.saveAll(List.of(buyerWallet, sellerWallet));
     }
 
     private static TradeUnitPriceAndSize getTradeUnitPriceAndSize(BuyOrder buyOrder, SellOrder sellOrder) {

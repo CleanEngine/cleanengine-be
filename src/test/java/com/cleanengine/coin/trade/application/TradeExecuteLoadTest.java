@@ -24,8 +24,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@ActiveProfiles({"dev", "it", "mariadb-local", "trade-load-test"})
-//@Disabled
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ActiveProfiles({"dev", "it", "mariadb-local", "trade-load-test", "actuator", "apm", "otel-local"})
+@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest
 class TradeExecuteLoadTest {
@@ -53,20 +55,21 @@ class TradeExecuteLoadTest {
     @DisplayName("워밍업: Spring 컨텍스트 및 JVM 최적화")
     @Order(1)
     @Test
+//    @Disabled
     void warmUp() throws InterruptedException {
         System.out.println("Starting warmUp");
         int warmUpCount1 = 10;
         for (int i = 0; i < warmUpCount1; i++) {
             runSingleTest(1000);
         }
-//        int warmUpCount2 = 3;
-//        for (int i = 0; i < warmUpCount2; i++) {
-//            runSingleTest(10000);
-//        }
-//        int warmUpCount3 = 3;
-//        for (int i = 0; i < warmUpCount2; i++) {
-//            runSingleTest(50000);
-//        }
+        int warmUpCount2 = 5;
+        for (int i = 0; i < warmUpCount2; i++) {
+            runSingleTest(10000);
+        }
+        int warmUpCount3 = 5;
+        for (int i = 0; i < warmUpCount3; i++) {
+            runSingleTest(100000);
+        }
         System.out.println("Finished warmUp");
     }
 
@@ -80,13 +83,14 @@ class TradeExecuteLoadTest {
         tradeFlowService.setTestLatch(null);
     }
 
-    @DisplayName("매수, 매도 각 1000건에 대한 처리 성능을 30회 진행한다.")
+    @DisplayName("매수, 매도 각 1000건에 대한 처리 성능을 10회 진행한다.")
     @Order(2)
     @Test
+//    @Disabled
     void basicLoadTestWith1000OrdersEachSide() throws InterruptedException {
         // given
         int orderCount = 1000;
-        int repeatCount = 30;
+        int repeatCount = 10;
         List<Long> executionTimes = new ArrayList<>();
         List<Long> queueInsertTimes = new ArrayList<>();
 
@@ -100,16 +104,23 @@ class TradeExecuteLoadTest {
 
         // 통계 출력
         printStatistics(queueInsertTimes, executionTimes, orderCount);
+
+        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
+        PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
+        PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
+
+        assertThat(sellOrderPriorityQueueStore.size()).isEqualTo(0);
+        assertThat(buyOrderPriorityQueueStore.size()).isEqualTo(0);
     }
 
-    @DisplayName("매수, 매도 각 10000건에 대한 처리 성능을 30회 진행한다.")
+    @DisplayName("매수, 매도 각 10000건에 대한 처리 성능을 10회 진행한다.")
     @Order(3)
     @Test
-    @Disabled
+//    @Disabled
     void basicLoadTestWith10000OrdersEachSide() throws InterruptedException {
         // given
         int orderCount = 10000;
-        int repeatCount = 30;
+        int repeatCount = 10;
         List<Long> executionTimes = new ArrayList<>();
         List<Long> queueInsertTimes = new ArrayList<>();
 
@@ -123,17 +134,23 @@ class TradeExecuteLoadTest {
 
         // 통계 출력
         printStatistics(queueInsertTimes, executionTimes, orderCount);
+
+        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
+        PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
+        PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
+
+        assertThat(sellOrderPriorityQueueStore.size()).isEqualTo(0);
+        assertThat(buyOrderPriorityQueueStore.size()).isEqualTo(0);
     }
 
-
-    @DisplayName("매수, 매도 각 100000건에 대한 처리 성능을 30회 진행한다.")
+    @DisplayName("매수, 매도 각 100000건에 대한 처리 성능을 10회 진행한다.")
     @Order(4)
     @Test
-    @Disabled
+//    @Disabled
     void basicLoadTestWith100000OrdersEachSide() throws InterruptedException {
         // given
         int orderCount = 100000;
-        int repeatCount = 30;
+        int repeatCount = 10;
         List<Long> executionTimes = new ArrayList<>();
         List<Long> queueInsertTimes = new ArrayList<>();
 
@@ -176,7 +193,7 @@ class TradeExecuteLoadTest {
 
         // 큐 삽입 완료 대기
         executor.shutdown();
-        boolean queueTerminated = executor.awaitTermination(30, TimeUnit.SECONDS);
+        executor.awaitTermination(30, TimeUnit.SECONDS);
         long queueInsertEnd = System.nanoTime();
         long queueInsertTime = (queueInsertEnd - testStart) / 1_000_000;
 
@@ -188,7 +205,7 @@ class TradeExecuteLoadTest {
         PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
         PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
 
-        boolean completed = latch.await(60, TimeUnit.SECONDS);
+        boolean completed = latch.await(2, TimeUnit.MINUTES);
         long eventEnd = System.nanoTime();
         long executionTime = (eventEnd - eventStart) / 1_000_000;
 

@@ -1,9 +1,14 @@
 package com.cleanengine.coin.user.info.application;
 
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
+import com.cleanengine.coin.order.domain.BuyOrder;
+import com.cleanengine.coin.user.domain.QAccount;
+import com.cleanengine.coin.user.domain.QWallet;
 import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.infra.AccountRepository;
 import com.cleanengine.coin.user.info.infra.WalletRepository;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +20,14 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final AccountRepository accountRepository;
     private final AssetRepository assetRepository;
+    private final JPAQueryFactory queryFactory;
 
-    public WalletService(WalletRepository walletRepository, AccountRepository accountRepository, AssetRepository assetRepository) {
+    public WalletService(WalletRepository walletRepository, AccountRepository accountRepository,
+                         AssetRepository assetRepository, EntityManager entityManager) {
         this.walletRepository = walletRepository;
         this.accountRepository = accountRepository;
         this.assetRepository = assetRepository;
+        this.queryFactory = new JPAQueryFactory(entityManager);
     }
 
     @Transactional
@@ -40,15 +48,34 @@ public class WalletService {
                 .orElseGet(() -> Wallet.of(ticker, accountRepository.findByUserId(userId).orElseThrow().getId()));
     }
 
-    public List<Object[]> findWalletsByUserIdsAndTicker(List<Integer> userIds, String ticker) {
-        return walletRepository.findAllByUserIdsAndTicker(userIds, ticker);
-    }
-
     public void createNewWallets(Integer accountId) {
         assetRepository.findAll()
                 .stream()
                 .map(asset -> Wallet.of(asset.getTicker(), accountId))
                 .forEach(walletRepository::save);
+    }
+
+    @Transactional
+    public void updateWalletAfterTrade(BuyOrder buyOrder, String ticker, double tradedSize, double totalTradedPrice) {
+        QWallet wallet = QWallet.wallet;
+        QAccount account = QAccount.account;
+
+        queryFactory
+                .update(wallet)
+                .where(wallet.accountId.eq(
+                        queryFactory
+                                .select(account.id)
+                                .from(account)
+                                .where(account.userId.eq(buyOrder.getUserId()))
+                ).and(wallet.ticker.eq(ticker)))
+                .set(wallet.size, wallet.size.add(tradedSize))
+                .set(wallet.buyPrice,
+                        wallet.buyPrice.coalesce(0.0)
+                                .multiply(wallet.size)
+                                .add(totalTradedPrice)
+                                .divide(wallet.size.add(tradedSize))
+                )
+                .execute();
     }
 
 }

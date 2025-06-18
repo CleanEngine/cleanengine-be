@@ -44,7 +44,7 @@ public class TradeFlowService {
             try {
                 Trade trade = tradeExecutor.executeTrade(waitingOrders, tradePair.get(), ticker);
                 tradesToSave.add(trade);
-                if (tradesToSave.size() > 1000) {
+                if (tradesToSave.size() > 10000) {
                     tradeRepository.saveAll(tradesToSave);
                     tradesToSave.clear();
                 }

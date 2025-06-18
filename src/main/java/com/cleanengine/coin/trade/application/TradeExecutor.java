@@ -1,7 +1,5 @@
 package com.cleanengine.coin.trade.application;
 
-import com.cleanengine.coin.common.error.BusinessException;
-import com.cleanengine.coin.common.response.ErrorStatus;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderStatus;
@@ -38,7 +36,7 @@ public class TradeExecutor {
     private final TradeService tradeService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
-    public void executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
+    public Trade executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
         BuyOrder buyOrder = tradePair.getBuyOrder();
         SellOrder sellOrder = tradePair.getSellOrder();
         log.trace("{} - 체결 시작: 매수[{} {}원 {}개] / 매도[{} {}원 {}개]", ticker, buyOrder.getId(), buyOrder.getPrice(), buyOrder.getRemainingSize(),
@@ -86,16 +84,13 @@ public class TradeExecutor {
         this.updateWalletAfterTrade(buyOrder, sellOrder, ticker, tradedSize, totalTradedPrice);
 
         // 체결내역 저장
-        Trade trade = this.insertNewTrade(ticker, buyOrder, sellOrder, tradedSize, tradedPrice);
+        Trade trade = Trade.of(ticker, LocalDateTime.now(), buyOrder.getUserId(), sellOrder.getUserId(), tradedPrice, tradedSize);
 
         TradeExecutedEvent tradeExecutedEvent = TradeExecutedEvent.of(trade, buyOrder.getId(), sellOrder.getId());
         tradeExecutedEventPublisher.publish(tradeExecutedEvent);
+        return trade;
     }
-    private Trade insertNewTrade(String ticker, BuyOrder buyOrder, SellOrder sellOrder, double tradeSize, Double tradePrice) {
-        Trade newTrade = Trade.of(ticker, LocalDateTime.now(), buyOrder.getUserId(), sellOrder.getUserId(), tradePrice, tradeSize);
 
-        return tradeService.save(newTrade);
-    }
     private static void checkZeroOrderAndThrowException(BuyOrder buyOrder, SellOrder sellOrder) {
         Order zeroOrder = null;
         if (approxEquals(buyOrder.getRemainingDeposit(), 0.0))

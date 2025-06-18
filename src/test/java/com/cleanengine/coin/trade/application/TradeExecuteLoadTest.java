@@ -55,15 +55,18 @@ class TradeExecuteLoadTest {
     @Test
     void warmUp() throws InterruptedException {
         System.out.println("Starting warmUp");
-        runSingleTest(1000);
-        runSingleTest(1000);
-        runSingleTest(1000);
-        runSingleTest(1000);
-        runSingleTest(1000);
-        runSingleTest(10000);
-        runSingleTest(10000);
-        runSingleTest(10000);
-        runSingleTest(50000);
+        int warmUpCount1 = 10;
+        for (int i = 0; i < warmUpCount1; i++) {
+            runSingleTest(1000);
+        }
+//        int warmUpCount2 = 3;
+//        for (int i = 0; i < warmUpCount2; i++) {
+//            runSingleTest(10000);
+//        }
+//        int warmUpCount3 = 3;
+//        for (int i = 0; i < warmUpCount2; i++) {
+//            runSingleTest(50000);
+//        }
         System.out.println("Finished warmUp");
     }
 
@@ -74,6 +77,7 @@ class TradeExecuteLoadTest {
         tradeRepository.deleteAll();
         sellOrderRepository.deleteAll();
         buyOrderRepository.deleteAll();
+        tradeFlowService.setTestLatch(null);
     }
 
     @DisplayName("매수, 매도 각 1000건에 대한 처리 성능을 30회 진행한다.")
@@ -98,72 +102,52 @@ class TradeExecuteLoadTest {
         printStatistics(queueInsertTimes, executionTimes, orderCount);
     }
 
-//    @DisplayName("매수, 매도 각 1000건에 대한 처리 성능을 10회 진행한다.")
-//    @Order(2)
-//    @Test
-//    void basicLoadTestWith1000OrdersEachSide() throws InterruptedException {
-//        // given
-//        int orderCount = 10000;
-//        int repeatCount = 10;
-//        List<Long> executionTimes = new ArrayList<>();
-//        List<Long> queueInsertTimes = new ArrayList<>();
-//
-//        // when
-//        for (int i = 0; i < repeatCount; ++i) {
-//            long[] times = runSingleTest(orderCount);
-//            queueInsertTimes.add(times[0]);
-//            executionTimes.add(times[1]);
-//            System.out.printf("Run-%d: 큐 삽입 소요시간 = %d ms, 체결 소요시간 = %d ms%n", (i + 1), times[0], times[1]);
-//        }
-//
-//        // 통계 출력
-//        printStatistics(queueInsertTimes, executionTimes, orderCount);
-//    }
-//
-//
-//    @DisplayName("매수, 매도 각 10000건에 대한 처리 성능을 10회 진행한다.")
-//    @Order(3)
-//    @Test
-//    void basicLoadTestWith10000OrdersEachSide() throws InterruptedException {
-//        // given
-//        int orderCount = 10000;
-//        int repeatCount = 10;
-//        List<Long> executionTimes = new ArrayList<>();
-//        List<Long> queueInsertTimes = new ArrayList<>();
-//
-//        // when
-//        for (int i = 0; i < repeatCount; ++i) {
-//            long[] times = runSingleTest(orderCount);
-//            queueInsertTimes.add(times[0]);
-//            executionTimes.add(times[1]);
-//            System.out.printf("Run-%d: 큐 삽입 소요시간 = %d ms, 체결 소요시간 = %d ms%n", (i + 1), times[0], times[1]);
-//        }
-//
-//        // 통계 출력
-//        printStatistics(queueInsertTimes, executionTimes, orderCount);
-//    }
-//
-//    @DisplayName("매수, 매도 각 100000건에 대한 처리 성능을 10회 진행한다.")
-//    @Order(4)
-//    @Test
-//    void basicLoadTestWith100000OrdersEachSide() throws InterruptedException {
-//        // given
-//        int orderCount = 100000;
-//        int repeatCount = 10;
-//        List<Long> executionTimes = new ArrayList<>();
-//        List<Long> queueInsertTimes = new ArrayList<>();
-//
-//        // when
-//        for (int i = 0; i < repeatCount; ++i) {
-//            long[] times = runSingleTest(orderCount);
-//            queueInsertTimes.add(times[0]);
-//            executionTimes.add(times[1]);
-//            System.out.printf("Run-%d: 큐 삽입 소요시간 = %d ms, 체결 소요시간 = %d ms%n", (i + 1), times[0], times[1]);
-//        }
-//
-//        // 통계 출력
-//        printStatistics(queueInsertTimes, executionTimes, orderCount);
-//    }
+    @DisplayName("매수, 매도 각 10000건에 대한 처리 성능을 30회 진행한다.")
+    @Order(3)
+    @Test
+    @Disabled
+    void basicLoadTestWith10000OrdersEachSide() throws InterruptedException {
+        // given
+        int orderCount = 10000;
+        int repeatCount = 30;
+        List<Long> executionTimes = new ArrayList<>();
+        List<Long> queueInsertTimes = new ArrayList<>();
+
+        // when
+        for (int i = 0; i < repeatCount; ++i) {
+            long[] times = runSingleTest(orderCount);
+            queueInsertTimes.add(times[0]);
+            executionTimes.add(times[1]);
+            System.out.printf("Run-%d: 큐 삽입 소요시간 = %d ms, 체결 소요시간 = %d ms%n", (i + 1), times[0], times[1]);
+        }
+
+        // 통계 출력
+        printStatistics(queueInsertTimes, executionTimes, orderCount);
+    }
+
+
+    @DisplayName("매수, 매도 각 100000건에 대한 처리 성능을 30회 진행한다.")
+    @Order(4)
+    @Test
+    @Disabled
+    void basicLoadTestWith100000OrdersEachSide() throws InterruptedException {
+        // given
+        int orderCount = 100000;
+        int repeatCount = 30;
+        List<Long> executionTimes = new ArrayList<>();
+        List<Long> queueInsertTimes = new ArrayList<>();
+
+        // when
+        for (int i = 0; i < repeatCount; ++i) {
+            long[] times = runSingleTest(orderCount);
+            queueInsertTimes.add(times[0]);
+            executionTimes.add(times[1]);
+            System.out.printf("Run-%d: 큐 삽입 소요시간 = %d ms, 체결 소요시간 = %d ms%n", (i + 1), times[0], times[1]);
+        }
+
+        // 통계 출력
+        printStatistics(queueInsertTimes, executionTimes, orderCount);
+    }
 
     private long[] runSingleTest(int orderCount) throws InterruptedException {
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
@@ -174,7 +158,7 @@ class TradeExecuteLoadTest {
         sellOrderRepository.deleteAll();
         buyOrderRepository.deleteAll();
 
-        CountDownLatch latch = new CountDownLatch(orderCount);
+        CountDownLatch latch = new CountDownLatch(1);
         tradeFlowService.setTestLatch(latch);
 
         long testStart = System.nanoTime();
@@ -201,39 +185,23 @@ class TradeExecuteLoadTest {
         SellOrder dummyOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), true);
         eventPublisher.publishEvent(new OrderInsertedToQueue(dummyOrder));
 
-
-
-
         PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
         PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
-
-
-        // 체결 완료 대기
-//        int pollCount = 100;
-//        for (int i = 0; i < pollCount; i++) {
-//            if (buyOrderPriorityQueueStore.isEmpty() && sellOrderPriorityQueueStore.isEmpty()) {
-//                break;
-//            }
-//            Thread.sleep(50);
-//        }
 
         boolean completed = latch.await(60, TimeUnit.SECONDS);
         long eventEnd = System.nanoTime();
         long executionTime = (eventEnd - eventStart) / 1_000_000;
-
 
         // CountDownLatch 초기화
         tradeFlowService.setTestLatch(null);
 
         // 결과 출력
         long tradeCount = tradeRepository.count();
-//        if (tradeCount != orderCount) {
-            System.out.print("체결 종료 - 체결내역[: " + tradeCount + "건]");
-            System.out.println("잔여 주문[매도 " + sellOrderPriorityQueueStore.size() + "건, 매수 " + buyOrderPriorityQueueStore.size() + "건]");
-            if (tradeCount != orderCount || !completed) {
-                System.out.println("경고: 예상 체결 건수(" + orderCount + "건)와 실제(" + tradeCount + "건) 불일치 또는 타임아웃");
-            }
-//        }
+        System.out.print("체결 종료 - 체결내역[: " + tradeCount + "건]");
+        System.out.println("잔여 주문[매도 " + sellOrderPriorityQueueStore.size() + "건, 매수 " + buyOrderPriorityQueueStore.size() + "건]");
+        if (tradeCount != orderCount || !completed) {
+            System.out.println("경고: 예상 체결 건수(" + orderCount + "건)와 실제(" + tradeCount + "건) 불일치 또는 타임아웃");
+        }
 
         return new long[]{queueInsertTime, executionTime};
     }

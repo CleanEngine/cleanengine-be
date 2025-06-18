@@ -34,7 +34,7 @@ services:
     image: mariadb:latest
     container_name: mariadb2
     ports:
-      - "3306:3306"
+      - "3307:3306"
     env_file:
       - ../docker/local.properties
     environment:
@@ -67,6 +67,25 @@ services:
       - monitoring-net
     restart: unless-stopped
 
+  # --- 추가된 InfluxDB 서비스 ---
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=k6-user        # 임의의 사용자/비밀번호
+      - DOCKER_INFLUXDB_INIT_PASSWORD=k6-password
+      - DOCKER_INFLUXDB_INIT_ORG=k6-org
+      - DOCKER_INFLUXDB_INIT_BUCKET=k6-bucket
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=vJvTx5b8vjgH7mu-M-BsEvdy5_COovexAjyniVhMF1yPzvsp2g8kp62opqXVMq6ICAq2tLJxxD6ifXPBZ9YVmA==
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana:11.0.0
     container_name: grafana
@@ -78,9 +97,10 @@ services:
     networks:
       - monitoring-net
     restart: unless-stopped
-    depends_on:
+    depends_on: # --- 수정된 부분 ---
       - prometheus
       - jaeger
+      - influxdb
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -106,6 +126,7 @@ volumes:
   grafana_data: {}
   mariadb_data:
     driver: local
+  influxdb_data: {} # --- 추가된 부분 ---
 
 networks:
   app-network:
@@ -114,3 +135,8 @@ networks:
   monitoring-net:
     name: monitoring-net
     driver: bridge
+
+
+    #  export K6_INFLUXDB_ORGANIZATION=k6-org
+    #  - export K6_INFLUXDB_BUCKET=k6-bucket
+    #  ./k6 run --out xk6-influxdb=http://localhost:8086 /Users/jangbongjun/coin/src/test/resources/k6/chart-stomp-test.js

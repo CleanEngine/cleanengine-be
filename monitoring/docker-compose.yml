@@ -18,7 +18,7 @@ services:
       - TZ=Asia/Seoul
       - OTEL_SERVICE_NAME=my-spring-app
       - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - OTEL_LOGS_EXPORTER=none
       - OTEL_METRICS_EXPORTER=none
       - OTEL_INSTRUMENTATION_METHODS_ENABLED=true
@@ -26,6 +26,8 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
     networks:
       - app-network
       - monitoring-net
@@ -34,7 +36,7 @@ services:
     image: mariadb:latest
     container_name: mariadb2
     ports:
-      - "3307:3306"
+      - "3306:3306"
     env_file:
       - ../docker/local.properties
     environment:
@@ -67,7 +69,6 @@ services:
       - monitoring-net
     restart: unless-stopped
 
-  # --- 추가된 InfluxDB 서비스 ---
   influxdb:
     image: influxdb:2.7
     container_name: influxdb
@@ -97,7 +98,7 @@ services:
     networks:
       - monitoring-net
     restart: unless-stopped
-    depends_on: # --- 수정된 부분 ---
+    depends_on:
       - prometheus
       - jaeger
       - influxdb
@@ -107,9 +108,11 @@ services:
     container_name: jaeger
     ports:
       - "16686:16686" # UI
-      - "14250:14250" # Otel 수신 포트
+      - "4317:4317"
+      - "4318:4318"
     networks:
       - monitoring-net
+
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -117,16 +120,19 @@ services:
     volumes:
       - ./otel/otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
-      - "4317:4317"
-      - "4318:4318"
+      - "8889:8889"
+      - "4319:4317"
+      - "4320:4318"
+      - "13133:13133"
     networks:
       - monitoring-net
+
 volumes:
   prometheus_data: {}
   grafana_data: {}
   mariadb_data:
     driver: local
-  influxdb_data: {} # --- 추가된 부분 ---
+  influxdb_data: {}
 
 networks:
   app-network:

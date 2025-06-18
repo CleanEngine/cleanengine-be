@@ -106,6 +106,15 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
+    user: "${UID}:${GID}"
+    environment:
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/tmp/jaeger/data
+      - BADGER_DIRECTORY_KEY=/tmp/jaeger/keys
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - jaeger_data:/tmp/jaeger
     ports:
       - "16686:16686" # UI
       - "4317:4317"
@@ -133,6 +142,7 @@ volumes:
   mariadb_data:
     driver: local
   influxdb_data: {}
+  jaeger_data: {}
 
 networks:
   app-network:

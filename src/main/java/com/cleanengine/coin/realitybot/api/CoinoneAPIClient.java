@@ -1,6 +1,9 @@
 package com.cleanengine.coin.realitybot.api;
 
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -15,11 +18,15 @@ import java.io.IOException;
 @Slf4j
 public class CoinoneAPIClient {
     private final OkHttpClient client;
-    private String ticker;
+    private final MeterRegistry meterRegistry;
 
     @WithSpan("api.request.01.market.fallback.coinonecall")
     public String get(String ticker){ //API를 responseBody에 담아 반환
-        this.ticker = ticker;
+        Timer timer = Timer.builder("coinone_api_call_duration_seconds")
+                .tag("ticker", ticker)
+                .tag("status", "200")
+                .register(meterRegistry);
+
         Request request = new Request.Builder()
                 .url("https://api.coinone.co.kr/public/v2/trades/KRW/"+ticker+"?size=10")
                 .get()
@@ -38,7 +45,6 @@ public class CoinoneAPIClient {
         }
     }
 /*    public String getOpeningPrice(String ticker){
-        this.ticker = ticker;
         Request request = new Request.Builder()
                 .url("https://api.bithumb.com/v1/ticker?markets=KRW-"+ticker)
                 .get()

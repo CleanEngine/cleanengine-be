@@ -13,7 +13,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CoinoneTicksAdapter {
 
-    private final TickParser tickParser;
 
     public List<Ticks> convertToTicks(String json) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -22,7 +21,7 @@ public class CoinoneTicksAdapter {
                 .map(tx -> Ticks.builder()
                         .market("KRW-" + response.getTarget_currency())
                         .timestamp(String.valueOf(tx.getTimestamp()))
-                        .trade_price(Float.parseFloat(tx.getPrice()))
+                        .trade_price(Double.parseDouble(tx.getPrice()))
                         .trade_volume(Double.parseDouble(tx.getQty()))
                         .ask_bid(tx.isSellerMaker() ? "ASK" : "BID")
                         .sequential_id(Long.parseLong(tx.getId()))

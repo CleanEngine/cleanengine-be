@@ -31,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ApiScheduler {
 
     private final BithumbAPIClient bithumbAPIClient;
+    private final BinanceAPIClient binanceAPIClient;
+    private final CoinbaseAPIClient coinbaseAPIClient;
     private final TickParser tickParser;
     private final OrderGenerateService orderGenerateService;
     private final TickServiceManager tickServiceManager;
@@ -68,9 +70,8 @@ public class ApiScheduler {
                 .register(meterRegistry);
         apiTimer.record(() -> {
         List<Ticks> gson = getMarketDataWithFallback(ticker); //json을 list로 변환
-
         //---------------- 이거 변환소로 바꾸기
-
+        log.info("ticker.............확인용 {}",gson);
         APIVWAPState apiVWAPState = tickServiceManager.getService(ticker);
         long lastSeqId = lastSequentialIdMap.getOrDefault(ticker,0L);
 
@@ -97,7 +98,7 @@ public List<Ticks> getMarketDataWithFallback(String ticker) {
     try {
         String bithumbJson = bithumbAPIClient.get(ticker);
         // 예외가 없었어도 비정상 응답일 수 있음 → 예: 빈 JSON 또는 에러 코드
-        if (bithumbJson != null && !bithumbJson.isBlank() && !bithumbJson.contains("\"result\":\"error\"")) {
+        if (bithumbJson != null && !bithumbJson.isBlank()/* && !bithumbJson.contains("\"result\":\"error\"")*/) {
             return tickParser.parseGson(bithumbJson);
         }
         log.warn("Bithumb 응답 비정상, Coinone으로 Failover: ticker{}",ticker);
@@ -108,7 +109,7 @@ public List<Ticks> getMarketDataWithFallback(String ticker) {
         String coinoneJson = coinoneAPIClient.get(ticker);
         // 예외가 없었어도 비정상 응답일 수 있음 → 예: 빈 JSON 또는 에러 코드
         if (coinoneJson != null && !coinoneJson.isBlank() && !coinoneJson.contains("\"result\":\"error\"")) {
-            return coinoneTicksAdapter.convertToTicks(coinoneJson);
+            return tickParser.parseGsonByCoinone(coinoneJson);
         }
         log.warn("Coinone 응답 비정상: ticker{}",ticker);
     }catch (Exception e){

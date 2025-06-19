@@ -17,7 +17,7 @@ public class CoinoneAPIClient {
     private final OkHttpClient client;
     private String ticker;
 
-
+    @WithSpan("api.request.01.market.fallback.coinonecall")
     public String get(String ticker){ //API를 responseBody에 담아 반환
         this.ticker = ticker;
         Request request = new Request.Builder()

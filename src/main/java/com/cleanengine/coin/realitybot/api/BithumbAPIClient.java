@@ -20,7 +20,7 @@ public class BithumbAPIClient {
     private final OkHttpClient client;
     private final MeterRegistry meterRegistry;
 
-    @WithSpan("api.request.01.market.fallback.apiCall")
+    @WithSpan("api.request.01.market.fallback.bithumbcall")
     public String get(String ticker){ //API를 responseBody에 담아 반환
         Timer timer = Timer.builder("bithumb_api_call_duration_seconds")
                 .tag("ticker", ticker)

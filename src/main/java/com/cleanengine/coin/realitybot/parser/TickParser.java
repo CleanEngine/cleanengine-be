@@ -11,15 +11,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
+@Component
 @RequiredArgsConstructor
 @Slf4j
 @Getter
 public class TickParser {
     private final Gson gson = new Gson();
-//    private final CoinoneTicksAdapter coinoneAdapter;
-//    private final TickParser tickParser;
-
     @WithSpan("api.request.01.market.fallback.parse")
     public List<Ticks> parseGson(String json) {
 //        if (exchange.equalsIgnoreCase("coinone") || json.contains("transactions")) {

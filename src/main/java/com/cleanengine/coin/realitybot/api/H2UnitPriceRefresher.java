@@ -14,13 +14,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class H2UnitPriceRefresher implements ApplicationRunner {
     private final UnitPriceRefresher unitPriceRefresher;
-    private final ExchangeRateRefresher exchangeRateRefresher;
+    private final RateOfExchangeRefresher rateOfExchangeRefresher;
 
     @Override
     public void run(ApplicationArguments args){
         log.info("Running Unit Price Refresher (h2-mem)...");
         unitPriceRefresher.initializeUnitPrices();
-        exchangeRateRefresher.exchangeRate();
+        rateOfExchangeRefresher.exchangeRate();
     }
 
 }

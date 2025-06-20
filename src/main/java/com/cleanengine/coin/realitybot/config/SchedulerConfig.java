@@ -1,7 +1,7 @@
 package com.cleanengine.coin.realitybot.config;
 
 import com.cleanengine.coin.realitybot.api.ApiScheduler;
-import com.cleanengine.coin.realitybot.api.ExchangeRateRefresher;
+import com.cleanengine.coin.realitybot.api.RateOfExchangeRefresher;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
 //    private TaskScheduler apiScheduler;
     private final ApiScheduler apiScheduler;
     private final UnitPriceRefresher unitPriceRefresher;
-    private final ExchangeRateRefresher exchangeRateRefresher;
+    private final RateOfExchangeRefresher rateOfExchangeRefresher;
     @Value("${bot-handler.cron}")
     private final String cron;
     @Value("${bot-handler.fixed-rate}")
@@ -30,20 +30,20 @@ public class SchedulerConfig implements SchedulingConfigurer {
     private final Duration exchangeRate;
 
     protected SchedulerConfig(ApiScheduler apiScheduler, @Value("${bot-handler.fixed-rate}") Duration fixedRate, UnitPriceRefresher unitPriceRefresher,
-                              @Value("${bot-handler.cron}")String cron, ExchangeRateRefresher exchangeRateRefresher,
+                              @Value("${bot-handler.cron}")String cron, RateOfExchangeRefresher rateOfExchangeRefresher,
                               @Value("${bot-handler.exchange-rate}") Duration exchangeRate) {
         this.apiScheduler = apiScheduler;
         this.fixedRate = fixedRate;
         this.unitPriceRefresher = unitPriceRefresher;
         this.cron = cron;
-        this.exchangeRateRefresher = exchangeRateRefresher;
+        this.rateOfExchangeRefresher = rateOfExchangeRefresher;
         this.exchangeRate = exchangeRate;
     }
 
     @Override
     public void configureTasks(ScheduledTaskRegistrar registrar) {
         unitPriceRefresher.initializeUnitPrices(); //선반영
-        exchangeRateRefresher.exchangeRate();
+        rateOfExchangeRefresher.exchangeRate();
 
         registrar.addCronTask(() -> {
             try {
@@ -61,7 +61,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
         }, fixedRate);
         registrar.addFixedRateTask(() -> {
             try {
-                exchangeRateRefresher.exchangeRate();
+                rateOfExchangeRefresher.exchangeRate();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

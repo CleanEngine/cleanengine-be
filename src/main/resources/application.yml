@@ -47,5 +47,6 @@ server:
 
 bot-handler:
   fixed-rate: 1000 #  1초마다 실행
+  exchange-rate: 300000 # 5분마다 실행
   cron : "0 0 0 * * *" # 매일 자정마다 호가
   order-level : 1 #오더북 단계 설정 - 주문량 증가

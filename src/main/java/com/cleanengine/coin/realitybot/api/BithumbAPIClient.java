@@ -33,7 +33,7 @@ public class BithumbAPIClient {
                 .addHeader("accept", "application/json")
                 .build();
         try (Response response = client.newCall(request).execute()){
-            if ((response.code() == 400)){
+            if (response.code() == 400){
                 log.warn("DB asset 최신화가 필요합니다 : {}",ticker);
             }
             String responseBody = response.body().string();

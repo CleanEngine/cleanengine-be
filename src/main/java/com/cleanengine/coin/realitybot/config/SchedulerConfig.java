@@ -1,6 +1,7 @@
 package com.cleanengine.coin.realitybot.config;
 
 import com.cleanengine.coin.realitybot.api.ApiScheduler;
+import com.cleanengine.coin.realitybot.api.ExchangeRateRefresher;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -20,22 +21,29 @@ public class SchedulerConfig implements SchedulingConfigurer {
 //    private TaskScheduler apiScheduler;
     private final ApiScheduler apiScheduler;
     private final UnitPriceRefresher unitPriceRefresher;
+    private final ExchangeRateRefresher exchangeRateRefresher;
     @Value("${bot-handler.cron}")
     private final String cron;
     @Value("${bot-handler.fixed-rate}")
     private final Duration fixedRate;
+    @Value("${bot-handler.exchange-rate}")
+    private final Duration exchangeRate;
 
     protected SchedulerConfig(ApiScheduler apiScheduler, @Value("${bot-handler.fixed-rate}") Duration fixedRate, UnitPriceRefresher unitPriceRefresher,
-                              @Value("${bot-handler.cron}")String cron) {
+                              @Value("${bot-handler.cron}")String cron, ExchangeRateRefresher exchangeRateRefresher,
+                              @Value("${bot-handler.exchange-rate}") Duration exchangeRate) {
         this.apiScheduler = apiScheduler;
         this.fixedRate = fixedRate;
         this.unitPriceRefresher = unitPriceRefresher;
         this.cron = cron;
+        this.exchangeRateRefresher = exchangeRateRefresher;
+        this.exchangeRate = exchangeRate;
     }
 
     @Override
     public void configureTasks(ScheduledTaskRegistrar registrar) {
         unitPriceRefresher.initializeUnitPrices(); //선반영
+        exchangeRateRefresher.exchangeRate();
 
         registrar.addCronTask(() -> {
             try {
@@ -51,5 +59,12 @@ public class SchedulerConfig implements SchedulingConfigurer {
                 throw new RuntimeException(e);
             }
         }, fixedRate);
+        registrar.addFixedRateTask(() -> {
+            try {
+                exchangeRateRefresher.exchangeRate();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, exchangeRate);
     }
 }

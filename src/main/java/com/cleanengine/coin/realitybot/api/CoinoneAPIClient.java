@@ -16,7 +16,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class CoinoneAPIClient {
+public class CoinoneAPIClient implements ExchangesAPIClient {
     private final OkHttpClient client;
     private final MeterRegistry meterRegistry;
 
@@ -43,6 +43,11 @@ public class CoinoneAPIClient {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public String getExchangeName() {
+        return "Coinone";
     }
 /*    public String getOpeningPrice(String ticker){
         Request request = new Request.Builder()

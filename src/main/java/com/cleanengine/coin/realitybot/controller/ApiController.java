@@ -20,7 +20,7 @@ public class ApiController {
     public ResponseEntity<?> getApiData(@PathVariable String tickerName) {
         String upperTickerName = tickerName.toUpperCase();
         System.out.println(upperTickerName);
-        apiScheduler.getMarketDataRequest(upperTickerName);
+        apiScheduler.processTicker(upperTickerName);
         return ResponseEntity.ok("Triggered marketAllRequest");
     }
 

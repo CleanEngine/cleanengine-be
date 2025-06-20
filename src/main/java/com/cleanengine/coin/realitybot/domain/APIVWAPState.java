@@ -13,7 +13,7 @@ import java.util.Queue;
 public class APIVWAPState {
     private final Queue<Ticks> ticksQueue = new LinkedList<>();
     private  VWAPCalculator calculator = new VWAPCalculator();
-    private int maxQueueSize = 10;
+    private int maxQueueSize = 50;
     @WithSpan("api.request.call.ticker.apivwap")
     public void addTick(Ticks tick){
         if (ticksQueue.size() >= maxQueueSize) {

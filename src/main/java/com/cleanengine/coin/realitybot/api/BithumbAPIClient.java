@@ -16,7 +16,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class BithumbAPIClient {
+public class BithumbAPIClient implements ExchangesAPIClient {
     private final OkHttpClient client;
     private final MeterRegistry meterRegistry;
 
@@ -45,6 +45,12 @@ public class BithumbAPIClient {
         }
         });
     }
+
+    @Override
+    public String getExchangeName() {
+        return "Bithumb";
+    }
+
     public String getOpeningPrice(String ticker){
         Request request = new Request.Builder()
                 .url("https://api.bithumb.com/v1/ticker?markets=KRW-"+ticker)

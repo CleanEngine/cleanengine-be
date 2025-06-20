@@ -14,7 +14,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class UpbitAPIClient {
+public class UpbitAPIClient implements ExchangesAPIClient {
     private final OkHttpClient client;
     private final MeterRegistry meterRegistry;
 
@@ -31,12 +31,17 @@ public class UpbitAPIClient {
                 .build();
         try (Response response = client.newCall(request).execute()) {
             if (response.code()==400) {
-                log.warn("\"DB asset 최신화가 필요합니다 : {}\",ticker");
+                log.warn("DB asset 최신화가 필요합니다 : {}",ticker);
             }
             String responseBody = response.body().string();
             return responseBody;
         } catch (IOException e){
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public String getExchangeName() {
+        return "Upbit";
     }
 }

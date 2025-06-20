@@ -9,7 +9,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./opentelemetry-javaagent.jar:/app/opentelemetry-javaagent.jar
     working_dir: /app
-    command: [ "java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,mariadb-local,actuator,apm" ]
+    command: [ "java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,it,mariadb-local,actuator,apm" ]
     ports:
       - "8080:8080"
     env_file:
@@ -113,12 +113,14 @@ services:
       - BADGER_DIRECTORY_VALUE=/tmp/jaeger/data
       - BADGER_DIRECTORY_KEY=/tmp/jaeger/keys
       - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_GRPC_HOST_PORT=0.0.0.0:4317
+      - COLLECTOR_OTLP_HTTP_HOST_PORT=0.0.0.0:4318
     volumes:
       - jaeger_data:/tmp/jaeger
     ports:
       - "16686:16686" # UI
-      - "4317:4317"
-      - "4318:4318"
+      - "4319:4317"
+      - "4320:4318"
     networks:
       - monitoring-net
 
@@ -130,11 +132,14 @@ services:
       - ./otel/otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
       - "8889:8889"
-      - "4319:4317"
-      - "4320:4318"
+      - "4317:4317"
+      - "4318:4318"
       - "13133:13133"
     networks:
       - monitoring-net
+    depends_on:
+      jaeger:
+        condition: service_started
 
 volumes:
   prometheus_data: {}

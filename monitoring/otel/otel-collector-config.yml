@@ -12,7 +12,7 @@ processors:
     send_batch_size: 8192
     send_batch_max_size: 16384
   probabilistic_sampler:
-    sampling_percentage: 15
+    sampling_percentage: 1
 
 connectors:
   spanmetrics:

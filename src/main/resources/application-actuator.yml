@@ -10,3 +10,15 @@ management:
     metrics:
       export:
         enabled: true
+server:
+  tomcat:
+    mbeanregistry:
+      enabled: true
+
+spring:
+  jmx:
+    enabled: true
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: true

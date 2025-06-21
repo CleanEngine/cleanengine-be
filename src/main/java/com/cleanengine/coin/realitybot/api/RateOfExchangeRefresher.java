@@ -18,7 +18,6 @@ public class RateOfExchangeRefresher {
             this.usdToKrw = naverApiClient.parsejson(UsdJson);
         }
         String Tryson = naverApiClient.getTry();
-        System.out.println(Tryson);
         if (Tryson != null && !Tryson.isBlank()){
             this.usdToKrw = naverApiClient.parsejson(Tryson);
         }

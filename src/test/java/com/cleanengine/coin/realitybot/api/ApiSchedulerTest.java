@@ -60,12 +60,12 @@ public class ApiSchedulerTest {
         //given
         when(assetRepository.findAll()).thenReturn(assets);
         when(apiClient.get(anyString())).thenReturn("[{data:...}]");
-        when(tickParser.parseGson(anyString())).thenReturn(testTicks);
+        when(tickParser.parseJson(anyString(),anyString())).thenReturn(testTicks);
         when(tickServiceManager.getService(anyString())).thenReturn(apiVWAPState);
         doNothing().when(apiVWAPState).addTick(any());
         System.out.println(assets.size());
         //when
-        apiScheduler.MarketAllRequest();
+        apiScheduler.getMarketAllRequest();
 
         //then
 //        verify(apiScheduler,times(assets.size())).MarketDataRequest(anyString());

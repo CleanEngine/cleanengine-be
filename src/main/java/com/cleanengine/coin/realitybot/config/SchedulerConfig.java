@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.config;
 
+import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.realitybot.api.ApiScheduler;
 import com.cleanengine.coin.realitybot.api.RateOfExchangeRefresher;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
@@ -12,6 +13,7 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import java.time.Duration;
 
 @Configuration
+@WorkingServerProfile
 @EnableScheduling
 //@RequiredArgsConstructor
 public class SchedulerConfig implements SchedulingConfigurer {

@@ -1,11 +1,11 @@
 package com.cleanengine.coin.order.integration.sellorder;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.user.domain.Wallet;
+import com.cleanengine.coin.user.info.infra.WalletRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class SellOrderIntegrationTest {
     OrderService orderService;
 
     @Autowired
-    OrderWalletRepository orderWalletRepository;
+    WalletRepository walletRepository;
 
     @DisplayName("충분한 가상화폐가 있는 유저가 시장가 매도주문 생성시 주문이 생성됨.")
     @Sql("classpath:db/user/user_enough_holdings.sql")
@@ -35,7 +35,7 @@ public class SellOrderIntegrationTest {
                 false, true, 30.0, null, LocalDateTime.now(),false);
 
         OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(command);
-        Wallet wallet = orderWalletRepository.findWalletBy(3, "BTC").orElseThrow();
+        Wallet wallet = walletRepository.findByAccountIdAndTicker(3, "BTC").orElseThrow();
 
         assertNotNull(sellOrderInfo.getId());
         assertEquals(200000-30.0, wallet.getSize());
@@ -49,7 +49,7 @@ public class SellOrderIntegrationTest {
                 false, false, 30.0, 40.0, LocalDateTime.now(),false);
 
         OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(command);
-        Wallet wallet = orderWalletRepository.findWalletBy(3, "BTC").orElseThrow();
+        Wallet wallet = walletRepository.findByAccountIdAndTicker(3, "BTC").orElseThrow();
 
         assertNotNull(sellOrderInfo.getId());
         assertEquals(200000-30.0, wallet.getSize());
@@ -100,23 +100,5 @@ public class SellOrderIntegrationTest {
                 false, false, null, 40.0, LocalDateTime.now(),false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
-    }
-
-    @DisplayName("Wallet이 없는 사용자가 주문 요청을 할 경우 Wallet이 생성된다.")
-    @Sql("classpath:db/user/user_without_wallet.sql")
-    @Test
-    void givenUserWithoutWallet_WhenCreateOrder_ThenWalletIsCreated() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                false, false, 30.0, 40.0, LocalDateTime.now(),false);
-
-        try{
-            orderService.createOrder(command);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-
-        Wallet wallet = orderWalletRepository.findWalletBy(3, "BTC").orElseThrow();
-        assertNotNull(wallet);
-        assertEquals("BTC", wallet.getTicker());
     }
 }

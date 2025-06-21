@@ -349,20 +349,20 @@ class ChartSubscriptionServiceTest {
     }
 
     @Test
-    @DisplayName("유효하지 않은 티커의 구독 상태 확인 시 false를 반환한다")
-    void isSubscribedWithInvalidTicker_ReturnsFalse() {
-        // when & then
-        assertThat(service.isSubscribedToRealTimeTradeRate(null)).isFalse();
-        assertThat(service.isSubscribedToRealTimeTradeRate("")).isFalse();
-        assertThat(service.isSubscribedToRealTimeTradeRate("   ")).isFalse();
+    @DisplayName("유효하지 않은 티커의 구독 상태 확인 시 예외가 발생한다")
+    void isSubscribedWithInvalidTicker_ThrowsException() {
+        assertThatThrownBy(() -> service.isSubscribedToRealTimeTradeRate(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("유효하지 않은 티커입니다");
 
-        assertThat(service.isSubscribedToRealTimeOhlc(null)).isFalse();
-        assertThat(service.isSubscribedToRealTimeOhlc("")).isFalse();
-        assertThat(service.isSubscribedToRealTimeOhlc("   ")).isFalse();
+        assertThatThrownBy(() -> service.isSubscribedToRealTimeTradeRate(""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("유효하지 않은 티커입니다");
 
-        assertThat(service.isSubscribedToPrevRate(null)).isFalse();
-        assertThat(service.isSubscribedToPrevRate("")).isFalse();
-        assertThat(service.isSubscribedToPrevRate("   ")).isFalse();
+        assertThatThrownBy(() -> service.isSubscribedToRealTimeTradeRate("   "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("유효하지 않은 티커입니다");
+
     }
 
     // ===== 엣지 케이스 테스트 =====

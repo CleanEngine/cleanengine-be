@@ -7,15 +7,16 @@ services:
     volumes:
       - ../build/libs/coin-0.0.1-SNAPSHOT.jar:/app/coin-0.0.1-SNAPSHOT.jar
       - /etc/localtime:/etc/localtime:ro
-      - /home/ubuntu/logs/springboot:/app/logs
     working_dir: /app
-    command: ["java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,mariadb-local"]
+    command: ["java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,it,mariadb-local"]
     ports:
       - "8080:8080"
+      - "5005:5005"
     env_file:
       - ./local.properties
     environment:
       - TZ=Asia/Seoul
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     depends_on:
       mariadb:
         condition: service_healthy

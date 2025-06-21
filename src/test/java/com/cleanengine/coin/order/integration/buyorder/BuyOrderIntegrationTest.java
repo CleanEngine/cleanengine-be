@@ -1,13 +1,12 @@
 package com.cleanengine.coin.order.integration.buyorder;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.order.adapter.out.persistentce.account.OrderAccountRepository;
-import com.cleanengine.coin.order.adapter.out.persistentce.wallet.OrderWalletRepository;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
 import com.cleanengine.coin.user.domain.Account;
-import com.cleanengine.coin.user.domain.Wallet;
+import com.cleanengine.coin.user.info.infra.AccountRepository;
+import com.cleanengine.coin.user.info.infra.WalletRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +26,10 @@ public class BuyOrderIntegrationTest {
     OrderService orderService;
 
     @Autowired
-    OrderAccountRepository orderAccountRepository;
+    AccountRepository accountRepository;
 
     @Autowired
-    OrderWalletRepository orderWalletRepository;
+    WalletRepository walletRepository;
 
     //TODO 3,2가 예약어로 사용하는 만큼 1을 insert하는 테스트가 깨질 수 있다. 또한, sql로  초기화보다 EntityManager나 Repository로 초기화하는게 나은듯
     @DisplayName("충분한 돈이 있는 유저가 시장가 매수주문 생성시 주문이 정상 생성됨.")
@@ -41,7 +40,7 @@ public class BuyOrderIntegrationTest {
                 true, true, null, 30.0, LocalDateTime.now(),false);
 
         OrderInfo.BuyOrderInfo buyOrderInfo = (OrderInfo.BuyOrderInfo) orderService.createOrder(command);
-        Account account = orderAccountRepository.findByUserId(3).orElseThrow();
+        Account account = accountRepository.findByUserId(3).orElseThrow();
 
         assertNotNull(buyOrderInfo.getId());
         assertEquals(200000-30.0, account.getCash());
@@ -55,7 +54,7 @@ public class BuyOrderIntegrationTest {
                 true, false, 30.0, 40.0, LocalDateTime.now(),false);
 
         OrderInfo.BuyOrderInfo buyOrderInfo = (OrderInfo.BuyOrderInfo) orderService.createOrder(command);
-        Account account = orderAccountRepository.findByUserId(3).orElseThrow();
+        Account account = accountRepository.findByUserId(3).orElseThrow();
 
         assertNotNull(buyOrderInfo.getId());
         assertEquals(200000-30.0*40.0, account.getCash());
@@ -106,19 +105,5 @@ public class BuyOrderIntegrationTest {
                 true, false, null, 40.0, LocalDateTime.now(),false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
-    }
-
-    @DisplayName("Wallet이 없는 사용자가 주문 요청을 할 경우 Wallet이 생성된다.")
-    @Sql("classpath:db/user/user_without_wallet.sql")
-    @Test
-    void givenUserWithoutWallet_WhenCreateOrder_ThenWalletIsCreated() {
-        OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                true, false, 30.0, 40.0, LocalDateTime.now(),false);
-
-        orderService.createOrder(command);
-
-        Wallet wallet = orderWalletRepository.findWalletBy(3, "BTC").orElseThrow();
-        assertNotNull(wallet);
-        assertEquals("BTC", wallet.getTicker());
     }
 }

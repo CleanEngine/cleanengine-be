@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -22,11 +23,11 @@ import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 @Service
 @RequiredArgsConstructor
 @Validated
-public class OrderService {
+public class OrderService  {
     private final List<CreateOrderStrategy<?, ?>> createOrderStrategies;
     private final Validator validator;
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public OrderInfo<?> createOrder(OrderCommand.CreateOrder createOrder){
         validateCreateOrder(createOrder);
         CreateOrderStrategy<?, ?> createOrderStrategy = createOrderStrategies.stream()
@@ -35,14 +36,14 @@ public class OrderService {
         return createOrderStrategy.processCreatingOrder(createOrder);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public OrderInfo<?> createOrderWithBot(String ticker, Boolean isBuyOrder, Double orderSize, Double price){
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
+    public void createOrderWithBot(String ticker, Boolean isBuyOrder, Double orderSize, Double price){
         Integer userId = isBuyOrder? BUY_ORDER_BOT_ID : SELL_ORDER_BOT_ID;
 
         OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(ticker, userId, isBuyOrder,
                 false, orderSize, price, LocalDateTime.now(), true);
 
-        return createOrder(createOrder);
+        createOrder(createOrder);
     }
 
     protected void validateCreateOrder(OrderCommand.CreateOrder createOrder) {

@@ -46,7 +46,10 @@ public abstract class MariaDBAdapterTest {
             registry.add("spring.datasource.username", MariaDBTestContainerExtension.container::getUsername);
             registry.add("spring.datasource.password", MariaDBTestContainerExtension.container::getPassword);
             registry.add("logging.level.org.hibernate.SQL", () -> "debug");
-            registry.add("spring.jpa.show-sql", () -> "true");
+            registry.add("logging.level.org.springframework.data", () -> "debug");
+            registry.add("spring.jpa.properties.hibernate.format-sql", () -> "false");
+            registry.add("logging.level.org.hibernate.orm.jdbc.bind", () -> "trace");
+            registry.add("logging.level.org.hibernate.orm.jdbc.extract", () -> "trace");
         }
     }
 }

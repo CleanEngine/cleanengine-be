@@ -94,8 +94,8 @@ public class MinuteOhlcDataServiceImpl implements MinuteOhlcDataService {
     // OHLC 계산 로직
     @NotNull
     static OhlcData calculateOhlcData(List<Trade> trades) {
-        double open = trades.get(0).getPrice();
-        double close = trades.get(trades.size() - 1).getPrice();
+        double open = trades.getFirst().getPrice();
+        double close = trades.getLast().getPrice();
 
         double high = trades.stream()
                 .mapToDouble(Trade::getPrice)

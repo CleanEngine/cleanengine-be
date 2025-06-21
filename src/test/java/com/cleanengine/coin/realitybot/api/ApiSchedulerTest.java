@@ -71,8 +71,4 @@ public class ApiSchedulerTest {
 //        verify(apiScheduler,times(assets.size())).MarketDataRequest(anyString());
         verify(orderGenerateService,times(assets.size())).generateOrder(anyString(),anyDouble(),anyDouble());
     }
-
-    @Test
-    void marketDataRequest() {
-    }
 }

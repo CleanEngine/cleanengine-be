@@ -1,5 +1,6 @@
 package com.cleanengine.coin.trade.application;
 
+import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
@@ -29,9 +30,14 @@ public class TradeFlowService {
                 tradeExecutor.executeTrade(waitingOrders, tradePair.get(), ticker);
                 tradePair = tradeMatcher.matchOrders(waitingOrders);
                 continueProcessing = tradePair.isPresent();
+            } catch (TradeZeroOrderException e) {
+                Order order = e.getOrder();
+                waitingOrdersManager.getWaitingOrders(order.getTicker()).removeOrder(order);
+                log.warn("{} - {} 주문 {} 이 주문 수량 0 이므로 제거되었음.", order.getTicker(), order instanceof BuyOrder ? "매수" : "매도", order.getId());
+                tradePair = tradeMatcher.matchOrders(waitingOrders);
+                continueProcessing = tradePair.isPresent();
             } catch (Exception e) {
-                // TODO : 회복 필요
-                log.error("Error processing trades for {}: {}", ticker, e.getMessage());
+                log.error("{} - 체결 에러 발생: {}", ticker, e.getMessage());
                 continueProcessing = false;
             }
         }

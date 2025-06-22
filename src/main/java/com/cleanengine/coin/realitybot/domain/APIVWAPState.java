@@ -34,7 +34,7 @@ public class APIVWAPState {
     //n초마다 5회 주문 , api 체결 내역에서 10종목씩 비교
     @WithSpan("api.request.01.market.apivwap.getVolume")
     public double getAvgVolumePerOrder() {
-        return calculator.getTotalVolume() / 50;
+        return calculator.getTotalVolume() / ticksQueue.size();
     }//todo 에러 인젝션으로 50일때와 5일때 복귀 속도 알아보기
 
     @WithSpan("api.request.01.market.apivwap.getPrice")

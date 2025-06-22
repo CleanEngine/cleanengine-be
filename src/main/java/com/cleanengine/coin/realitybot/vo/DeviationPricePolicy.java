@@ -49,7 +49,6 @@ public class DeviationPricePolicy {
 //        double adjustedBuy = normalizeToUnit(buyTarget,unitPrice);
         double adjustedSell = normalizeToUnit(interpolate(platformSell,sellTarget ,weight),unitPrice);
         double adjustedBuy = normalizeToUnit(interpolate(platformBuy,buyTarget ,weight),unitPrice);
-
         return new AdjustPrice(adjustedSell,adjustedBuy);
 
     }
@@ -78,11 +77,12 @@ public class DeviationPricePolicy {
      * 선형 보간 함수: platformPrice → apiVWAP 사이 보간
      */
     private double interpolate(double platformPrice, double apiVWAP, double weight) {
-        double interWeight = Math.max(1,weight*1.2);
+        double interWeight = Math.min(1.0,weight*1.2);
         return platformPrice * (1 - interWeight) + apiVWAP * interWeight;
     }
     private double normalizeToUnit(double price, double unitPrice) {
-        return Math.round(price / unitPrice) * unitPrice;
+        double normalized = Math.round(price / unitPrice) * unitPrice;
+        return Math.max(normalized, unitPrice); // 최소한 1틱 이상으로 보정
     }
 
     public record AdjustPrice(double sell, double buy){}

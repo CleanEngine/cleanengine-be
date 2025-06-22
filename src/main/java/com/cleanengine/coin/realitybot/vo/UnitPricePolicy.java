@@ -14,6 +14,9 @@ public class UnitPricePolicy {
 
     @PostConstruct
     public void initRules() {
+        unitPriceRules.put(0.0000001,0.00000001);
+        unitPriceRules.put(0.000001,0.00000001);
+        unitPriceRules.put(0.00001,0.00000001);
         unitPriceRules.put(0.0001,0.00000001);
         unitPriceRules.put(0.001,0.0000001);
         unitPriceRules.put(0.01,0.000001);

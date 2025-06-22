@@ -16,29 +16,40 @@ public class OrderVolumePolicy {
      * @param isBuy 매수면 true, 매도면 false
      * @return 생성된 거래량
      */
+    private static final double MAX_VOLUME = 10_000_000;
+
     @WithSpan("api.request.02.order.platformvwap.ordervolume")
     public double calculateVolume(double avgVolume, double trendLineRate, boolean isBuy){
+
+        //저가 토큰을 위한 평균 거래량 스케일 조정
+        double scaledAvg = (avgVolume > MAX_VOLUME)
+                ? avgVolume * 0.01 // 1천만 넘으면 1% 스케일링
+                : avgVolume;
+
         //기본 랜덤 거래량 (0.5~1.5)
-        double rawVolume = avgVolume *(0.5*Math.random());
+        double rawVolume = scaledAvg *(0.5*Math.random());
 
         //편차에 따른 거래량 보정 3% -> 최대 2.5배 증가
         double deviation = Math.abs(trendLineRate); //절댓값 반환
         double power = deviation * 100; //0.03 -> 3%
         double multiplier;
         if (deviation >= 0.1){//1% 초과할 경우
-            multiplier = 1.0 + (power * 0.5); //2.5배 (max로 사용)
+//            multiplier = 1.0 + (power * 0.5); //최대 11배
+            multiplier = 3.0; // 최대 제한
         } else if (deviation >= 0.01){
-            double baseline = 5.0-((deviation - 0.01)/0.09)*2.0;
-            multiplier = baseline + (power * 0.5);
+//            double baseline = 5.0-((deviation - 0.01)/0.09)*2.0;
+//            multiplier = baseline + (power * 0.5);
+            multiplier = 1.2 + ((deviation - 0.01) / 0.09) * (3.0 - 1.2);
         } else {
-            multiplier = 1.0 + (power * 0.5);
+//            multiplier = 1.0 + (power * 0.5);
+            multiplier = 1.0 + (deviation / 0.01) * 0.2;
         }
 //            double multiplier = Math.pow(1.2,power); //2.5배 (max로 사용)
             rawVolume *= multiplier; //강한 추세 -> 강한 보정
 
 
         //매수-매도 비중 조정
-        if (deviation <=0.001) //0.1%일 경우 안정권 , 추가적인 보정 x
+        if (deviation <=0.01) //1%일 경우 안정권 , 추가적인 보정 x
             return volumeExpansion(rawVolume);
         if (trendLineRate > 0){
             //시장이 상승하면 매도 강세보정

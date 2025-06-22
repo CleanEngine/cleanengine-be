@@ -37,6 +37,14 @@ public class OrderGenerateService {
 
     @WithSpan("api.request.02.order")
     public void generateOrder(String ticker, double apiVWAP, double avgVolume) {//기준 주문금액, 주문량 받기 (tick당 계산되어 들어옴)
+        /*boolean isPepe = "PEPE".equals(ticker);
+
+        if (isPepe) {
+            log.info("[PEPE DEBUG] ==== ENTER generateOrder ====");
+            log.info("[PEPE DEBUG] Input - apiVWAP: {}, avgVolume: {}",
+                    new DecimalFormat("#,###.########").format(apiVWAP),
+                    new DecimalFormat("#,###.########").format(avgVolume));
+        }*/
 
         //호가 정책 적용
         this.unitPrice = unitPriceRefresher.getUnitPriceByTicker(ticker);
@@ -57,6 +65,14 @@ public class OrderGenerateService {
             double sellPrice = adjustPrice.sell();
             double buyPrice = adjustPrice.buy();
 
+            /*if (isPepe) {
+                log.info("[PEPE DEBUG] AdjustedPrice - sell: {}, buy: {}",
+                        new DecimalFormat("#,###.########").format(adjustPrice.sell()),
+                        new DecimalFormat("#,###.########").format(adjustPrice.buy()));
+                log.info("[PEPE DEBUG] Volume - sell: {}, buy: {}",
+                        new DecimalFormat("#,###.########").format(sellVolume),
+                        new DecimalFormat("#,###.########").format(buyVolume));
+            }*/
 
                 createOrderWithFallback(ticker,false, sellVolume, sellPrice);
                 createOrderWithFallback(ticker,true, buyVolume, buyPrice);
@@ -79,7 +95,7 @@ public class OrderGenerateService {
                         t.getTradeTime(), t.getPrice(), t.getSize(), t.getBuyUserId(), t.getSellUserId())
         );*/
     }
-    @WithSpan("api.request.03.create")
+//    @WithSpan("api.request.03.create")
     private void createOrderWithFallback(String ticker,boolean isBuy, double volume, double price ) throws IllegalArgumentException {
         if (volume <= 0 || price <= 0){
             log.error("잘못된 주문이 발생 [종목 : {}] ,[isBuy : {}] ,[금액 : {}] ,[수량 : {}] 주문은 생성 취소",ticker,isBuy,
@@ -88,6 +104,9 @@ public class OrderGenerateService {
             return;
         }
         recorder.recordPrice(ticker,isBuy,price);
+//        log.info("주문이 발생 [종목 : {}] ,[isBuy : {}] ,[금액 : {}] ,[수량 : {}]",ticker,isBuy,
+//                new DecimalFormat("#,###.########").format(price),
+//                new DecimalFormat("#,###.########").format(volume));
         try {
             orderService.createOrderWithBot(ticker, isBuy, volume, price);
         } catch (IllegalArgumentException e) {

@@ -15,6 +15,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -49,16 +50,25 @@ public class DBInitRunner implements CommandLineRunner {
         account.setCash(0.0);
         accountRepository.save(account);
 
-        Wallet wallet = new Wallet();
-        wallet.setTicker("BTC");
-        wallet.setAccountId(account.getId());
-        wallet.setSize(500_000_000.0);
+        List<Wallet> wallets = new ArrayList<>();
 
-        Wallet wallet2 = new Wallet();
-        wallet2.setTicker("TRUMP");
-        wallet2.setAccountId(account.getId());
-        wallet2.setSize(500_000_000.0);
-        walletRepository.saveAll(List.of(wallet, wallet2));
+        String[] tickers = {
+                "BTC", "TRUMP", "ETH", "DOGE", "USDT", "PEPE", "XRP", "SOL", "SUI", "WLD",
+                "LM", "ROA", "SNT", "PCI", "KAIA", "VIRTUAL", "EGG"
+        };
+        for (String ticker : tickers) {
+            Wallet wallet = new Wallet();
+            wallet.setTicker(ticker);
+            wallet.setAccountId(account.getId());
+            if ("PEPE".equals(ticker)) {
+                wallet.setSize(10_000_000_000.0); // 10억으로 설정
+            } else {
+                wallet.setSize(1_000_000_000.0); // 다른 토큰은 5억
+            }
+            wallets.add(wallet);
+        }
+
+        walletRepository.saveAll(wallets);
     }
 
     @Transactional
@@ -68,26 +78,45 @@ public class DBInitRunner implements CommandLineRunner {
 
         Account account = new Account();
         account.setUserId(user.getId());
-        account.setCash(500_000_000.0);
+        account.setCash(50_000_000_000.0);
         accountRepository.save(account);
 
-        Wallet wallet = new Wallet();
-        wallet.setTicker("BTC");
-        wallet.setAccountId(account.getId());
-        wallet.setSize(0.0);
+        List<Wallet> wallets = new ArrayList<>();
 
-        Wallet wallet2 = new Wallet();
-        wallet2.setTicker("TRUMP");
-        wallet2.setAccountId(account.getId());
-        wallet2.setSize(0.0);
-        walletRepository.saveAll(List.of(wallet, wallet2));
+        String[] tickers = {
+                "BTC", "TRUMP", "ETH", "DOGE", "USDT", "PEPE", "XRP", "SOL", "SUI", "WLD",
+                 "LM", "ROA", "SNT", "PCI", "KAIA", "VIRTUAL", "EGG"
+        };
+        for (String ticker : tickers) {
+            Wallet wallet = new Wallet();
+            wallet.setTicker(ticker);
+            wallet.setAccountId(account.getId());
+            wallet.setSize(0.0);
+            wallets.add(wallet);
+        }
+        walletRepository.saveAll(wallets);
     }
 
     @Transactional
     protected void initAssetData() {
         assetRepository.saveAll(List.of(
                 new Asset("BTC", "비트코인"),
-                new Asset("TRUMP", "오피셜 트럼프")
+                new Asset("TRUMP", "오피셜 트럼프"),
+                new Asset("ETH", "이더리움"),
+                new Asset("DOGE", "도지코인"),
+                new Asset("USDT", "테더"),
+                new Asset("PEPE", "페페"),
+                new Asset("XRP", "리플"),
+                new Asset("SOL", "솔라나"),
+                new Asset("SUI", "수이"),
+                new Asset("WLD", "월드코인"),
+                new Asset("LM", "레저메타"),
+                new Asset("ROA", "로아코어"),
+                new Asset("SNT", "스테이터스네트워크토큰"),
+                new Asset("PCI", "페이코인"),
+                new Asset("KAIA", "카이아"),
+                new Asset("VIRTUAL", "버추얼 프로토콜"),
+                new Asset("EGG", "네스트리")
         ));
     }
 }

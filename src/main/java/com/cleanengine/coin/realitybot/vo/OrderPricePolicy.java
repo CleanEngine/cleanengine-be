@@ -31,7 +31,7 @@ public class OrderPricePolicy {
         }
         //2~3 단계 : orderbook 단위 주문
         else {
-            randomOffset =  getRandomOffset(platformVWAP,0.001);
+            randomOffset =  getRandomOffset(platformVWAP,0.01);
             //체결 확률 증가용 코드
             sellPrice = normalizeToUnit(platformVWAP + priceOffset - randomOffset,unitPrice);
             buyPrice = normalizeToUnit(platformVWAP - priceOffset + randomOffset,unitPrice);
@@ -56,7 +56,8 @@ public class OrderPricePolicy {
     }
 
     private double normalizeToUnit(double price, double unitPrice){ //호가단위로 변환
-        return Math.round(price / unitPrice)*unitPrice;
+        double normalized = Math.round(price / unitPrice) * unitPrice;
+        return Math.max(normalized, unitPrice); // 최소한 1틱 이상으로 보정
     }
 
     public record OrderPrice(double sell, double buy){}

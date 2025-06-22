@@ -4,6 +4,7 @@ import com.cleanengine.coin.common.annotation.StartNewTrace;
 import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.order.domain.Asset;
+import com.cleanengine.coin.realitybot.config.BotThreadConfig;
 import com.cleanengine.coin.realitybot.domain.APIVWAPState;
 import com.cleanengine.coin.realitybot.domain.VWAPMetricsRecorder;
 import com.cleanengine.coin.realitybot.dto.Ticks;
@@ -17,16 +18,14 @@ import io.micrometer.core.instrument.Timer;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 @Slf4j
 @Component
@@ -41,7 +40,10 @@ public class ApiScheduler {
     private final AssetRepository assetRepository;
     private final VWAPMetricsRecorder recorder;
     private final MeterRegistry meterRegistry;
-private final ExecutorService executor = Executors.newFixedThreadPool(50);
+    @Qualifier("tickerExecutor")
+    private final Executor tickerExecutor;
+    @Qualifier("exchangeExecutor")
+    private final Executor exchangeExecutor;
     private final RateLimiter rateLimiter = RateLimiter.create(140.0); //TODO 마켓별로 커스텀 필요!
     private String ticker;
 
@@ -51,22 +53,24 @@ private final ExecutorService executor = Executors.newFixedThreadPool(50);
         Timer timer = meterRegistry.timer("market.all.request.duration");
         timer.record(() -> {
             List<Asset> tickers = assetRepository.findAll();
-//            List<CompletableFuture<Void>> futures = tickers.stream()
-//                    .map(ticker -> CompletableFuture.runAsync(()->processTicker(ticker.getTicker()),executor)).toList();
-//            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            List<CompletableFuture<Void>> futures = tickers.stream()
+                    .map(ticker -> CompletableFuture.runAsync(()->processTicker(ticker.getTicker()),tickerExecutor)).toList();
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            for (Asset ticker : tickers) {
-                String tickerName = ticker.getTicker();
-                processTicker(tickerName);
+//            for (Asset ticker : tickers) {
+//                String tickerName = ticker.getTicker();
+//                processTicker(tickerName);
 //                executor.botThreadPoolExecutor().execute(() -> {
-                    rateLimiter.acquire(); //TODO 초반 테스트시 주석 후 실행 (멀티 스레드와 차이 비교 필요... 초당 140회 절대 불가능함..)
-                     log.debug("[{}] 요청 실행: {}", LocalTime.now(), tickerName);
+//                    rateLimiter.acquire(); //TODO 초반 테스트시 주석 후 실행 (멀티 스레드와 차이 비교 필요... 초당 140회 절대 불가능함..)
+//                     log.debug("[{}] 요청 실행: {}", LocalTime.now(), tickerName);
 //                });
-            }
+//            }
         });
     }
     @WithSpan("api.request.01.processTicker")
     public void processTicker(String ticker){
+
+//        long totalStart = System.currentTimeMillis();
         List<CompletableFuture<List<Ticks>>> exchangeFutures = exchangesAPIClientList.stream()
                 .<CompletableFuture<List<Ticks>>>map(exchanges -> CompletableFuture.supplyAsync(()->{
                     try{
@@ -78,17 +82,20 @@ private final ExecutorService executor = Executors.newFixedThreadPool(50);
 //                        throw new RuntimeException(e);
                         return Collections.emptyList();
                     }
-                }, executor)).toList();
+                }, exchangeExecutor)).toList();
 
-        List<List<Ticks>> result = exchangeFutures.stream().map(CompletableFuture::join).toList();
+        CompletableFuture.allOf(exchangeFutures.toArray(new CompletableFuture[0])).thenRun(()->{
+            List<List<Ticks>> result = exchangeFutures.stream().map(CompletableFuture::join).toList();
+            APIVWAPState state = tickServiceManager.getService(ticker);
+            result.forEach(ticks -> ticks.forEach(state::addTick)); // ticks에 한번에 계산 , 계속 주입
+            double vwap = state.getVWAP();
+            double volume = state.getAvgVolumePerOrder();
+            recorder.recordApiVwap(ticker,vwap);
+            orderGenerateService.generateOrder(ticker,vwap,volume); //1tick 당 매수/매도 3개씩 제작
+        }).join();
 
-        APIVWAPState state = tickServiceManager.getService(ticker);
-        result.forEach(ticks -> ticks.forEach(state::addTick)); // ticks에 한번에 계산 , 계속 주입
-        double vwap = state.getVWAP();
-        double volume = state.getAvgVolumePerOrder();
-        recorder.recordApiVwap(ticker,vwap);
-
-        orderGenerateService.generateOrder(ticker,vwap,volume); //1tick 당 매수/매도 3개씩 제작
+//        long totalEnd = System.currentTimeMillis();
+//        log.info("✅ {}의 처리시간: {} ms",ticker,totalEnd-totalStart);
    }
 
 }

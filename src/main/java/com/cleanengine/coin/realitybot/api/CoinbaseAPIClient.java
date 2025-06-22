@@ -8,16 +8,24 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Slf4j
 public class CoinbaseAPIClient implements ExchangesAPIClient {
+    @Qualifier("coinbaseClient")
     private final OkHttpClient client;
     private final MeterRegistry meterRegistry;
+
+    public CoinbaseAPIClient(@Qualifier("coinbaseClient") OkHttpClient client,MeterRegistry meterRegistry) {
+        this.client = client;
+        this.meterRegistry = meterRegistry;
+    }
 
     @WithSpan("api.request.01.market.fallback.coinbasecall")
     public String get(String ticker){

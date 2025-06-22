@@ -2,22 +2,31 @@ package com.cleanengine.coin.realitybot.api;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Slf4j
 public class UpbitAPIClient implements ExchangesAPIClient {
+    @Qualifier("defaultClient")
     private final OkHttpClient client;
     private final MeterRegistry meterRegistry;
 
+    public UpbitAPIClient(@Qualifier("defaultClient") OkHttpClient client,MeterRegistry meterRegistry) {
+        this.client = client;
+        this.meterRegistry = meterRegistry;
+    }
+
+    @WithSpan("api.request.01.market.fallback.upbit")
     public String get(String ticker){
         Timer timer = Timer.builder("upbit_api_call_duration_seconds")
                 .tag("ticker", ticker)

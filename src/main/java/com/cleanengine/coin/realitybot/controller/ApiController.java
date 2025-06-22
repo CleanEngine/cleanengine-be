@@ -30,9 +30,17 @@ public class ApiController {
             long totalStart = System.currentTimeMillis();
             apiScheduler.getMarketAllRequest();
             long totalEnd = System.currentTimeMillis();
+            long elapsed = totalEnd - totalStart;
+
             System.out.printf("✅ 전체 처리시간: %d ms\n", (totalEnd - totalStart));
             meterRegistry.timer("api.market.total").record(totalEnd - totalStart, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+            long sleepTime = 1000 - elapsed;
+            if (sleepTime > 0) {
+                Thread.sleep(sleepTime);
+            }
         }
+
         return ResponseEntity.ok("Triggered marketAllRequest");
     }
 }

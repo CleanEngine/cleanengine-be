@@ -9,16 +9,24 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@Component
-@RequiredArgsConstructor
 @Slf4j
+@Component
+//@RequiredArgsConstructor
 public class BithumbAPIClient implements ExchangesAPIClient {
+    @Qualifier("defaultClient")
     private final OkHttpClient client;
     private final MeterRegistry meterRegistry;
+
+    public BithumbAPIClient(@Qualifier("defaultClient") OkHttpClient client,
+                            MeterRegistry meterRegistry) {
+        this.client = client;
+        this.meterRegistry = meterRegistry;
+    }
 
     @WithSpan("api.request.01.market.fallback.bithumbcall")
     public String get(String ticker){ //API를 responseBody에 담아 반환

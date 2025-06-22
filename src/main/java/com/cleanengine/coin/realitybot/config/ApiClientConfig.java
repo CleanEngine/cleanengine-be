@@ -2,19 +2,29 @@ package com.cleanengine.coin.realitybot.config;
 
 import com.cleanengine.coin.realitybot.api.*;
 import com.cleanengine.coin.realitybot.parser.*;
+import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class ApiClientConfig {
-    @Bean
-    public OkHttpClient okHttpClient() {
+    @Bean(name = "defaultClient")
+    public OkHttpClient defaultClient() {
         return new OkHttpClient.Builder()
-                .addInterceptor(new RetryInterceptor(5,50,500))
+                .connectionPool(new ConnectionPool(50,5, TimeUnit.MINUTES))
+//                .addInterceptor(new RetryInterceptor(5,50,500))
+                .build();
+    }
+
+    @Bean(name = "coinbaseClient")
+    public OkHttpClient coinbaseClient() {
+        return new OkHttpClient.Builder()
+                .connectionPool(new ConnectionPool(20, 5, TimeUnit.MINUTES))
                 .build();
     }
 

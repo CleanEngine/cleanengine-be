@@ -20,7 +20,7 @@ public class RetryInterceptor implements Interceptor {
 
     @NotNull
     @Override
-    @WithSpan("api.request.01.market.fallback.intercepter")
+//    @WithSpan("api.request.01.market.fallback.intercepter")
     public Response intercept(@NotNull Chain chain) throws IOException {
         //서버 통신 일어나기 직전-후 가로채기
         Request request = chain.request();//가로챈거

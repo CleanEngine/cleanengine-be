@@ -17,7 +17,7 @@ import java.util.List;
 @Getter
 public class TickParser implements ExchangesParser {
     private final Gson gson = new Gson();
-    @WithSpan("api.request.01.market.fallback.parse")
+//    @WithSpan("api.request.01.market.fallback.parse")
     public List<Ticks> parseJson(String json,String ticker) {
         return gson.fromJson(json, new TypeToken<List<Ticks>>() {}.getType());
     }

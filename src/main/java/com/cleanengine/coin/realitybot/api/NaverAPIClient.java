@@ -8,17 +8,25 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Slf4j
 public class NaverAPIClient {
+    @Qualifier("defaultClient")
     private final OkHttpClient client;
     private final MeterRegistry meterRegistry;
     private final ObjectMapper objectMapper;
+
+    public NaverAPIClient(@Qualifier("defaultClient") OkHttpClient client,MeterRegistry meterRegistry, ObjectMapper objectMapper) {
+        this.client = client;
+        this.meterRegistry = meterRegistry;
+        this.objectMapper = objectMapper;
+    }
 
 //    @WithSpan("api.request.01.market.fallback.bithumbcall")
     public String getUsd() {

@@ -14,7 +14,7 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Account> findByUserId(Integer userId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true)
     @Query("UPDATE Account a SET a.cash = a.cash + :amount WHERE a.userId = :userId")
     int increaseAccountCash(int userId, double amount);
 

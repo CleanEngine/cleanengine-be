@@ -25,7 +25,9 @@ public class UnitPriceRefresher {
 
     public void initializeUnitPrices() {
         List<Asset> tickers = assetRepository.findAll();
+        log.info("initializeuniprices running test");
         for (Asset ticker : tickers){
+            log.info("initializeuniprices test : {} ",ticker.getTicker());
             double unitPrice = fetchOpeningPriceFromAPI(ticker.getTicker());
             unitPriceCache.put(ticker.getTicker(),unitPrice);
         }

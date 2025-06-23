@@ -15,6 +15,7 @@ services:
     env_file:
       - ../docker/local.properties
     environment:
+      - LOG_LEVEL=trace
       - TZ=Asia/Seoul
       - OTEL_SERVICE_NAME=my-spring-app
       - OTEL_TRACES_EXPORTER=otlp

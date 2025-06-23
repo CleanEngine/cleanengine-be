@@ -3,6 +3,7 @@ package com.cleanengine.coin.realitybot.config;
 import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.realitybot.api.ApiScheduler;
 import com.cleanengine.coin.realitybot.api.UnitPriceRefresher;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -14,6 +15,7 @@ import java.time.Duration;
 @Configuration
 @WorkingServerProfile
 @EnableScheduling
+@Slf4j
 //@RequiredArgsConstructor
 public class SchedulerConfig implements SchedulingConfigurer {
 
@@ -38,7 +40,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
     @Override
     public void configureTasks(ScheduledTaskRegistrar registrar) {
         unitPriceRefresher.initializeUnitPrices(); //선반영
-
+        log.info("Scheduler Configured...");
         registrar.addCronTask(() -> {
             try {
                 unitPriceRefresher.initializeUnitPrices();
@@ -48,6 +50,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
         }, cron);
         registrar.addFixedRateTask(() -> {
             try {
+                log.info("MarketAllRequest...");
                 apiScheduler.MarketAllRequest();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);

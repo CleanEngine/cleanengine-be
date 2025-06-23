@@ -1,0 +1,18 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB-K6
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086  # Docker 네트워크 내에서 컨테이너 이름으로 통신
+    jsonData:
+      version: Flux
+      organization: k6-org
+      defaultBucket: k6-bucket
+    secureJsonData:
+      token: vJvTx5b8vjgH7mu-M-BsEvdy5_COovexAjyniVhMF1yPzvsp2g8kp62opqXVMq6ICAq2tLJxxD6ifXPBZ9YVmA==
+
+#  export K6_INFLUXDB_ORGANIZATION=k6-org
+#  - export K6_INFLUXDB_TOKEN=vJvTx5b8vjgH7mu-M-BsEvdy5_COovexAjyniVhMF1yPzvsp2g8kp62opqXVMq6ICAq2tLJxxD6ifXPBZ9YVmA==
+#  - export K6_INFLUXDB_BUCKET=k6-bucket
+#  ./k6 run --out xk6-influxdb=http://localhost:8086 /Users/jangbongjun/coin/src/test/resources/k6/chart-stomp-test.js

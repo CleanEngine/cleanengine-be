@@ -27,7 +27,7 @@ services:
     image: mariadb:latest
     container_name: mariadb
     ports:
-      - "3306:3306"
+      - "3307:3306"
     env_file:
       - ./local.properties
     environment:

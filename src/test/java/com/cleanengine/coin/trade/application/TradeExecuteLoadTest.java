@@ -20,14 +20,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles({"dev", "it", "mariadb-local", "trade-load-test", "actuator", "apm", "otel-local"})
-//@Disabled
+@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest
 class TradeExecuteLoadTest {
@@ -181,22 +179,19 @@ class TradeExecuteLoadTest {
         long testStart = System.nanoTime();
 
         // 주문 생성 및 큐 삽입
-        ExecutorService executor = Executors.newFixedThreadPool(20);
+        final LocalDateTime baseTime = LocalDateTime.now();
+
         for (int i = 0; i < orderCount; i++) {
-            executor.submit(() -> {
-                SellOrder limitSellOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), true);
-                BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), true);
-                waitingOrders.addOrder(limitSellOrder);
-                waitingOrders.addOrder(limitBuyOrder);
+            final LocalDateTime orderTime = baseTime.plusSeconds(i);
 
-                sellOrderRepository.save(limitSellOrder);
-                buyOrderRepository.save(limitBuyOrder);
-            });
+            SellOrder limitSellOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, orderTime, true);
+            BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder(ticker, 2, 10.0, 130_000_000.0, orderTime, true);
+            waitingOrders.addOrder(limitSellOrder);
+            waitingOrders.addOrder(limitBuyOrder);
+
+            sellOrderRepository.save(limitSellOrder);
+            buyOrderRepository.save(limitBuyOrder);
         }
-
-        // 큐 삽입 완료 대기
-        executor.shutdown();
-        executor.awaitTermination(30, TimeUnit.SECONDS);
 
         PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
         PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);

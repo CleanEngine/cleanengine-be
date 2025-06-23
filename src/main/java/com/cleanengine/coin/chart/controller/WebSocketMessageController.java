@@ -2,7 +2,7 @@ package com.cleanengine.coin.chart.controller;
 
 import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
 import com.cleanengine.coin.chart.service.ChartSubscriptionService;
-import com.cleanengine.coin.chart.service.RealTimeOhlcService;
+import com.cleanengine.coin.chart.service.RealTimeOhlcService; // RealTimeOhlcService 의존성은 이제 불필요
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -19,9 +19,8 @@ import java.time.LocalDateTime;
 public class WebSocketMessageController {
 
     private final ChartSubscriptionService subscriptionService;
-    private final RealTimeOhlcService realTimeOhlcService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final ChartDataController chartDataController;
+    private final ChartDataController chartDataController; // 이미 계산된 데이터를 가진 컨트롤러를 활용
 
     /**
      * 실시간 OHLC 데이터 구독 처리
@@ -34,30 +33,16 @@ public class WebSocketMessageController {
         // 구독 목록에 추가
         subscriptionService.subscribeRealTimeOhlc(ticker);
 
-        // 구독 즉시 최근 실시간 OHLC 데이터 전송
-        RealTimeOhlcDto latestOhlcData = realTimeOhlcService.getRealTimeOhlc(ticker);
-
         RealTimeOhlcDto lastSentData = chartDataController.getLastSentOhlcDataMap().get(ticker);
 
-        if (latestOhlcData == null) {
-            if (lastSentData != null) {
-                // 이전에 전송한 데이터가 있으면 재사용
-                log.debug("티커 {}의 실시간 OHLC 데이터가 없습니다. 이전 데이터 재사용", ticker);
-                messagingTemplate.convertAndSend("/topic/realTimeOhlc/" + ticker, lastSentData);
-            } else {
-                // 이전 데이터도 없는 경우 빈 데이터 전송
-                log.debug("티커 {}의 실시간 OHLC 데이터가 없습니다. 빈 데이터 전송", ticker);
-                RealTimeOhlcDto emptyData = createEmptyRealTimeOhlcDto(ticker);
-                messagingTemplate.convertAndSend("/topic/realTimeOhlc/" + ticker, emptyData);
-                // 빈 데이터도 캐시에 저장
-                chartDataController.getLastSentOhlcDataMap().put(ticker, emptyData);
-            }
+        if (lastSentData == null) {
+            log.debug("티커 {}의 캐시된 OHLC 데이터가 없습니다. 빈 데이터 전송", ticker);
+            RealTimeOhlcDto emptyData = createEmptyRealTimeOhlcDto(ticker);
+            messagingTemplate.convertAndSend("/topic/realTimeOhlc/" + ticker, emptyData);
         } else {
-            log.debug("티커 {}의 실시간 OHLC 데이터 전송: {}", ticker, latestOhlcData);
-            messagingTemplate.convertAndSend("/topic/realTimeOhlc/" + ticker, latestOhlcData);
-            // 데이터 캐시에 저장
-            chartDataController.getLastSentOhlcDataMap().put(ticker, latestOhlcData);
-
+            // 캐시된 데이터가 있으면 즉시 전송
+            log.debug("티커 {}의 캐시된 OHLC 데이터 즉시 전송: {}", ticker, lastSentData);
+            messagingTemplate.convertAndSend("/topic/realTimeOhlc/" + ticker, lastSentData);
         }
     }
 
@@ -80,6 +65,5 @@ public class WebSocketMessageController {
     @Getter
     public static class RealTimeTradeMappingDto {
         private String ticker;
-
     }
 }

@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-//@Component
-public class InMemoryWaitingOrdersManager implements WaitingOrdersManager {
+@Component
+public class NestedInMemoryWaitingOrdersManager implements WaitingOrdersManager {
     private final HashMap<String, WaitingOrders> waitingOrdersMap = new HashMap<>();
 
     @Override
@@ -24,8 +24,7 @@ public class InMemoryWaitingOrdersManager implements WaitingOrdersManager {
             log.debug("WaitingOrders not found. with " + ticker);
             throw new RuntimeException("WaitingOrders not found with " + ticker);
         }
-        return waitingOrdersOpt.get();
-    }
+        return waitingOrdersOpt.get();    }
 
     @Override
     public void removeWaitingOrders(String ticker) {
@@ -39,7 +38,7 @@ public class InMemoryWaitingOrdersManager implements WaitingOrdersManager {
 
     protected synchronized void addWaitingOrders(String ticker){
         if(!waitingOrdersMap.containsKey(ticker)){
-            waitingOrdersMap.put(ticker, new InMemoryWaitingOrders(ticker));
+            waitingOrdersMap.put(ticker, new NestedInMemoryWaitingOrders(ticker));
         }
     }
 }

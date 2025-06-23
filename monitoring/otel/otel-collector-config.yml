@@ -1,0 +1,47 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 500ms
+    send_batch_size: 8192
+    send_batch_max_size: 16384
+  probabilistic_sampler:
+    sampling_percentage: 1
+
+connectors:
+  spanmetrics:
+    histogram:
+      explicit:
+        buckets: [100us, 1ms, 2ms, 6ms, 10ms, 100ms, 250ms, 500ms, 1s]
+
+exporters:
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+service:
+  pipelines:
+    traces/metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [spanmetrics]
+
+    traces/jaeger:
+      receivers: [otlp]
+      processors: [probabilistic_sampler,batch]
+      exporters: [otlp/jaeger]
+
+    metrics:
+      receivers: [spanmetrics]
+      processors: [batch]
+      exporters: [prometheus]

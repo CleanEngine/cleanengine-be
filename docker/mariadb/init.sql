@@ -110,3 +110,5 @@ INSERT INTO `if`.asset (ticker, name) VALUES ('TRUMP', '오피셜트럼프');
 
 INSERT INTO `if`.wallet (wallet_id, account_id, buy_price, roi, size, ticker) VALUES (1, 1, 0, 0, 500000000, 'BTC');
 INSERT INTO `if`.wallet (wallet_id, account_id, buy_price, roi, size, ticker) VALUES (2, 1, 0, 0, 500000000, 'TRUMP');
+INSERT INTO `if`.wallet (wallet_id, account_id, buy_price, roi, size, ticker) VALUES (3, 2, 0, 0, 500000000, 'BTC');
+INSERT INTO `if`.wallet (wallet_id, account_id, buy_price, roi, size, ticker) VALUES (4, 2, 0, 0, 500000000, 'TRUMP');

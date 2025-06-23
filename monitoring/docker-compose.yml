@@ -9,7 +9,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./opentelemetry-javaagent.jar:/app/opentelemetry-javaagent.jar
     working_dir: /app
-    command: [ "java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,mariadb-local,actuator,apm" ]
+    command: [ "java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,it,mariadb-local,actuator,apm" ]
     ports:
       - "8080:8080"
     env_file:
@@ -18,14 +18,16 @@ services:
       - TZ=Asia/Seoul
       - OTEL_SERVICE_NAME=my-spring-app
       - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - OTEL_LOGS_EXPORTER=none
       - OTEL_METRICS_EXPORTER=none
       - OTEL_INSTRUMENTATION_METHODS_ENABLED=true
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005, -javaagent:/app/opentelemetry-javaagent.jar
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/opentelemetry-javaagent.jar
     depends_on:
       mariadb:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
     networks:
       - app-network
       - monitoring-net
@@ -34,7 +36,7 @@ services:
     image: mariadb:latest
     container_name: mariadb2
     ports:
-      - "3307:3306"
+      - "3306:3306"
     env_file:
       - ../docker/local.properties
     environment:
@@ -60,13 +62,13 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-remote-write-receiver'
     ports:
       - "9090:9090"
     networks:
       - monitoring-net
     restart: unless-stopped
 
-  # --- 추가된 InfluxDB 서비스 ---
   influxdb:
     image: influxdb:2.7
     container_name: influxdb
@@ -96,7 +98,7 @@ services:
     networks:
       - monitoring-net
     restart: unless-stopped
-    depends_on: # --- 수정된 부분 ---
+    depends_on:
       - prometheus
       - jaeger
       - influxdb
@@ -104,19 +106,48 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
+    user: "${UID}:${GID}"
+    environment:
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/tmp/jaeger/data
+      - BADGER_DIRECTORY_KEY=/tmp/jaeger/keys
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_GRPC_HOST_PORT=0.0.0.0:4317
+      - COLLECTOR_OTLP_HTTP_HOST_PORT=0.0.0.0:4318
+    volumes:
+      - jaeger_data:/tmp/jaeger
     ports:
-      - "16686:16686"
-      - "4317:4317"
-      - "4318:4318"
+      - "16686:16686" # UI
+      - "4319:4317"
+      - "4320:4318"
     networks:
       - monitoring-net
+
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./otel/otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "8889:8889"
+      - "4317:4317"
+      - "4318:4318"
+      - "13133:13133"
+    networks:
+      - monitoring-net
+    depends_on:
+      jaeger:
+        condition: service_started
 
 volumes:
   prometheus_data: {}
   grafana_data: {}
   mariadb_data:
     driver: local
-  influxdb_data: {} # --- 추가된 부분 ---
+  influxdb_data: {}
+  jaeger_data: {}
 
 networks:
   app-network:

@@ -7,3 +7,10 @@ spring:
     driver-class-name: org.mariadb.jdbc.Driver
     username: ${MARIADB_USER}
     password: ${MARIADB_PASSWORD}
+  r2dbc:
+    url: r2dbc:pool:mariadb://mariadb:3306/${MARIADB_DATABASE}
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+#    pool:
+#      initial-size: 10
+#      max-size: 20

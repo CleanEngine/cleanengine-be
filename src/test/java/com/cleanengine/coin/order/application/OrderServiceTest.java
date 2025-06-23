@@ -5,7 +5,7 @@ import com.cleanengine.coin.common.CommonValues;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.repository.jpaRepository.TradeRepository;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.info.infra.AccountRepository;
 import org.junit.jupiter.api.DisplayName;

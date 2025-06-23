@@ -51,7 +51,7 @@
             <appender-ref ref="CONSOLE"/>
         </root>
 
-        <logger name="com.cleanengine.coin" level="${LOG_LEVEL}" additivity="false">
+        <logger name="com.cleanengine.coin.trade" level="${LOG_LEVEL}" additivity="false">
             <appender-ref ref="CONSOLE"/>
         </logger>
 <!--        <logger name="org.hibernate.SQL" level="${LOG_LEVEL}" additivity="false">-->

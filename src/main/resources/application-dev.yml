@@ -6,6 +6,10 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+  r2dbc:
+    url: r2dbc:h2:mem:///if
+    username: sa
+    password:
   h2:
     console:
       enabled: true

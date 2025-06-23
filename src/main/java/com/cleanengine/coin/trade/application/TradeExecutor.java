@@ -1,5 +1,6 @@
 package com.cleanengine.coin.trade.application;
 
+import com.cleanengine.coin.common.annotation.StartNewTrace;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderStatus;
@@ -33,6 +34,7 @@ public class TradeExecutor {
     private final TradeService tradeService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
+    @StartNewTrace
     public Trade executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
         BuyOrder buyOrder = tradePair.getBuyOrder();
         SellOrder sellOrder = tradePair.getSellOrder();

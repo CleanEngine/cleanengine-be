@@ -2,7 +2,7 @@ package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.realitybot.domain.PlatformVWAPState;
 import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.repository.jpaRepository.TradeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

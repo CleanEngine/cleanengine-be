@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles({"dev", "it", "mariadb-local", "trade-load-test", "actuator", "apm", "otel-local"})
-@Disabled
+//@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest
 class TradeExecuteLoadTest {
@@ -62,14 +62,14 @@ class TradeExecuteLoadTest {
         for (int i = 0; i < warmUpCount1; i++) {
             runSingleTest(1000);
         }
-        int warmUpCount2 = 5;
-        for (int i = 0; i < warmUpCount2; i++) {
-            runSingleTest(10000);
-        }
-        int warmUpCount3 = 5;
-        for (int i = 0; i < warmUpCount3; i++) {
-            runSingleTest(100000);
-        }
+//        int warmUpCount2 = 5;
+//        for (int i = 0; i < warmUpCount2; i++) {
+//            runSingleTest(10000);
+//        }
+//        int warmUpCount3 = 5;
+//        for (int i = 0; i < warmUpCount3; i++) {
+//            runSingleTest(100000);
+//        }
         System.out.println("Finished warmUp");
     }
 
@@ -116,7 +116,7 @@ class TradeExecuteLoadTest {
     @DisplayName("매수, 매도 각 10000건에 대한 처리 성능을 10회 진행한다.")
     @Order(3)
     @Test
-//    @Disabled
+    @Disabled
     void basicLoadTestWith10000OrdersEachSide() throws InterruptedException {
         // given
         int orderCount = 10000;
@@ -146,7 +146,7 @@ class TradeExecuteLoadTest {
     @DisplayName("매수, 매도 각 100000건에 대한 처리 성능을 10회 진행한다.")
     @Order(4)
     @Test
-//    @Disabled
+    @Disabled
     void basicLoadTestWith100000OrdersEachSide() throws InterruptedException {
         // given
         int orderCount = 100000;
@@ -188,12 +188,19 @@ class TradeExecuteLoadTest {
                 BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), true);
                 waitingOrders.addOrder(limitSellOrder);
                 waitingOrders.addOrder(limitBuyOrder);
+
+                sellOrderRepository.save(limitSellOrder);
+                buyOrderRepository.save(limitBuyOrder);
             });
         }
 
         // 큐 삽입 완료 대기
         executor.shutdown();
         executor.awaitTermination(30, TimeUnit.SECONDS);
+
+        PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
+        PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
+
         long queueInsertEnd = System.nanoTime();
         long queueInsertTime = (queueInsertEnd - testStart) / 1_000_000;
 
@@ -202,8 +209,6 @@ class TradeExecuteLoadTest {
         SellOrder dummyOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), true);
         eventPublisher.publishEvent(new OrderInsertedToQueue(dummyOrder));
 
-        PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
-        PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
 
         boolean completed = latch.await(2, TimeUnit.MINUTES);
         long eventEnd = System.nanoTime();

@@ -18,17 +18,16 @@ public class DeviationPricePolicy {
 
     public AdjustPrice adjust(double platformSell,double platformBuy, double trendLineRate, double apiVWAP, double unitPrice){
         double deviation = Math.abs(trendLineRate);//음수값 보정
-        if (deviation <= 0.017){
-            return new AdjustPrice(platformSell,platformBuy);
+        //  1% 이내 편차는 조정 없이 원본 가격 반환
+        if (deviation <= 0.001) { // 0.017 → 0.01로 변경
+            return new AdjustPrice(platformSell, platformBuy);
         }
+
+        //  1% 초과 시에만 조정 로직 실행
         double weight = getCorrectionWeight(deviation);
-//            double closeness = 1-weight; // 보간 가중치: 0.7 ~ 1.0 -> 0.5
-            double closeness; // 보간 가중치: 0.7 ~ 1.0 -> 0.5
-        if (deviation > 0.07){
-             closeness = Math.max(0.2, 1 - weight);
-        } else {
-            closeness = 0.01;
-        }
+        double closeness = (deviation > 0.07)
+                ? Math.max(0.2, 1 - weight)
+                : 0.01;
 
 //        double targetVWAP = (trendLineRate > 0) //만약 closeness 를 0.5 입력시 중간값
 //                ? apiVWAP + (platformSell - apiVWAP) * closeness  // 고평가 → platformSell(25000) → apiVWAP(16000) 사이 가중치 %로 유도

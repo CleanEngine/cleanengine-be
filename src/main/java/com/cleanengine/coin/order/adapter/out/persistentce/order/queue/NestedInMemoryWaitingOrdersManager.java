@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-//@Component
+@Component
 public class NestedInMemoryWaitingOrdersManager implements WaitingOrdersManager {
     private final HashMap<String, WaitingOrders> waitingOrdersMap = new HashMap<>();
 

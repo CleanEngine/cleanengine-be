@@ -1,5 +1,6 @@
 package com.cleanengine.coin.realitybot.config;
 
+import com.cleanengine.coin.common.annotation.WorkingServerProfile;
 import com.cleanengine.coin.realitybot.api.ApiScheduler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import java.time.Duration;
 
 @Configuration
 @EnableScheduling
+@WorkingServerProfile
 //@RequiredArgsConstructor
 public class SchedulerConfig implements SchedulingConfigurer {
 

@@ -23,10 +23,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@ActiveProfiles({"dev", "it", "h2-mem"})
-@Disabled
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ActiveProfiles({"dev", "it", "mariadb-local"})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest
+//@Disabled
 class TradeExecuteLoadTest {
 
     @Autowired
@@ -50,9 +52,20 @@ class TradeExecuteLoadTest {
     @Order(1)
     @Test
     void warmUp() throws InterruptedException {
-        runSingleTest(1000);
-        runSingleTest(10000);
-        runSingleTest(50000);
+        System.out.println("Starting warmUp");
+        int warmUpCount1 = 10;
+        for (int i = 0; i < warmUpCount1; i++) {
+            runSingleTest(1000);
+        }
+        int warmUpCount2 = 5;
+        for (int i = 0; i < warmUpCount2; i++) {
+            runSingleTest(10000);
+        }
+//        int warmUpCount3 = 5;
+//        for (int i = 0; i < warmUpCount3; i++) {
+//            runSingleTest(100000);
+//        }
+        System.out.println("Finished warmUp");
     }
 
     @BeforeEach
@@ -66,6 +79,7 @@ class TradeExecuteLoadTest {
     @DisplayName("매수, 매도 각 1000건에 대한 처리 성능을 10회 진행한다.")
     @Order(2)
     @Test
+    @Disabled
     void basicLoadTestWith1000OrdersEachSide() throws InterruptedException {
         // given
         int orderCount = 1000;
@@ -83,11 +97,18 @@ class TradeExecuteLoadTest {
 
         // 통계 출력
         printStatistics(queueInsertTimes, executionTimes, orderCount);
+        WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
+        PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
+        PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
+
+        assertThat(sellOrderPriorityQueueStore.size()).isEqualTo(0);
+        assertThat(buyOrderPriorityQueueStore.size()).isEqualTo(0);
     }
 
     @DisplayName("매수, 매도 각 10000건에 대한 처리 성능을 10회 진행한다.")
     @Order(3)
     @Test
+//    @Disabled
     void basicLoadTestWith10000OrdersEachSide() throws InterruptedException {
         // given
         int orderCount = 10000;
@@ -110,6 +131,7 @@ class TradeExecuteLoadTest {
     @DisplayName("매수, 매도 각 100000건에 대한 처리 성능을 10회 진행한다.")
     @Order(4)
     @Test
+    @Disabled
     void basicLoadTestWith100000OrdersEachSide() throws InterruptedException {
         // given
         int orderCount = 100000;
@@ -131,22 +153,33 @@ class TradeExecuteLoadTest {
 
     private long[] runSingleTest(int orderCount) throws InterruptedException {
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
+
+        // 큐와 DB 초기화
+        waitingOrders.clearAllQueues();
+        tradeRepository.deleteAll();
+        sellOrderRepository.deleteAll();
+        buyOrderRepository.deleteAll();
+
         long testStart = System.nanoTime();
 
         // 주문 생성 및 큐 삽입
-        ExecutorService executor = Executors.newFixedThreadPool(10);
+        final LocalDateTime baseTime = LocalDateTime.now();
+
         for (int i = 0; i < orderCount; i++) {
-            executor.submit(() -> {
-                SellOrder limitSellOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), true);
-                BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), true);
-                waitingOrders.addOrder(limitSellOrder);
-                waitingOrders.addOrder(limitBuyOrder);
-            });
+            final LocalDateTime orderTime = baseTime.plusSeconds(i);
+
+            SellOrder limitSellOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, orderTime, true);
+            BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder(ticker, 2, 10.0, 130_000_000.0, orderTime, true);
+            waitingOrders.addOrder(limitSellOrder);
+            waitingOrders.addOrder(limitBuyOrder);
+
+            sellOrderRepository.save(limitSellOrder);
+            buyOrderRepository.save(limitBuyOrder);
         }
 
-        // 큐 삽입 완료 대기
-        executor.shutdown();
-        boolean queueTerminated = executor.awaitTermination(10, TimeUnit.SECONDS);
+        PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
+        PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
+
         long queueInsertEnd = System.nanoTime();
         long queueInsertTime = (queueInsertEnd - testStart) / 1_000_000;
 
@@ -159,18 +192,12 @@ class TradeExecuteLoadTest {
         long executionTime = (eventEnd - eventStart) / 1_000_000;
 
         // 결과 출력
-        if (tradeRepository.findAll().size() != orderCount) {
-            PriorityQueueStore<BuyOrder> buyOrderPriorityQueueStore = waitingOrders.getBuyOrderPriorityQueueStore(OrderType.LIMIT);
-            PriorityQueueStore<SellOrder> sellOrderPriorityQueueStore = waitingOrders.getSellOrderPriorityQueueStore(OrderType.LIMIT);
-            System.out.print("체결 종료 - 체결내역[: " + tradeRepository.findAll().size() + "건]");
-            System.out.println("잔여 주문[매도 " + sellOrderPriorityQueueStore.size() + "건, 매수 " + buyOrderPriorityQueueStore.size() + "건]");
+        long tradeCount = tradeRepository.count();
+        System.out.print("체결 종료 - 체결내역[: " + tradeCount + "건]");
+        System.out.println("잔여 주문[매도 " + sellOrderPriorityQueueStore.size() + "건, 매수 " + buyOrderPriorityQueueStore.size() + "건]");
+        if (tradeCount != orderCount) {
+            System.out.println("경고: 예상 체결 건수(" + orderCount + "건)와 실제(" + tradeCount + "건) 불일치 또는 타임아웃");
         }
-
-        // 큐와 DB 초기화
-        waitingOrders.clearAllQueues();
-        tradeRepository.deleteAll();
-        sellOrderRepository.deleteAll();
-        buyOrderRepository.deleteAll();
 
         return new long[]{queueInsertTime, executionTime};
     }

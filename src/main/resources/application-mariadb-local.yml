@@ -1,9 +1,21 @@
+common-db-properties : &common-db-properties
+    jdbc-url: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE}
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+
 spring:
   jpa:
     hibernate:
       ddl-auto: update
   datasource:
-    url: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE}
-    driver-class-name: org.mariadb.jdbc.Driver
-    username: ${MARIADB_USER}
-    password: ${MARIADB_PASSWORD}
+    main:
+      <<: *common-db-properties
+      hikari:
+        maximum-pool-size: 13
+        minimum-idle: 10
+    trade:
+      <<: *common-db-properties
+      hikari:
+        maximum-pool-size: 2
+        minimum-idle: 2

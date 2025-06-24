@@ -40,6 +40,7 @@ public class OrderInsertedQueueStartMatchingHandler {
         ExecutorService executorService = Executors.newSingleThreadExecutor(r->{
             Thread thread = new Thread(r);
             thread.setName("Trade-" + ticker);
+            thread.setPriority(Thread.NORM_PRIORITY);
             return thread;
         });
 

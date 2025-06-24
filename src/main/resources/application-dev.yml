@@ -1,11 +1,23 @@
+common-db-properties : &common-db-properties
+  jdbc-url: jdbc:h2:mem:testdb
+  driver-class-name: org.h2.Driver
+  username: sa
+  password:
+
 spring:
   config:
     import: optional:file:./local.properties
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    main:
+      <<: *common-db-properties
+      hikari:
+        maximum-pool-size: 13
+        minimum-idle: 10
+    trade:
+      <<: *common-db-properties
+      hikari:
+        maximum-pool-size: 2
+        minimum-idle: 2
   h2:
     console:
       enabled: true

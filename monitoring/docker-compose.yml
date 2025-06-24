@@ -9,7 +9,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./opentelemetry-javaagent.jar:/app/opentelemetry-javaagent.jar
     working_dir: /app
-    command: [ "java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,it,mariadb-local,actuator,apm" ]
+    command: [ "java", "-jar", "coin-0.0.1-SNAPSHOT.jar", "--spring.profiles.active=dev,it,mariadb-local,actuator,apm,loadtest" ]
     ports:
       - "8080:8080"
     env_file:

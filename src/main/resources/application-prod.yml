@@ -1,12 +1,24 @@
+common-db-properties : &common-db-properties
+    jdbc-url: jdbc:mariadb://${MARIADB_HOST}:3306/${MARIADB_DATABASE}
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+
 spring:
   security:
     cookie:
       secure: true
   datasource:
-    url: jdbc:mariadb://${MARIADB_HOST}:3306/${MARIADB_DATABASE}
-    driver-class-name: org.mariadb.jdbc.Driver
-    username: ${MARIADB_USER}
-    password: ${MARIADB_PASSWORD}
+    main:
+      <<: *common-db-properties
+      hikari:
+        maximum-pool-size: 13
+        minimum-idle: 10
+    trade:
+      <<: *common-db-properties
+      hikari:
+        maximum-pool-size: 2
+        minimum-idle: 2
 
 frontend:
   url: "https://investfuture.my/callback"

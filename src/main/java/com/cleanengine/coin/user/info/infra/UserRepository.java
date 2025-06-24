@@ -5,8 +5,10 @@ import com.cleanengine.coin.user.login.infra.UserOAuthDetails;
 import com.cleanengine.coin.user.info.presentation.UserInfoDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 
+//@NoRepositoryBean
 public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("""

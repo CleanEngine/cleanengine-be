@@ -46,19 +46,20 @@ public class OrderGenerateService {
         recorder.recordPlatformVwap(ticker,platformVWAP);
         //편차 계산 (vwap 기준)
         double trendLineRate = (platformVWAP - apiVWAP)/ apiVWAP;
+
+
         for(int level : orderLevels) { //1주문당 3회 매수매도 처리
-            OrderPricePolicy.OrderPrice basePrice = orderPricePolicy.calculatePrice(level,platformVWAP, unitPrice,trendLineRate);
-            DeviationPricePolicy.AdjustPrice adjustPrice = deviationPricePolicy.adjust(
-                    basePrice.sell(), basePrice.buy(), trendLineRate, apiVWAP, unitPrice);
+            OrderPricePolicy.OrderPrice basePrice = orderPricePolicy.calculatePrice(level,apiVWAP,platformVWAP, unitPrice);
+//            DeviationPricePolicy.AdjustPrice adjustPrice = deviationPricePolicy.adjust(basePrice.sell(), basePrice.buy(), trendLineRate, apiVWAP, unitPrice);
 
             double sellVolume = orderVolumePolicy.calculateVolume(avgVolume,trendLineRate,false);
             double buyVolume = orderVolumePolicy.calculateVolume(avgVolume,trendLineRate,true);
-            double sellPrice = adjustPrice.sell();
-            double buyPrice = adjustPrice.buy();
+//            double sellPrice = adjustPrice.sell();
+//            double buyPrice = adjustPrice.buy();
 
 
-                createOrderWithFallback(ticker,false, sellVolume, sellPrice);
-                createOrderWithFallback(ticker,true, buyVolume, buyPrice);
+                createOrderWithFallback(ticker,false, sellVolume, basePrice.sell());
+                createOrderWithFallback(ticker,true, buyVolume, basePrice.buy());
 
 /*            DecimalFormat df = new DecimalFormat("#,##0.00");
             DecimalFormat dfv = new DecimalFormat("#,###.########");

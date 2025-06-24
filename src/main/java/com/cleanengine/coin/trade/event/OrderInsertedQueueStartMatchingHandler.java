@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,6 +24,7 @@ public class OrderInsertedQueueStartMatchingHandler {
     @EventListener
     public void handleOrderInserted(OrderInsertedToQueue orderInsertedToQueue) {
         String ticker = orderInsertedToQueue.order().getTicker();
+        ConcurrentHashMap<Object, Executor> objectObjectConcurrentHashMap = new ConcurrentHashMap<>();
 
         if(!tickerExecutorServices.containsKey(ticker)) {
             addThreadExecutor(ticker);
@@ -37,6 +39,7 @@ public class OrderInsertedQueueStartMatchingHandler {
             return;
         }
 
+        //가상 스레드 풀을 만드든데 거기서 최대 스레드수가 1개이면되는건가?
         ExecutorService executorService = Executors.newSingleThreadExecutor(r->{
             Thread thread = new Thread(r);
             thread.setName("Trade-" + ticker);

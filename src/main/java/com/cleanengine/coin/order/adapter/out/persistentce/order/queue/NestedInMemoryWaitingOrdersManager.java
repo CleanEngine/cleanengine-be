@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -24,7 +25,8 @@ public class NestedInMemoryWaitingOrdersManager implements WaitingOrdersManager 
             log.debug("WaitingOrders not found. with " + ticker);
             throw new RuntimeException("WaitingOrders not found with " + ticker);
         }
-        return waitingOrdersOpt.get();    }
+        return waitingOrdersOpt.get();
+    }
 
     @Override
     public void removeWaitingOrders(String ticker) {

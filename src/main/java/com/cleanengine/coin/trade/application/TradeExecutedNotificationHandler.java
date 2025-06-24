@@ -1,6 +1,6 @@
 package com.cleanengine.coin.trade.application;
 
-import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.order.domain.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -23,30 +23,23 @@ public class TradeExecutedNotificationHandler {
     }
 
     @TransactionalEventListener
-    public void notifyAfterTradeExecuted(TradeExecutedEvent tradeExecutedEvent) {
-        Trade trade = tradeExecutedEvent.getTrade();
-        if (trade == null) {
-            log.error("체결 알림 실패! trade == null");
+    public void notifyAfterTradeExecuted(TradeOrderCompletedEvent tradeOrderCompletedEvent) {
+        // TODO : 평균단가는 별도 계산해야 함
+        Order order = tradeOrderCompletedEvent.getOrder();
+        if (order == null) {
+            log.error("체결 알림 실패! order == null");
             return ;
         }
 
-        Integer sellUserId = trade.getSellUserId();
-        Integer buyUserId = trade.getBuyUserId();
-        if (sellUserId == null || buyUserId == null) {
-            log.error("체결 알림 실패! sellUserId: {}, buyUserId: {}", sellUserId, buyUserId);
+        Integer userId = order.getUserId();
+        if (userId == null) {
+            log.error("체결 알림 실패! userId: {}", userId);
             return ;
         }
 
-        if (sellUserId != SELL_ORDER_BOT_ID) {
-            TradeExecutedNotifyDto soldDto = TradeExecutedNotifyDto.of(trade, ASK);
-            messagingTemplate.convertAndSend("/topic/tradeNotification/" + sellUserId, soldDto);
-        }
-        if (buyUserId != BUY_ORDER_BOT_ID) {
-            TradeExecutedNotifyDto boughtDto = TradeExecutedNotifyDto.of(trade, BID);
-            messagingTemplate.convertAndSend("/topic/tradeNotification/" + buyUserId, boughtDto);
-        }
-        if (sellUserId != SELL_ORDER_BOT_ID || buyUserId != BUY_ORDER_BOT_ID) {
-            log.debug("{} 체결 이벤트 구독 : {}원에 {}개, 매수인: {}, 매도인: {}", trade.getTicker(), trade.getPrice(), trade.getSize(), buyUserId, sellUserId );
+        if (userId != SELL_ORDER_BOT_ID && userId != BUY_ORDER_BOT_ID) {
+            TradeOrderCompletedNotifyDto notifyDto = TradeOrderCompletedNotifyDto.of(order);
+            messagingTemplate.convertAndSend("/topic/tradeNotification/" + userId, notifyDto);
         }
     }
 

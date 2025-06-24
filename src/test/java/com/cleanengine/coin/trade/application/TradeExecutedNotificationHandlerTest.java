@@ -6,7 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.order.domain.BuyOrder;
+import com.cleanengine.coin.order.domain.SellOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,52 +36,38 @@ class TradeExecutedNotificationHandlerTest {
     @Test
     void shouldSendNotificationsForValidTrade() {
         // given
-        Trade trade = Trade.of("BTC", LocalDateTime.now(), 3, SELL_ORDER_BOT_ID, 50000.0, 1.0);
-        TradeExecutedEvent event = TradeExecutedEvent.of(trade, null, null);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder("BTC", 3, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
 
         // then
-        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeExecutedNotifyDto.class));
-        verify(messagingTemplate).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeExecutedNotifyDto.class));
+        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeOrderCompletedNotifyDto.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeOrderCompletedNotifyDto.class));
     }
 
     @DisplayName("매수인은 봇인 정상 체결내역을 리스닝하면 웹소켓으로 전송한다.")
     @Test
     void shouldSendNotificationsForValidTrade2() {
         // given
-        Trade trade = Trade.of("BTC", LocalDateTime.now(), BUY_ORDER_BOT_ID, 3, 50000.0, 1.0);
-        TradeExecutedEvent event = TradeExecutedEvent.of(trade, null, null);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 4, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(buyOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
 
         // then
-        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeExecutedNotifyDto.class));
-        verify(messagingTemplate).convertAndSend(eq("/topic/tradeNotification/3"), any(TradeExecutedNotifyDto.class));
-    }
-
-    @DisplayName("매수인과 매도인의 userId가 null이면 메시지를 전송하지 않는다.")
-    @Test
-    void shouldNotSendNotificationForNullUserIds() {
-        // given
-        Trade trade = Trade.of("BTC", LocalDateTime.now(), null, null, 50000.0, 1.0);
-        TradeExecutedEvent event = TradeExecutedEvent.of(trade, null, null);
-
-        // when
-        handler.notifyAfterTradeExecuted(event);
-
-        // then
-        verifyNoInteractions(messagingTemplate);
+        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/tradeNotification/4"), any(TradeOrderCompletedNotifyDto.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/tradeNotification/4"), any(TradeOrderCompletedNotifyDto.class));
     }
 
     @DisplayName("매수인의 userId가 null이면 메시지를 전송하지 않는다.")
     @Test
     void shouldNotSendNotificationForNullBuyUserId() {
         // given
-        Trade trade = Trade.of("BTC", LocalDateTime.now(), null, SELL_ORDER_BOT_ID, 50000.0, 1.0);
-        TradeExecutedEvent event = TradeExecutedEvent.of(trade, null, null);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", null, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(buyOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
@@ -93,8 +80,8 @@ class TradeExecutedNotificationHandlerTest {
     @Test
     void shouldNotSendNotificationForNullSellUserId() {
         // given
-        Trade trade = Trade.of("BTC", LocalDateTime.now(), BUY_ORDER_BOT_ID, null, 50000.0, 1.0);
-        TradeExecutedEvent event = TradeExecutedEvent.of(trade, null, null);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder("BTC", null, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
@@ -103,25 +90,28 @@ class TradeExecutedNotificationHandlerTest {
         verifyNoInteractions(messagingTemplate);
     }
 
-    @DisplayName("봇끼리의 체결은 메시지를 전송하지 않는다.")
+    @DisplayName("봇의 체결은 메시지를 전송하지 않는다.")
     @Test
     void shouldNotSendNotificationForBotTrade() {
         // given
-        Trade trade = Trade.of("BTC", LocalDateTime.now(), BUY_ORDER_BOT_ID, SELL_ORDER_BOT_ID, 50000.0, 1.0);
-        TradeExecutedEvent event = TradeExecutedEvent.of(trade, null, null);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder("BTC", SELL_ORDER_BOT_ID, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", BUY_ORDER_BOT_ID, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
+        TradeOrderCompletedEvent event2 = TradeOrderCompletedEventImpl.of(buyOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
+        handler.notifyAfterTradeExecuted(event2);
 
         // then
         verifyNoInteractions(messagingTemplate);
     }
 
-    @DisplayName("체결이 null이면 메시지를 전송하지 않는다.")
+    @DisplayName("주문이 null이면 메시지를 전송하지 않는다.")
     @Test
     void shouldNotSendNotificationForNullTrade() {
         // given
-        TradeExecutedEvent event = TradeExecutedEvent.of(null, null, null);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(null);
 
         // when
         handler.notifyAfterTradeExecuted(event);

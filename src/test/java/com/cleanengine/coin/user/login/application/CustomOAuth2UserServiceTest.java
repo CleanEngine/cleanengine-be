@@ -1,14 +1,15 @@
 package com.cleanengine.coin.user.login.application;
 
 import com.cleanengine.coin.common.CommonValues;
+import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.OAuth;
 import com.cleanengine.coin.user.domain.User;
 import com.cleanengine.coin.user.info.application.AccountService;
 import com.cleanengine.coin.user.info.application.WalletService;
-import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
-import com.cleanengine.coin.user.login.infra.UserOAuthDetails;
 import com.cleanengine.coin.user.info.infra.OAuthRepository;
 import com.cleanengine.coin.user.info.infra.UserRepository;
+import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
+import com.cleanengine.coin.user.login.infra.UserOAuthDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -96,6 +97,7 @@ class CustomOAuth2UserServiceTest {
             user.setId(userId);
             return user;
         });
+        when(accountService.createNewAccount(userId, CommonValues.INITIAL_USER_CASH)).thenReturn(Account.of(userId, CommonValues.INITIAL_USER_CASH));
 
         // When
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);

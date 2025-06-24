@@ -23,7 +23,6 @@ public class Trade {
 
     @Column(name = "trade_time", nullable = false)
     @CreationTimestamp
-    //생성 타임은 추후 논의 예정
     private LocalDateTime tradeTime;
 
     @Column(name = "buy_user_id", nullable = false)

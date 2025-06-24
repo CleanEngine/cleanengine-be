@@ -1,0 +1,5 @@
+spring:
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:dataset/`if`.users.sql,classpath:dataset/`if`.account.sql,classpath:dataset/`if`.walletBTC.sql,classpath:dataset/`if`.walletTRUMP.sql

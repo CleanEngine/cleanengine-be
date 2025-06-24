@@ -24,6 +24,10 @@ spring:
             client-id: ${KAKAO_CLIENT_ID}
     cookie:
       secure: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 frontend:
   url: "http://localhost:5173/callback"

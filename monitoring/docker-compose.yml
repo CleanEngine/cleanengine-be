@@ -53,6 +53,17 @@ services:
       - app-network
       - monitoring-net
 
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - app-network
+
   prometheus:
     image: prom/prometheus:v2.53.0
     container_name: prometheus
@@ -148,6 +159,7 @@ volumes:
     driver: local
   influxdb_data: {}
   jaeger_data: {}
+  redis-data: {}
 
 networks:
   app-network:

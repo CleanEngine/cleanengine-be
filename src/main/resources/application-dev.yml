@@ -7,17 +7,17 @@ common-db-properties : &common-db-properties
 spring:
   config:
     import: optional:file:./local.properties
-  datasource:
     main:
       <<: *common-db-properties
-      hikari:
-        maximum-pool-size: 13
-        minimum-idle: 10
+      pool-name: main-datasource-pool
+      maximum-pool-size: 15
+      minimum-idle: 15
     trade:
       <<: *common-db-properties
-      hikari:
-        maximum-pool-size: 2
-        minimum-idle: 2
+      pool-name: trade-datasource-pool
+      maximum-pool-size: 3
+      minimum-idle: 3
+
   h2:
     console:
       enabled: true
@@ -39,4 +39,3 @@ spring:
 
 frontend:
   url: "http://localhost:5173/callback"
-

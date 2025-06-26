@@ -9,6 +9,9 @@ import com.cleanengine.coin.chart.service.RealTimeTradeService;
 import com.cleanengine.coin.chart.service.WebsocketSendService;
 import com.cleanengine.coin.trade.application.TradeExecutedEvent;
 import com.cleanengine.coin.trade.entity.Trade;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +26,19 @@ public class TradeEventHandler {
     private final WebsocketSendService websocketSendService;
     private final ChartSubscriptionService chartSubscriptionService; // 주입
     private final RealTimeDataPrevRateService realTimeDataPrevRateService;
+    private final MeterRegistry meterRegistry;
+    private Counter tradeEventCounter;
+
+    @PostConstruct
+    public void init() {
+        tradeEventCounter = meterRegistry.counter("tradeEventCounter");
+    }
 
     //event로 이벤틀 처리해야한다.
     //eventListener는 void로 처리를 해야한다
     @TransactionalEventListener
     public void handleTradeEvent(TradeExecutedEvent event) {
+        tradeEventCounter.increment();
         Trade trade = event.getTrade();
         if (trade == null) {
             log.warn("Trade 객체가 null");

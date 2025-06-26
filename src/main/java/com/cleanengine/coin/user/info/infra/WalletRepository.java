@@ -9,7 +9,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import java.util.List;
 import java.util.Optional;
 
-//@NoRepositoryBean
+@NoRepositoryBean
 public interface WalletRepository extends JpaRepository<Wallet, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Wallet> findByAccountIdAndTicker(Integer accountId, String ticker);

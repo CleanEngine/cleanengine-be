@@ -8,7 +8,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import java.util.Optional;
 
-//@NoRepositoryBean
+@NoRepositoryBean
 public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

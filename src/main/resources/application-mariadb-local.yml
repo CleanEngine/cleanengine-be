@@ -1,5 +1,5 @@
 common-db-properties : &common-db-properties
-    jdbc-url: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE}
+    jdbc-url: jdbc:mariadb://${MARIADB_HOST}:3306/${MARIADB_DATABASE}
     driver-class-name: org.mariadb.jdbc.Driver
     username: ${MARIADB_USER}
     password: ${MARIADB_PASSWORD}
@@ -11,11 +11,11 @@ spring:
   datasource:
     main:
       <<: *common-db-properties
-      hikari:
-        maximum-pool-size: 13
-        minimum-idle: 10
+      pool-name: main-datasource-pool
+      maximum-pool-size: 30
+      minimum-idle: 30
     trade:
       <<: *common-db-properties
-      hikari:
-        maximum-pool-size: 2
-        minimum-idle: 2
+      pool-name: trade-datasource-pool
+      maximum-pool-size: 3
+      minimum-idle: 3

@@ -22,10 +22,8 @@ services:
       - OTEL_LOGS_EXPORTER=none
       - OTEL_METRICS_EXPORTER=none
       - OTEL_INSTRUMENTATION_METHODS_ENABLED=true
-      - JAVA_TOOL_OPTIONS=-javaagent:/app/opentelemetry-javaagent.jar
+#      - JAVA_TOOL_OPTIONS=-javaagent:/app/opentelemetry-javaagent.jar
     depends_on:
-      mariadb:
-        condition: service_healthy
       otel-collector:
         condition: service_started
     networks:

@@ -4,6 +4,6 @@ import com.cleanengine.coin.order.domain.BuyOrder;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
-//@NoRepositoryBean
+@NoRepositoryBean
 public interface BuyOrderRepository extends CrudRepository<BuyOrder, Long> {
 }

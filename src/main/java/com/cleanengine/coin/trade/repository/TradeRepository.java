@@ -10,7 +10,7 @@ import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-//@NoRepositoryBean
+@NoRepositoryBean
 public interface TradeRepository extends JpaRepository<Trade, Integer> {
 
     // 특정 시간 이후의 거래 조회 (페이징 지원)

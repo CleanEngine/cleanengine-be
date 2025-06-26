@@ -18,7 +18,13 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "com.cleanengine.coin",
+        basePackages = {
+                "com.cleanengine.coin.order.adapter.out.persistentce.order.command.main",
+                "com.cleanengine.coin.order.adapter.out.persistentce.asset.main",
+                "com.cleanengine.coin.user.info.infra.main",
+                "com.cleanengine.coin.trade.repository.main",
+                "com.cleanengine.coin.chart.repository"
+        },
         entityManagerFactoryRef = "mainEntityManagerFactory",
         transactionManagerRef = "mainTransactionManager"
 )
@@ -27,7 +33,9 @@ public class MainDataSourceConfig {
     @Primary
     @Bean(name = "mainDataSource")
     @ConfigurationProperties(prefix = "spring.datasource.main")
-    public DataSource mainDataSource() {
+    public HikariDataSource mainDataSource(
+    ) {
+        HikariDataSource dataSource = new HikariDataSource();
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
 

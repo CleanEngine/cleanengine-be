@@ -1,8 +1,8 @@
 package com.cleanengine.coin.trade.repository.main;
 
 import com.cleanengine.coin.trade.repository.TradeRepository;
-import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.context.annotation.Primary;
 
-@NoRepositoryBean
+@Primary
 public interface MainTradeRepository extends TradeRepository {
 }

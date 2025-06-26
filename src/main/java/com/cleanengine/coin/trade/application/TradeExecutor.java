@@ -8,6 +8,9 @@ import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.trade.external.TradeAccountService;
+import com.cleanengine.coin.trade.external.TradeTradeService;
+import com.cleanengine.coin.trade.external.TradeWalletService;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.application.AccountService;
@@ -29,13 +32,13 @@ import static com.cleanengine.coin.common.CommonValues.approxEquals;
 @Component
 public class TradeExecutor {
 
-    private final WalletService walletService;
-    private final AccountService accountService;
+    private final TradeWalletService walletService;
+    private final TradeAccountService accountService;
     @Getter
     private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
-    private final TradeService tradeService;
+    private final TradeTradeService tradeService;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED, transactionManager = "tradeTransactionManager")
     public void executeTrade(WaitingOrders waitingOrders, TradePair<Order, Order> tradePair, String ticker) {
         BuyOrder buyOrder = tradePair.getBuyOrder();
         SellOrder sellOrder = tradePair.getSellOrder();

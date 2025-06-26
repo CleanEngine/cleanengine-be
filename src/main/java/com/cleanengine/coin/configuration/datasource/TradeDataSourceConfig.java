@@ -14,9 +14,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-//@Configuration
+@Configuration
 @EnableJpaRepositories(
-        basePackages = "com.cleanengine.coin.trade.repository",
+        basePackages = {
+                "com.cleanengine.coin.trade.repository.trade"
+        },
         entityManagerFactoryRef = "tradeEntityManagerFactory",
         transactionManagerRef = "tradeTransactionManager"
 )
@@ -35,7 +37,7 @@ public class TradeDataSourceConfig {
     ) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.cleanengine.coin.trade")
+                .packages("com.cleanengine.coin")
                 .persistenceUnit("trade")
                 .build();
     }

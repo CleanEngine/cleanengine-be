@@ -76,6 +76,9 @@ create table trade
     trade_time   datetime(6)  not null
 );
 
+create or replace index idx_trade_ticker_trade_time
+       on trade (ticker, trade_time);
+
 create table users
 (
     user_id    int auto_increment

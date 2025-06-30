@@ -1,6 +1,7 @@
 package com.cleanengine.coin.user.login.application;
 
 
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,19 +16,22 @@ public class JWTUtil {
 
     private final SecretKey secretKey;
 
+    private final JwtParser jwtParser;
+
     public JWTUtil(@Value("${spring.jwt.secret}") String secret) {
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
+        jwtParser = Jwts.parser().verifyWith(secretKey).build();
     }
 
     public Integer getUserId(String token) {
 
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Integer.class);
+        return jwtParser.parseSignedClaims(token).getPayload().get("userId", Integer.class);
 
     }
 
     public Boolean isExpired(String token) {
 
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
+        return jwtParser.parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
     public String createJwt(Integer userId, Long expiredMs) {

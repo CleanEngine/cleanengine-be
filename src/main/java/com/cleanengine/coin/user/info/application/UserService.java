@@ -47,13 +47,18 @@ public class UserService {
 
     private List<UserWalletDTO> convertToDTO(List<Wallet> wallets) {
         return wallets.stream()
-                .map(w -> UserWalletDTO.of(w.getTicker(),
-                        assetService.getAssetName(w.getTicker()),
-                        w.getAccountId(),
-                        w.getSize(),
-                        w.getBuyPrice(),
-                        w.getRoi(),
-                        assetService.getCurrentPrice(w.getTicker())))
+                .map(w -> {
+                    Double currentPrice = assetService.getCurrentPrice(w.getTicker());
+                    Double roi = currentPrice == null ? null : (currentPrice / w.getBuyPrice() - 1) * 100;
+
+                    return UserWalletDTO.of(w.getTicker(),
+                            assetService.getAssetName(w.getTicker()),
+                            w.getAccountId(),
+                            w.getSize(),
+                            w.getBuyPrice(),
+                            roi,
+                            currentPrice);
+                })
                 .toList();
     }
 

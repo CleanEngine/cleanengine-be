@@ -34,8 +34,8 @@ public class AssetInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         List<Asset> assets = loadAssets();
-        assetService.setAssetCache(assets);
         updateIfIconAbsentInDB(assets);
+        assetService.setAssetCache(assets);
     }
 
     private void updateIfIconAbsentInDB(List<Asset> assets) {

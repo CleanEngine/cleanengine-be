@@ -21,22 +21,22 @@ class OrderBookInfoSerializationTest {
     @Test
     void eachOrderBookHasOnePrice_serializeIt_resultEqualsAsExpected() throws JsonProcessingException {
         OrderBookInfo orderBookInfo = new OrderBookInfo("BTC",
-                List.of(new OrderBookUnitInfo(1.0, 1.0)),
-                List.of(new OrderBookUnitInfo( 2.0, 2.0)));
+                List.of(new OrderBookUnitInfo(1.0, 1.0, 0.0)),
+                List.of(new OrderBookUnitInfo( 2.0, 2.0, 0.0)));
 
         String json = objectMapper.writeValueAsString(orderBookInfo);
         System.out.println(json);
-        assertEquals("{\"ticker\":\"BTC\",\"buyOrderBookUnits\":[{\"price\":1.0,\"size\":1.0}],\"sellOrderBookUnits\":[{\"price\":2.0,\"size\":2.0}]}", json);
+        assertEquals("{\"ticker\":\"BTC\",\"buyOrderBookUnits\":[{\"price\":1.0,\"size\":1.0,\"priceChangePercent\":0.0}],\"sellOrderBookUnits\":[{\"price\":2.0,\"size\":2.0,\"priceChangePercent\":0.0}]}", json);
     }
 
     @Test
     void oneOfOrderBookIsEmpty_serializeIt_resultEqualsAsExpected() throws JsonProcessingException {
         OrderBookInfo orderBookInfo = new OrderBookInfo("BTC",
-                List.of(new OrderBookUnitInfo(1.0, 1.0)),
+                List.of(new OrderBookUnitInfo(1.0, 1.0, 0.0)),
                 List.of());
 
         String json = objectMapper.writeValueAsString(orderBookInfo);
         System.out.println(json);
-        assertEquals("{\"ticker\":\"BTC\",\"buyOrderBookUnits\":[{\"price\":1.0,\"size\":1.0}],\"sellOrderBookUnits\":[]}", json);
+        assertEquals("{\"ticker\":\"BTC\",\"buyOrderBookUnits\":[{\"price\":1.0,\"size\":1.0,\"priceChangePercent\":0.0}],\"sellOrderBookUnits\":[]}", json);
     }
 }

@@ -6,11 +6,14 @@ import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.spi.ActiveOrders;
 import com.cleanengine.coin.order.domain.spi.ActiveOrdersManager;
 import com.cleanengine.coin.orderbook.domain.OrderBookDomainService;
+import com.cleanengine.coin.orderbook.dto.ClosingPriceDto;
 import com.cleanengine.coin.orderbook.dto.OrderBookInfo;
 import com.cleanengine.coin.orderbook.dto.OrderBookUnitInfo;
+import com.cleanengine.coin.orderbook.infra.TradeQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +25,7 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
     private final ActiveOrdersManager activeOrdersManager;
     private final OrderBookDomainService orderBookDomainService;
     private final OrderBookUpdatedNotifierPort orderBookUpdatedNotifierPort;
+    private final TradeQueryService tradeQueryService;
 
     @Override
     public void updateOrderBookOnNewOrder(Order order) {
@@ -67,13 +71,31 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
     }
 
     private OrderBookInfo extractOrderBookInfo(String ticker){
+        ClosingPriceDto finalClosingPriceDto = getYesterdayClosingPrice(ticker);
+
         List<OrderBookUnitInfo> buyOrderBookUnitInfos =
                 orderBookDomainService.getBuyOrderBookList(ticker, 10)
-                        .stream().map(OrderBookUnitInfo::new).toList();
+                        .stream()
+                        .map(orderBookUnit -> new OrderBookUnitInfo(orderBookUnit, finalClosingPriceDto.closingPrice()))
+                        .toList();
         List<OrderBookUnitInfo> sellOrderBookUnitInfos =
                 orderBookDomainService.getSellOrderBookList(ticker, 10)
-                        .stream().map(OrderBookUnitInfo::new).toList();
+                        .stream()
+                        .map(orderBookUnit -> new OrderBookUnitInfo(orderBookUnit, finalClosingPriceDto.closingPrice()))
+                        .toList();
+
         return new OrderBookInfo(ticker, buyOrderBookUnitInfos, sellOrderBookUnitInfos);
+    }
+
+    private ClosingPriceDto getYesterdayClosingPrice(String ticker){
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        ClosingPriceDto closingPriceDto = tradeQueryService.getYesterdayClosingPrice(ticker, yesterday);
+
+        if(closingPriceDto == null) {
+            closingPriceDto = new ClosingPriceDto(ticker, yesterday, 0.0);
+        }
+
+        return closingPriceDto;
     }
 
     private void sendOrderBookUpdated(String ticker){

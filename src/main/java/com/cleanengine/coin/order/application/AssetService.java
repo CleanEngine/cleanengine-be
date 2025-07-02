@@ -22,7 +22,6 @@ public class AssetService {
     private final AssetCacheRepository assetCacheRepository;
     private final TradeRepository tradeRepository;
 
-    // TODO : 체결 시 이 필드 업데이트
     private final ConcurrentHashMap<String, Double> currentPriceCache = new ConcurrentHashMap<>();
 
     public AssetInfo getAssetInfo(String ticker){
@@ -40,10 +39,6 @@ public class AssetService {
         return assetRepository.findAll().stream().map(AssetInfo::from).toList();
     }
 
-    public List<String> getAllAssetTickers(){
-        return assetRepository.findAll().stream().map(Asset::getTicker).toList();
-    }
-
     public boolean isAssetExist(String ticker){
         if(assetCacheRepository.isAssetExists(ticker)) return true;
 
@@ -57,15 +52,15 @@ public class AssetService {
         return assetRepository.findById(ticker);
     }
 
-    public double getCurrentPrice(String ticker) {
-        Double currentPrice = currentPriceCache.get(ticker);
-        if (currentPrice == null) {
-            Trade recentTrade = tradeRepository.findFirstByTickerOrderByTradeTimeDesc(ticker);
-            currentPrice = recentTrade == null ? 0.0 : recentTrade.getPrice();
-            currentPriceCache.put(ticker, currentPrice);
-        }
+    public Double getCurrentPrice(String ticker) {
+        return currentPriceCache.computeIfAbsent(ticker, t -> {
+            Trade recentTrade = tradeRepository.findFirstByTickerOrderByTradeTimeDesc(t);
+            return recentTrade == null ? null : recentTrade.getPrice();
+        });
+    }
 
-        return currentPrice;
+    public void updateCurrentPrice(String ticker, double price) {
+        currentPriceCache.put(ticker, price);
     }
 
 }

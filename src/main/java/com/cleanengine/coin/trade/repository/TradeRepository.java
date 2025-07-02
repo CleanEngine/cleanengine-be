@@ -5,7 +5,6 @@ import com.cleanengine.coin.trade.entity.Trade;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,4 +23,6 @@ public interface TradeRepository extends JpaRepository<Trade, Integer> {
     List<Trade> findBySellUserIdAndTicker(Integer sellUserId, String ticker);
     List<Trade> findTop10ByTickerOrderByTradeTimeDesc(String ticker);
     List<Trade> findByTickerAndTradeTimeGreaterThanEqualOrderByTradeTimeDesc(String ticker, LocalDateTime lastTime);
+    Trade findFirstByTickerOrderByTradeTimeDesc(String ticker);
+
 }

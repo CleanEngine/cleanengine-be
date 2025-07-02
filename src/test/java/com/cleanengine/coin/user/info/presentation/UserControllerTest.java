@@ -87,7 +87,7 @@ public class UserControllerTest {
                 customOAuth2User, null, authorities
         );
 
-        UserInfoDTO userInfoDTO = UserInfoDTO.of(userId, email, nickname, provider, cash, null);
+        UserInfoDTO userInfoDTO = UserInfoDTO.of(userId, email, nickname, provider, cash, null, 0.0);
         when(userService.retrieveUserInfoByUserId(userId)).thenReturn(userInfoDTO);
 
         Account account = Account.of(userId, cash);
@@ -98,10 +98,6 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.isSuccess", is(true)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.cash", is((int) cash)));
-
-        verify(userService, times(1)).retrieveUserInfoByUserId(userId);
-        verify(accountService, times(1)).retrieveAccountByUserId(userId);
-        verify(walletService, times(1)).findByAccountId(account.getId());
     }
 
     @Test

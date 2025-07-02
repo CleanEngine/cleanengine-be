@@ -3,19 +3,21 @@ name: Code Analyze With SonarQube
 run-name: Run code analyze triggered by ${{github.actor}}
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-    branches:
-      - main
-      - dev
-    paths:
-      - 'src/**'
-  push:
-    branches:
-      - main
-      - dev
-    paths:
-      - 'src/**'
+  workflow_dispatch:
+
+#  pull_request:
+#    types: [opened, reopened, synchronize]
+#    branches:
+#      - main
+#      - dev
+#    paths:
+#      - 'src/**'
+#  push:
+#    branches:
+#      - main
+#      - dev
+#    paths:
+#      - 'src/**'
 
 jobs:
   build:

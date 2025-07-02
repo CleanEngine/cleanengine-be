@@ -48,6 +48,7 @@ public class UserService {
     private List<UserWalletDTO> convertToDTO(List<Wallet> wallets) {
         return wallets.stream()
                 .map(w -> UserWalletDTO.of(w.getTicker(),
+                        assetService.getAssetName(w.getTicker()),
                         w.getAccountId(),
                         w.getSize(),
                         w.getBuyPrice(),

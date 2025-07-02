@@ -10,6 +10,9 @@ public class UserWalletDTO {
     @Schema(description = "종목 티커", example = "BTC")
     private final String ticker;
 
+    @Schema(description = "종목명", example = "비트코인")
+    private final String name;
+
     @Schema(description = "계좌 ID", example = "3")
     private final Integer accountId;
 
@@ -26,8 +29,9 @@ public class UserWalletDTO {
     private final Double currentPrice;  // 현재가(최근 체결가)
 
     @Builder
-    public UserWalletDTO(String ticker, Integer accountId, Double size, Double buyPrice, Double roi, Double currentPrice) {
+    public UserWalletDTO(String ticker, String name, Integer accountId, Double size, Double buyPrice, Double roi, Double currentPrice) {
         this.ticker = ticker;
+        this.name = name;
         this.accountId = accountId;
         this.size = size;
         this.buyPrice = buyPrice;
@@ -35,9 +39,10 @@ public class UserWalletDTO {
         this.currentPrice = currentPrice;
     }
 
-    public static UserWalletDTO of(String ticker, Integer accountId, Double size, Double buyPrice, Double roi, Double currentPrice) {
+    public static UserWalletDTO of(String ticker, String name, Integer accountId, Double size, Double buyPrice, Double roi, Double currentPrice) {
         return UserWalletDTO.builder()
                 .ticker(ticker)
+                .name(name)
                 .accountId(accountId)
                 .size(size)
                 .buyPrice(buyPrice)

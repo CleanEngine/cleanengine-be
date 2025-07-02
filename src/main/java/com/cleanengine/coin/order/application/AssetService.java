@@ -23,6 +23,17 @@ public class AssetService {
     private final TradeRepository tradeRepository;
 
     private final ConcurrentHashMap<String, Double> currentPriceCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Asset> assetCache = new ConcurrentHashMap<>();
+
+    public void setAssetCache(List<Asset> assets) {
+        assets.forEach(a -> assetCache.putIfAbsent(a.getTicker(), a));
+    }
+
+    public String getAssetName(String ticker){
+        Asset asset = assetCache.get(ticker);
+
+        return asset == null ? assetRepository.findNameById(ticker) : asset.getName();
+    }
 
     public AssetInfo getAssetInfo(String ticker){
         Optional<Asset> assetOpt = getAsset(ticker);

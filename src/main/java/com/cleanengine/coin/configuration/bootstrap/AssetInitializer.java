@@ -1,8 +1,9 @@
 package com.cleanengine.coin.configuration.bootstrap;
 
 import com.cleanengine.coin.common.annotation.WorkingServerProfile;
-import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
+import com.cleanengine.coin.order.application.AssetService;
+import com.cleanengine.coin.order.domain.Asset;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -25,14 +26,19 @@ import java.util.List;
 @WorkingServerProfile
 @Slf4j
 @RequiredArgsConstructor
-public class IconInitializer implements ApplicationRunner {
+public class AssetInitializer implements ApplicationRunner {
     private final AssetRepository assetRepository;
+    private final AssetService assetService;
     private final ResourceLoader resourceLoader;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
         List<Asset> assets = loadAssets();
+        assetService.setAssetCache(assets);
+        updateIfIconAbsentInDB(assets);
+    }
 
+    private void updateIfIconAbsentInDB(List<Asset> assets) {
         for(Asset asset : assets){
             if(asset.getIcon() != null) continue;
             byte[] encodedIconBytes = loadEncodedIcon(asset.getTicker());

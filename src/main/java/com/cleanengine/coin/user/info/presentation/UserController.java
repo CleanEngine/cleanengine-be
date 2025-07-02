@@ -5,6 +5,7 @@ import com.cleanengine.coin.common.response.ErrorResponse;
 import com.cleanengine.coin.common.response.ErrorStatus;
 import com.cleanengine.coin.user.info.application.UserService;
 import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ public class UserController {
 
     private final UserService userService;
 
+    @Operation(summary = "쿠키의 유저ID를 통해 유저 정보와 보유 자산을 불러옵니다.")
     @GetMapping("/api/userinfo")
     public ApiResponse<UserInfoDTO> retrieveUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

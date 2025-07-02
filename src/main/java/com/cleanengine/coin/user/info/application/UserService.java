@@ -8,6 +8,7 @@ import com.cleanengine.coin.user.info.infra.AccountRepository;
 import com.cleanengine.coin.user.info.infra.OAuthRepository;
 import com.cleanengine.coin.user.info.infra.WalletRepository;
 import com.cleanengine.coin.user.info.presentation.UserInfoDTO;
+import com.cleanengine.coin.user.info.presentation.UserWalletDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,11 +36,24 @@ public class UserService {
 
         // 총 자산 계산 (현금 + (각 코인 보유량 * 현재가))
         double totalWalletValue = wallets.stream()
-                .mapToDouble(wallet -> wallet.getSize() * assetService.getCurrentPrice(wallet.getTicker()))
+                .mapToDouble(wallet ->
+                        wallet.getSize() * assetService.getCurrentPrice(wallet.getTicker()))
                 .sum();
         double totalCash = account.getCash() + totalWalletValue;
 
-        return UserInfoDTO.of(userId, oauth.getEmail(), oauth.getNickname(), oauth.getProvider(), account.getCash(), wallets, totalCash);
+        List<UserWalletDTO> userWalletDTOs = convertToDTO(wallets);
+        return UserInfoDTO.of(userId, oauth.getEmail(), oauth.getNickname(), oauth.getProvider(), account.getCash(), userWalletDTOs, totalCash);
+    }
+
+    private List<UserWalletDTO> convertToDTO(List<Wallet> wallets) {
+        return wallets.stream()
+                .map(w -> UserWalletDTO.of(w.getTicker(),
+                        w.getAccountId(),
+                        w.getSize(),
+                        w.getBuyPrice(),
+                        w.getRoi(),
+                        assetService.getCurrentPrice(w.getTicker())))
+                .toList();
     }
 
 }

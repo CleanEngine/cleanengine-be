@@ -1,17 +1,49 @@
 package com.cleanengine.coin.user.info.presentation;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
 public class UserWalletDTO {
 
-    private String ticker;
+    @Schema(description = "종목 티커", example = "BTC")
+    private final String ticker;
 
-    private Integer accountId;
+    @Schema(description = "계좌 ID", example = "3")
+    private final Integer accountId;
 
-    private Double size;
+    @Schema(description = "보유수량", example = "2.5")
+    private final Double size;
 
-    private Double buyPrice;  // 매수 평단
+    @Schema(description = "1주 평균 매수 금액", example = "15000")
+    private final Double buyPrice;  // 매수 평단
 
-    private Double roi;  // 수익률
+    @Schema(description = "수익률", example = "10")
+    private final Double roi;  // 수익률
 
-    private Double currentPrice;  // 현재가(최근 체결가)
+    @Schema(description = "현재가(최근 체결가)", example = "16500")
+    private final Double currentPrice;  // 현재가(최근 체결가)
+
+    @Builder
+    public UserWalletDTO(String ticker, Integer accountId, Double size, Double buyPrice, Double roi, Double currentPrice) {
+        this.ticker = ticker;
+        this.accountId = accountId;
+        this.size = size;
+        this.buyPrice = buyPrice;
+        this.roi = roi;
+        this.currentPrice = currentPrice;
+    }
+
+    public static UserWalletDTO of(String ticker, Integer accountId, Double size, Double buyPrice, Double roi, Double currentPrice) {
+        return UserWalletDTO.builder()
+                .ticker(ticker)
+                .accountId(accountId)
+                .size(size)
+                .buyPrice(buyPrice)
+                .roi(roi)
+                .currentPrice(currentPrice)
+                .build();
+    }
 
 }

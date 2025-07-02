@@ -2,6 +2,7 @@ package com.cleanengine.coin.tool;
 
 import com.cleanengine.coin.user.login.application.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Disabled
 @SpringBootTest
 @Profile("dev, it")
 public class TokenGenerator {

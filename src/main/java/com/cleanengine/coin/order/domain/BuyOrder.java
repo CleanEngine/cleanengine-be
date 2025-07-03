@@ -68,7 +68,12 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
 
         // 생성 시간 비교
         // 생성 시간이 빠르다면 음수가 나와야 함
-        return this.createdAt.compareTo(order.createdAt);
+        if(this.createdAt.compareTo(order.createdAt) != 0) {
+            return this.createdAt.compareTo(order.createdAt);
+        }
+
+        // snowflake 방식이기 때문에 먼저 만들어졌다면 id가 작고, 비교결과가 음수가 나와야함
+        return this.id.compareTo(order.id);
     }
 
     public void decreaseRemainingDeposit(Double amount) {

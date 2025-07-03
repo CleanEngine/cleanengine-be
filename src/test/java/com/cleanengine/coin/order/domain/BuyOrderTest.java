@@ -103,13 +103,13 @@ public class BuyOrderTest {
             assertTrue(smallerPriceBuyOrder.compareTo(biggerPriceBuyOrder) > 0);
         }
 
-        @DisplayName("가격이 동일하고, 생성 시간이 동일한 지정가 매수 주문을 compareTo시, 0이 나와야 함")
+        @DisplayName("가격이 동일하고, 생성 시간이 동일한 지정가 매수 주문을 compareTo시, id가 작은 주문이 음수가 나와야 함")
         @Test
-        void compareToLimitBuyOrderWithSamePricesAndSameTimes_returnZero() {
+        void compareToLimitBuyOrderWithSamePricesAndSameTimes_smallerIdBuyOrder_returnNegative() {
             BuyOrder sameTimeBuyOrder1 = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 1.0, baseTime, false);
-            BuyOrder sameTimeBuyOrder2 = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 1.0, baseTime, false);
+            BuyOrder sameTimeBuyOrder2 = BuyOrder.createLimitBuyOrder(2L, "BTC", 1, 100.0, 1.0, baseTime, false);
 
-            assertEquals(0, sameTimeBuyOrder1.compareTo(sameTimeBuyOrder2));
+            assertTrue(sameTimeBuyOrder1.compareTo(sameTimeBuyOrder2) < 0);
         }
 
         @DisplayName("가격이 같고 생성시간이 다른 지정가 매수주문을 compareTo시 생성시간이 빠른 주문이 음수가 나와야 함")

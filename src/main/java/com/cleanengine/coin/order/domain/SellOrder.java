@@ -60,7 +60,13 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
         }
 
         // 생성 시간 비교
-        return this.createdAt.compareTo(order.createdAt);
+        // 생성 시간이 빠르다면 음수가 나와야 함
+        if(this.createdAt.compareTo(order.createdAt) != 0) {
+            return this.createdAt.compareTo(order.createdAt);
+        }
+
+        // snowflake 방식이기 때문에 먼저 만들어졌다면 id가 작고, 비교결과가 음수가 나와야함
+        return this.id.compareTo(order.id);
     }
 
     protected SellOrder(Long id, String ticker, Integer userId, OrderStatus state, Double orderSize,

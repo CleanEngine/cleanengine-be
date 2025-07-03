@@ -17,8 +17,8 @@ class TradePairTest {
     @Test
     void newTradePair() {
         // given
-        SellOrder sellOrder = SellOrder.createLimitSellOrder("BTC", 3, 1.0, 1000.0, LocalDateTime.now(), false);
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 4, 1.0, 1000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, "BTC", 3, 1.0, 1000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(2L, "BTC", 4, 1.0, 1000.0, LocalDateTime.now(), false);
 
         // when
         TradePair<Order, Order> tradePair = TradePair.of(buyOrder, sellOrder);
@@ -33,8 +33,8 @@ class TradePairTest {
     @Test
     void newTradePairWIthTwoSellOrders() {
         // given
-        SellOrder sellOrder1 = SellOrder.createLimitSellOrder("BTC", 3, 1.0, 1000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder2 = SellOrder.createLimitSellOrder("BTC", 5, 1.0, 1000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder1 = SellOrder.createLimitSellOrder(1L, "BTC", 3, 1.0, 1000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder2 = SellOrder.createLimitSellOrder(2L, "BTC", 5, 1.0, 1000.0, LocalDateTime.now(), false);
 
         // when, then
         assertThatThrownBy(() -> TradePair.of(sellOrder1, sellOrder2))
@@ -46,8 +46,8 @@ class TradePairTest {
     @Test
     void newTradePairWIthTwoBuyOrders() {
         // given
-        BuyOrder buyOrder1 = BuyOrder.createLimitBuyOrder("BTC", 4, 1.0, 1000.0, LocalDateTime.now(), false);
-        BuyOrder buyOrder2 = BuyOrder.createLimitBuyOrder("BTC", 6, 1.0, 1000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder1 = BuyOrder.createLimitBuyOrder(1L, "BTC", 4, 1.0, 1000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder2 = BuyOrder.createLimitBuyOrder(2L, "BTC", 6, 1.0, 1000.0, LocalDateTime.now(), false);
 
         // when, then
         assertThatThrownBy(() -> TradePair.of(buyOrder1, buyOrder2))

@@ -5,7 +5,7 @@ import com.cleanengine.coin.order.domain.Order;
 import java.time.LocalDateTime;
 
 public interface CreateOrderDomainService<T extends Order> {
-    T createOrder(String ticker, Integer userId, Boolean isBuyOrder, Boolean isMarketOrder,
+    T createOrder(Long id, String ticker, Integer userId, Boolean isBuyOrder, Boolean isMarketOrder,
                   Double orderSize, Double price, LocalDateTime createdAt, Boolean isBot);
 }
 

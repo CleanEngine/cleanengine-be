@@ -8,11 +8,11 @@ import java.time.LocalDateTime;
 @Component
 public class CreateSellOrderDomainService implements CreateOrderDomainService<SellOrder> {
     @Override
-    public SellOrder createOrder(String ticker, Integer userId, Boolean isBuyOrder, Boolean isMarketOrder, Double orderSize, Double price, LocalDateTime createdAt, Boolean isBot) {
+    public SellOrder createOrder(Long id, String ticker, Integer userId, Boolean isBuyOrder, Boolean isMarketOrder, Double orderSize, Double price, LocalDateTime createdAt, Boolean isBot) {
         if(isMarketOrder){
-            return SellOrder.createMarketSellOrder(ticker, userId, orderSize, createdAt, isBot);
+            return SellOrder.createMarketSellOrder(id, ticker, userId, orderSize, createdAt, isBot);
         }else{
-            return SellOrder.createLimitSellOrder(ticker, userId, orderSize, price, createdAt, isBot);
+            return SellOrder.createLimitSellOrder(id, ticker, userId, orderSize, price, createdAt, isBot);
         }
     }
 }

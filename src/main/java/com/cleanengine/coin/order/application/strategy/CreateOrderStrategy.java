@@ -1,6 +1,7 @@
 package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.common.idgenerator.LongIdGenerator;
 import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
@@ -21,6 +22,7 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
     protected final AssetService assetService;
     protected final WalletRepository walletRepository;
     protected final AccountRepository accountRepository;
+    protected final LongIdGenerator idGenerator;
 
     public S processCreatingOrder(OrderCommand.CreateOrder createOrderCommand){
         validateTicker(createOrderCommand.ticker());
@@ -48,6 +50,7 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
     protected T createOrder(OrderCommand.CreateOrder createOrderCommand){
 
         return createOrderDomainService().createOrder(
+                idGenerator.nextId(),
                 createOrderCommand.ticker(), createOrderCommand.userId(),
                 createOrderCommand.isBuyOrder(), createOrderCommand.isMarketOrder(),
                 createOrderCommand.orderSize(), createOrderCommand.price(),

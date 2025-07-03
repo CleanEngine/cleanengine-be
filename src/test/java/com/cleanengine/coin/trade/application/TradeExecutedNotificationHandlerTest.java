@@ -36,7 +36,7 @@ class TradeExecutedNotificationHandlerTest {
     @Test
     void shouldSendNotificationsForValidTrade() {
         // given
-        SellOrder sellOrder = SellOrder.createLimitSellOrder("BTC", 3, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, "BTC", 3, 5.0, 130_000_000.0, LocalDateTime.now(), false);
         TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
 
         // when
@@ -51,7 +51,7 @@ class TradeExecutedNotificationHandlerTest {
     @Test
     void shouldSendNotificationsForValidTrade2() {
         // given
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 4, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 4, 5.0, 130_000_000.0, LocalDateTime.now(), false);
         TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(buyOrder);
 
         // when
@@ -66,7 +66,7 @@ class TradeExecutedNotificationHandlerTest {
     @Test
     void shouldNotSendNotificationForNullBuyUserId() {
         // given
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", null, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", null, 5.0, 130_000_000.0, LocalDateTime.now(), false);
         TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(buyOrder);
 
         // when
@@ -80,7 +80,7 @@ class TradeExecutedNotificationHandlerTest {
     @Test
     void shouldNotSendNotificationForNullSellUserId() {
         // given
-        SellOrder sellOrder = SellOrder.createLimitSellOrder("BTC", null, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, "BTC", null, 5.0, 130_000_000.0, LocalDateTime.now(), false);
         TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
 
         // when
@@ -94,8 +94,8 @@ class TradeExecutedNotificationHandlerTest {
     @Test
     void shouldNotSendNotificationForBotTrade() {
         // given
-        SellOrder sellOrder = SellOrder.createLimitSellOrder("BTC", SELL_ORDER_BOT_ID, 5.0, 130_000_000.0, LocalDateTime.now(), false);
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", BUY_ORDER_BOT_ID, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, "BTC", SELL_ORDER_BOT_ID, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(2L, "BTC", BUY_ORDER_BOT_ID, 5.0, 130_000_000.0, LocalDateTime.now(), false);
         TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
         TradeOrderCompletedEvent event2 = TradeOrderCompletedEventImpl.of(buyOrder);
 

@@ -19,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class SellOrder extends Order implements Comparable<SellOrder> {
-    public static SellOrder createMarketSellOrder(String ticker, Integer userId, Double orderSize,
+    public static SellOrder createMarketSellOrder(Long id, String ticker, Integer userId, Double orderSize,
                                                   LocalDateTime createdAt, Boolean isBot) {
         List<FieldError> errors = new ArrayList<>();
         if(orderSize == null){
@@ -28,12 +28,12 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
 
         handleValidationErrors(errors);
 
-        SellOrder sellOrder = new SellOrder(null, ticker, userId, OrderStatus.WAIT, orderSize, null,
+        SellOrder sellOrder = new SellOrder(id, ticker, userId, OrderStatus.WAIT, orderSize, null,
                 orderSize, createdAt, true, isBot);
         return sellOrder;
     }
 
-    public static SellOrder createLimitSellOrder(String ticker, Integer userId, Double orderSize,
+    public static SellOrder createLimitSellOrder(Long id, String ticker, Integer userId, Double orderSize,
                                                  Double price, LocalDateTime createdAt, Boolean isBot) {
         List<FieldError> errors = new ArrayList<>();
         if(orderSize == null){
@@ -45,7 +45,7 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
 
         handleValidationErrors(errors);
 
-        SellOrder sellOrder = new SellOrder(null, ticker, userId, OrderStatus.WAIT, orderSize, price,
+        SellOrder sellOrder = new SellOrder(id, ticker, userId, OrderStatus.WAIT, orderSize, price,
                 orderSize, createdAt, false, isBot);
         return sellOrder;
     }
@@ -58,7 +58,7 @@ public class SellOrder extends Order implements Comparable<SellOrder> {
             int priceCompareResult = Double.compare(this.price, order.price);
             if(priceCompareResult != 0) return priceCompareResult;
         }
-        
+
         // 생성 시간 비교
         return this.createdAt.compareTo(order.createdAt);
     }

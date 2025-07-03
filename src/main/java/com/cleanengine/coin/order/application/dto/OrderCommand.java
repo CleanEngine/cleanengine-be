@@ -31,9 +31,6 @@ public final class OrderCommand {
             @Positive(message = "price" + ConstraintMessageTemplate.POSITIVE_MESSAGE_TEMPLATE)
             Double price,
 
-            @NotNull(message = "createdAt" + ConstraintMessageTemplate.NOTNULL_MESSAGE_TEMPLATE)
-            LocalDateTime createdAt,
-
             @NotNull(message = "isBot" + ConstraintMessageTemplate.NOTNULL_MESSAGE_TEMPLATE)
             Boolean isBot
     ){ }

@@ -2,7 +2,7 @@ package com.cleanengine.coin.base;
 
 import com.cleanengine.coin.common.response.ApiResponse;
 import com.cleanengine.coin.configuration.JacksonConfig;
-import com.cleanengine.coin.configuration.TimeZoneConfig;
+import com.cleanengine.coin.configuration.TimeConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * 사실 다른 유형의 테스트들 중 가장 덜 중요한 느낌. 시간 부족하다면 선택과 집중을..
  */
 @ActiveProfiles("dev")
-@Import({JacksonConfig.class, TimeZoneConfig.class})
+@Import({JacksonConfig.class, TimeConfig.class})
 public abstract class ControllerTest {
     @Autowired
     protected MockMvc mockMvc;

@@ -26,7 +26,7 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
     @Column(name="remaining_deposit", nullable = false)
     private Double remainingDeposit;
 
-    public static BuyOrder createMarketBuyOrder(String ticker, Integer userId, Double deposit,
+    public static BuyOrder createMarketBuyOrder(Long id, String ticker, Integer userId, Double deposit,
                                                 LocalDateTime createdAt, Boolean isBot) {
         // TODO command 객체의 validation으로 추출
         List<FieldError> errors = new ArrayList<>();
@@ -35,12 +35,12 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
         }
         handleValidationErrors(errors);
 
-        BuyOrder buyOrder = new BuyOrder(null, ticker, userId, OrderStatus.WAIT, null,
+        BuyOrder buyOrder = new BuyOrder(id, ticker, userId, OrderStatus.WAIT, null,
                 null, null, createdAt, true, isBot, deposit, deposit);
         return buyOrder;
     }
   
-    public static BuyOrder createLimitBuyOrder(String ticker, Integer userId, Double orderSize,
+    public static BuyOrder createLimitBuyOrder(Long id, String ticker, Integer userId, Double orderSize,
                                   Double price, LocalDateTime createdAt, Boolean isBot) {
         List<FieldError> errors = new ArrayList<>();
         if(orderSize == null){
@@ -52,7 +52,7 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
         handleValidationErrors(errors);
 
         Double deposit = orderSize * price;
-        BuyOrder buyOrder = new BuyOrder(null, ticker, userId, OrderStatus.WAIT, orderSize, price,
+        BuyOrder buyOrder = new BuyOrder(id, ticker, userId, OrderStatus.WAIT, orderSize, price,
                 orderSize, createdAt, false, isBot, deposit, deposit);
         return buyOrder;
     }
@@ -68,7 +68,12 @@ public class BuyOrder extends Order implements Comparable<BuyOrder> {
 
         // 생성 시간 비교
         // 생성 시간이 빠르다면 음수가 나와야 함
-        return this.createdAt.compareTo(order.createdAt);
+        if(this.createdAt.compareTo(order.createdAt) != 0) {
+            return this.createdAt.compareTo(order.createdAt);
+        }
+
+        // snowflake 방식이기 때문에 먼저 만들어졌다면 id가 작고, 비교결과가 음수가 나와야함
+        return this.id.compareTo(order.id);
     }
 
     public void decreaseRemainingDeposit(Double amount) {

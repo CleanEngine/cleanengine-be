@@ -1,6 +1,7 @@
 package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.common.idgenerator.LongIdGenerator;
 import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
@@ -13,6 +14,7 @@ import com.cleanengine.coin.user.info.infra.WalletRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.validation.FieldError;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -21,6 +23,7 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
     protected final AssetService assetService;
     protected final WalletRepository walletRepository;
     protected final AccountRepository accountRepository;
+    protected final LongIdGenerator idGenerator;
 
     public S processCreatingOrder(OrderCommand.CreateOrder createOrderCommand){
         validateTicker(createOrderCommand.ticker());
@@ -46,12 +49,15 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
     }
 
     protected T createOrder(OrderCommand.CreateOrder createOrderCommand){
+        long orderId = idGenerator.nextId();
+        LocalDateTime createdAt = idGenerator.extractDateTime(orderId);
 
         return createOrderDomainService().createOrder(
+                orderId,
                 createOrderCommand.ticker(), createOrderCommand.userId(),
                 createOrderCommand.isBuyOrder(), createOrderCommand.isMarketOrder(),
                 createOrderCommand.orderSize(), createOrderCommand.price(),
-                createOrderCommand.createdAt(), createOrderCommand.isBot());
+                createdAt, createOrderCommand.isBot());
     }
 
 }

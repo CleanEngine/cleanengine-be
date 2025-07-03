@@ -51,6 +51,9 @@ springdoc:
 server:
   forward-headers-strategy: native
 
+worker:
+  id: 1
+
 bot-handler:
   fixed-rate: 1000 #  5초마다 실행
   cron : "0 0 0 * * *" # 매일 자정마다 호가

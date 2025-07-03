@@ -184,8 +184,8 @@ class TradeExecuteLoadTest {
         for (int i = 0; i < orderCount; i++) {
             final LocalDateTime orderTime = baseTime.plusSeconds(i);
 
-            SellOrder limitSellOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, orderTime, true);
-            BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder(ticker, 2, 10.0, 130_000_000.0, orderTime, true);
+            SellOrder limitSellOrder = SellOrder.createLimitSellOrder(1L, ticker, 1, 10.0, 130_000_000.0, orderTime, true);
+            BuyOrder limitBuyOrder = BuyOrder.createLimitBuyOrder(2L, ticker, 2, 10.0, 130_000_000.0, orderTime, true);
             waitingOrders.addOrder(limitSellOrder);
             waitingOrders.addOrder(limitBuyOrder);
 
@@ -201,7 +201,7 @@ class TradeExecuteLoadTest {
 
         // 단일 이벤트 발행 (체결 시작, 큐에는 안 넣음)
         long eventStart = System.nanoTime();
-        SellOrder dummyOrder = SellOrder.createLimitSellOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), true);
+        SellOrder dummyOrder = SellOrder.createLimitSellOrder(1L, ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), true);
         eventPublisher.publishEvent(new OrderInsertedToQueue(dummyOrder));
 
 

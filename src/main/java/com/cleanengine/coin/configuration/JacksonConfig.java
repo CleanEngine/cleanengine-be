@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static com.cleanengine.coin.configuration.TimeZoneConfig.SEOUL_ZONE_ID;
+import static com.cleanengine.coin.configuration.TimeConfig.SEOUL_ZONE_ID;
 
 @Configuration
 public class JacksonConfig {

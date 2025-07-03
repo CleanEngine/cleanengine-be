@@ -21,7 +21,7 @@ public class BuyOrderTest {
             Double nullDeposit = null;
 
             assertThrows(DomainValidationException.class, ()->{
-                BuyOrder.createMarketBuyOrder("BTC", 1, nullDeposit, baseTime, false);
+                BuyOrder.createMarketBuyOrder(1L, "BTC", 1, nullDeposit, baseTime, false);
             });
         }
 
@@ -30,7 +30,7 @@ public class BuyOrderTest {
         public void createMarketBuyOrderWithDeposit_initializeDepositCorrectly() {
             Double nonNullDeposit = 1000.0;
 
-            BuyOrder buyOrder = BuyOrder.createMarketBuyOrder("BTC", 1, nonNullDeposit, baseTime, false);
+            BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(1L, "BTC", 1, nonNullDeposit, baseTime, false);
 
             assertEquals(nonNullDeposit, buyOrder.getLockedDeposit());
             assertEquals(nonNullDeposit, buyOrder.getRemainingDeposit());
@@ -39,7 +39,7 @@ public class BuyOrderTest {
         @DisplayName("시장가 매수 주문 생성시 OrderStatus가 WAIT로 초기화 됨")
         @Test
         public void createMarketBuyOrder_initializeOrderStatusWithWait() {
-            BuyOrder buyOrder = BuyOrder.createMarketBuyOrder("BTC", 1, 1000.0, baseTime, false);
+            BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(1L, "BTC", 1, 1000.0, baseTime, false);
 
             assertEquals(OrderStatus.WAIT, buyOrder.getState());
         }
@@ -54,7 +54,7 @@ public class BuyOrderTest {
             Double nullOrderSize = null;
 
             assertThrows(DomainValidationException.class, ()->{
-                BuyOrder.createLimitBuyOrder("BTC", 1, nullOrderSize, 100.0, baseTime, false);
+                BuyOrder.createLimitBuyOrder(1L, "BTC", 1, nullOrderSize, 100.0, baseTime, false);
             });
         }
 
@@ -64,7 +64,7 @@ public class BuyOrderTest {
             Double nullPrice = null;
 
             assertThrows(DomainValidationException.class, ()->{
-                BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, nullPrice, baseTime, false);
+                BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, nullPrice, baseTime, false);
             });
         }
 
@@ -74,7 +74,7 @@ public class BuyOrderTest {
             Double orderSize = 10.0;
             Double price = 10.0;
 
-            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, orderSize, price, baseTime, false);
+            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, orderSize, price, baseTime, false);
 
             Double deposit = orderSize * price;
             assertEquals(deposit, buyOrder.getLockedDeposit());
@@ -84,7 +84,7 @@ public class BuyOrderTest {
         @DisplayName("지정가 매수 주문 생성시 OrderStatus가 WAIT로 초기화 됨")
         @Test
         public void createLimitBuyOrder_initializeOrderStatusWithWait() {
-            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 10.0, 10.0, baseTime, false);
+            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 10.0, 10.0, baseTime, false);
 
             assertEquals(OrderStatus.WAIT, buyOrder.getState());
         }
@@ -96,20 +96,20 @@ public class BuyOrderTest {
         @DisplayName("가격이 큰 지정가 매수주문과 가격이 작은 지정가 매수주문을 compareTo시, 가격이 큰 주문이 음수 결과가 나와야 함")
         @Test
         void compareToLimitBuyOrdersWithDifferentPrices_biggerBuyOrder_returnNegative() {
-            BuyOrder biggerPriceBuyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 5.0, baseTime, false);
-            BuyOrder smallerPriceBuyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 1.0, baseTime, false);
+            BuyOrder biggerPriceBuyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 5.0, baseTime, false);
+            BuyOrder smallerPriceBuyOrder = BuyOrder.createLimitBuyOrder(2L, "BTC", 1, 100.0, 1.0, baseTime, false);
 
             assertTrue(biggerPriceBuyOrder.compareTo(smallerPriceBuyOrder) < 0);
             assertTrue(smallerPriceBuyOrder.compareTo(biggerPriceBuyOrder) > 0);
         }
 
-        @DisplayName("가격이 동일하고, 생성 시간이 동일한 지정가 매수 주문을 compareTo시, 0이 나와야 함")
+        @DisplayName("가격이 동일하고, 생성 시간이 동일한 지정가 매수 주문을 compareTo시, id가 작은 주문이 음수가 나와야 함")
         @Test
-        void compareToLimitBuyOrderWithSamePricesAndSameTimes_returnZero() {
-            BuyOrder sameTimeBuyOrder1 = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 1.0, baseTime, false);
-            BuyOrder sameTimeBuyOrder2 = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 1.0, baseTime, false);
+        void compareToLimitBuyOrderWithSamePricesAndSameTimes_smallerIdBuyOrder_returnNegative() {
+            BuyOrder sameTimeBuyOrder1 = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 1.0, baseTime, false);
+            BuyOrder sameTimeBuyOrder2 = BuyOrder.createLimitBuyOrder(2L, "BTC", 1, 100.0, 1.0, baseTime, false);
 
-            assertEquals(0, sameTimeBuyOrder1.compareTo(sameTimeBuyOrder2));
+            assertTrue(sameTimeBuyOrder1.compareTo(sameTimeBuyOrder2) < 0);
         }
 
         @DisplayName("가격이 같고 생성시간이 다른 지정가 매수주문을 compareTo시 생성시간이 빠른 주문이 음수가 나와야 함")
@@ -118,8 +118,8 @@ public class BuyOrderTest {
             LocalDateTime earlierTime = baseTime.minusSeconds(1);
             LocalDateTime laterTime = baseTime.plusSeconds(1);
 
-            BuyOrder earlierTimeBuyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 1.0, earlierTime, false);
-            BuyOrder laterTimeBuyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 1.0, laterTime, false);
+            BuyOrder earlierTimeBuyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 1.0, earlierTime, false);
+            BuyOrder laterTimeBuyOrder = BuyOrder.createLimitBuyOrder(2L, "BTC", 1, 100.0, 1.0, laterTime, false);
 
             assertTrue(earlierTimeBuyOrder.compareTo(laterTimeBuyOrder) < 0);
             assertTrue(laterTimeBuyOrder.compareTo(earlierTimeBuyOrder) > 0);
@@ -131,8 +131,8 @@ public class BuyOrderTest {
             LocalDateTime earlierTime = baseTime.minusSeconds(1);
             LocalDateTime laterTime = baseTime.plusSeconds(1);
 
-            BuyOrder earlierTimeBuyOrder = BuyOrder.createMarketBuyOrder("BTC", 1, 100.0, earlierTime, false);
-            BuyOrder laterTimeBuyOrder = BuyOrder.createMarketBuyOrder("BTC", 1, 1000.0, laterTime, false);
+            BuyOrder earlierTimeBuyOrder = BuyOrder.createMarketBuyOrder(1L, "BTC", 1, 100.0, earlierTime, false);
+            BuyOrder laterTimeBuyOrder = BuyOrder.createMarketBuyOrder(2L, "BTC", 1, 1000.0, laterTime, false);
 
             assertTrue(earlierTimeBuyOrder.compareTo(laterTimeBuyOrder) < 0);
             assertTrue(laterTimeBuyOrder.compareTo(earlierTimeBuyOrder) > 0);
@@ -145,7 +145,7 @@ public class BuyOrderTest {
         @DisplayName("null인 amount로 decreaseRemainingDeposit 호출시, Exception을 반환한다.")
         @Test
         void decreaseRemainingDepositWithNullAmount_throwsException() {
-            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 10.0, baseTime, false);
+            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 10.0, baseTime, false);
 
             assertThrows(IllegalArgumentException.class, () -> buyOrder.decreaseRemainingDeposit(null));
         }
@@ -153,7 +153,7 @@ public class BuyOrderTest {
         @DisplayName("remainingDeposit보다 큰 amount로 decreaseRemainingDeposit 호출시, Exception을 반환한다.")
         @Test
         void decreaseRemainingDepositWithBiggerAmount_throwsException() {
-            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 10.0, baseTime, false);
+            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 10.0, baseTime, false);
 
             assertThrows(IllegalArgumentException.class, () -> buyOrder.decreaseRemainingDeposit(2000.0));
         }
@@ -161,7 +161,7 @@ public class BuyOrderTest {
         @DisplayName("remainingDeposit보다 작은 amount로 decreaseRemainingDeposit 호출시, 정상 적용된다.")
         @Test
         void decreaseRemainingDepositWithSmallerAmount_resultAsExpected() {
-            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 10.0, baseTime, false);
+            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 10.0, baseTime, false);
 
             buyOrder.decreaseRemainingDeposit(900.0);
 
@@ -175,7 +175,7 @@ public class BuyOrderTest {
         @DisplayName("시장가 매수 주문에 대해 decreaseRemainingSize를 할 경우 Exception을 반환한다.")
         @Test
         void decreaseRemainingSizeWithMarketBuyOrder_throwsException() {
-            BuyOrder buyOrder = BuyOrder.createMarketBuyOrder("BTC", 1, 100.0, baseTime, false);
+            BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(1L, "BTC", 1, 100.0, baseTime, false);
 
             assertThrows(IllegalArgumentException.class, () -> buyOrder.decreaseRemainingSize(10.0));
         }

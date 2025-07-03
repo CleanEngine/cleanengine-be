@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @DisplayName("SellOrder 검증, Repository 반영 통합 테스트")
+@ActiveProfiles({"dev", "it", "h2-mem"})
 @Transactional
 public class SellOrderIntegrationTest {
     @Autowired
@@ -32,7 +34,7 @@ public class SellOrderIntegrationTest {
     @Test
     void givenEnoughMoneyUser_WhenCreateMarketSellOrder_ThenSellOrderIsCreated() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                false, true, 30.0, null, LocalDateTime.now(),false);
+                false, true, 30.0, null,false);
 
         OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(command);
         Wallet wallet = walletRepository.findByAccountIdAndTicker(3, "BTC").orElseThrow();
@@ -46,7 +48,7 @@ public class SellOrderIntegrationTest {
     @Test
     void givenEnoughMoneyUser_WhenCreateLimitSellOrder_ThenSellOrderIsCreated() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                false, false, 30.0, 40.0, LocalDateTime.now(),false);
+                false, false, 30.0, 40.0,false);
 
         OrderInfo.SellOrderInfo sellOrderInfo = (OrderInfo.SellOrderInfo) orderService.createOrder(command);
         Wallet wallet = walletRepository.findByAccountIdAndTicker(3, "BTC").orElseThrow();
@@ -60,7 +62,7 @@ public class SellOrderIntegrationTest {
     @Test
     void givenZeroMoneyUser_WhenCreateMarketSellOrder_ThenExceptionIsThrown() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                false, true, 30.0, null, LocalDateTime.now(),false);
+                false, true, 30.0, null,false);
 
         assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(command));
     }
@@ -70,7 +72,7 @@ public class SellOrderIntegrationTest {
     @Test
     void givenZeroMoneyUser_WhenCreateLimitSellOrder_ThenExceptionIsThrown() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                false, false, 30.0, 40.0, LocalDateTime.now(),false);
+                false, false, 30.0, 40.0,false);
 
         assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(command));
     }
@@ -79,7 +81,7 @@ public class SellOrderIntegrationTest {
     @Test
     void givenCommandWithoutOrderSize_WhenCreateMarketSellOrder_ThenExceptionIsThrown() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                false, true, null, null, LocalDateTime.now(),false);
+                false, true, null, null,false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
     }
@@ -88,7 +90,7 @@ public class SellOrderIntegrationTest {
     @Test
     void givenCommandWithoutPrice_WhenCreateLimitSellOrder_ThenExceptionIsThrown() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                false, false, 30.0, null, LocalDateTime.now(),false);
+                false, false, 30.0, null,false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
     }
@@ -97,7 +99,7 @@ public class SellOrderIntegrationTest {
     @Test
     void givenCommandWithoutOrderSize_WhenCreateLimitSellOrder_ThenExceptionIsThrown() {
         OrderCommand.CreateOrder command = new OrderCommand.CreateOrder("BTC", 3,
-                false, false, null, 40.0, LocalDateTime.now(),false);
+                false, false, null, 40.0,false);
 
         assertThrows(DomainValidationException.class, () -> orderService.createOrder(command));
     }

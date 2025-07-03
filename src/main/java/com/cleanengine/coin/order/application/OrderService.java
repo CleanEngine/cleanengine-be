@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +40,7 @@ public class OrderService  {
         Integer userId = isBuyOrder? BUY_ORDER_BOT_ID : SELL_ORDER_BOT_ID;
 
         OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(ticker, userId, isBuyOrder,
-                false, orderSize, price, LocalDateTime.now(), true);
+                false, orderSize, price, true);
 
         createOrder(createOrder);
     }

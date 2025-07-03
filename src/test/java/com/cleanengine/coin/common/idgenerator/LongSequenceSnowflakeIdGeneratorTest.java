@@ -1,13 +1,12 @@
 package com.cleanengine.coin.common.idgenerator;
 
 import com.cleanengine.coin.common.time.ClockHolder;
+import com.cleanengine.coin.tool.helper.TestClockHolder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.concurrent.*;
 import java.util.stream.IntStream;
 
@@ -16,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 // 알고리즘이 중요하므로 whitebox 테스트 위주로 작성
 public class LongSequenceSnowflakeIdGeneratorTest {
-    private static final ClockHolder defaultTestClockHolder = new TestClockHolder();
+    private static final ClockHolder defaultTestClockHolder = new TestClockHolder(0);
 
     @DisplayName("생성 유효성 검증")
     @Nested
@@ -66,7 +65,7 @@ public class LongSequenceSnowflakeIdGeneratorTest {
         @DisplayName("시간이 되돌아 갔을 경우, IllegalStateException을 던진다.")
         @Test
         void nextIdWhenTimeReversed_throwsIllegalStateException() {
-            TestClockHolder testClockHolder = new TestClockHolder();
+            TestClockHolder testClockHolder = new TestClockHolder(0);
             LongSequenceSnowflakeIdGenerator idGenerator = new LongSequenceSnowflakeIdGenerator(0L, testClockHolder);
             idGenerator.nextId();
 
@@ -82,7 +81,7 @@ public class LongSequenceSnowflakeIdGeneratorTest {
             long maxSequenceCount = 65536L;
 
             // maxSequence까지 id 생성
-            TestClockHolder testClockHolder = new TestClockHolder();
+            TestClockHolder testClockHolder = new TestClockHolder(0);
             LongSequenceSnowflakeIdGenerator idGenerator = new LongSequenceSnowflakeIdGenerator(0L, testClockHolder);
             for (int i = 0; i < maxSequenceCount; i++) {
                 idGenerator.nextId();
@@ -122,7 +121,7 @@ public class LongSequenceSnowflakeIdGeneratorTest {
         @Test
         void multipleThreadCallsNextIdInSameTimeRange_generateUniqueIds() {
 
-            TestClockHolder testClockHolder = new TestClockHolder();
+            TestClockHolder testClockHolder = new TestClockHolder(0);
             LongSequenceSnowflakeIdGenerator idGenerator = new LongSequenceSnowflakeIdGenerator(0L, testClockHolder);
 
             int threadCount = 100;
@@ -157,9 +156,8 @@ public class LongSequenceSnowflakeIdGeneratorTest {
         void extractTimeWithZeroId_returnsBaseEpochTime() {
             LocalDateTime baseEpochKSTTime = LocalDateTime.of(2025,1,1,9,0,0);
 
-            TestClockHolder testClockHolder = new TestClockHolder();
             // UTC 기준 2025년 1월 1일 0시
-            testClockHolder.elapseTimeMillis(1735689600000L);
+            TestClockHolder testClockHolder = new TestClockHolder(BASE_EPOCH_TIME_MILLIS);
 
             LongSequenceSnowflakeIdGenerator idGenerator = new LongSequenceSnowflakeIdGenerator(0L, testClockHolder);
             long id = idGenerator.nextId();
@@ -172,29 +170,5 @@ public class LongSequenceSnowflakeIdGeneratorTest {
 
     private long extractSequence(long id) {
         return id & ~(-1L << 18);
-    }
-
-    private static class TestClockHolder implements ClockHolder {
-        private long timeMillis = 0L;
-        private long callingGetTimeMillisCount = 0L;
-
-        @Override
-        public long getTimeMillis() {
-            callingGetTimeMillisCount++;
-            return timeMillis;
-        }
-
-        @Override
-        public LocalDateTime convertTimeMillisToDateTime(long timeMillis) {
-            return LocalDateTime.ofInstant(Instant.ofEpochMilli(timeMillis), ZoneId.systemDefault());
-        }
-
-        public void elapseTimeMillis(long millis){
-            timeMillis += millis;
-        }
-
-        public long getCallingGetTimeMillisCount() {
-            return callingGetTimeMillisCount;
-        }
     }
 }

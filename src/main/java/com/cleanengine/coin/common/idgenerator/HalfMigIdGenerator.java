@@ -23,7 +23,7 @@ public class HalfMigIdGenerator implements LongIdGenerator {
     private long lastTimestamp = -1L;
 
     // 기준 시점 (2025년 1월 1일)
-    private final long epoch = 1735689600000L;
+    private final long epoch = 173568960000L;
 
     public HalfMigIdGenerator(long workerId, ClockHolder clockHolder) {
         if (workerId > MAX_WORKER_ID || workerId < 0) {

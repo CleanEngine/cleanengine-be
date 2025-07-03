@@ -80,7 +80,7 @@ Invest Future(<strong>IF</strong>)는 사용자의 투자 행동으로 서비스
 <summary><b> 차트/DB </b></summary>
 <blockquote>
 	<img width="1500" alt="Image" src="https://github.com/user-attachments/assets/3a1850c1-54c9-46cc-b99d-dc0fbf59cd36" />
-	<p dir="auto"><strong>설명</strong> :  </p>
+<p dir="auto"><strong>설명</strong>: 체결 이벤트 발생 시 Spring 이벤트 리스너가 이를 수신하고, 내부 캐시에 OHLCV 형태로 집계한 후 WebSocket(STOMP)을 통해 종목별 토픽을 구독 중인 클라이언트에 실시간으로 전송합니다.</p>
 </blockquote>
 </details>
 

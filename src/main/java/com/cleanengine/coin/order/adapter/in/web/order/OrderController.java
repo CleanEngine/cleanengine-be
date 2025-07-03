@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
-
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
@@ -29,8 +27,7 @@ public class OrderController {
         CustomOAuth2User user = (CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Integer userId = user.getUserId();
 
-        LocalDateTime createdAt = LocalDateTime.now();
-        OrderCommand.CreateOrder createOrderCommand = createOrderRequest.toOrderCommand(userId, createdAt);
+        OrderCommand.CreateOrder createOrderCommand = createOrderRequest.toOrderCommand(userId);
         OrderInfo<?> orderInfo = orderService.createOrder(createOrderCommand);
 
         return ApiResponse.success(OrderResponseDto.CreateOrder.from(orderInfo), HttpStatus.CREATED)

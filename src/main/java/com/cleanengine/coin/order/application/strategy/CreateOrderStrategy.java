@@ -14,6 +14,7 @@ import com.cleanengine.coin.user.info.infra.WalletRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.validation.FieldError;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -48,13 +49,15 @@ public abstract class CreateOrderStrategy<T extends Order, S extends OrderInfo<?
     }
 
     protected T createOrder(OrderCommand.CreateOrder createOrderCommand){
+        long orderId = idGenerator.nextId();
+        LocalDateTime createdAt = idGenerator.extractDateTime(orderId);
 
         return createOrderDomainService().createOrder(
-                idGenerator.nextId(),
+                orderId,
                 createOrderCommand.ticker(), createOrderCommand.userId(),
                 createOrderCommand.isBuyOrder(), createOrderCommand.isMarketOrder(),
                 createOrderCommand.orderSize(), createOrderCommand.price(),
-                createOrderCommand.createdAt(), createOrderCommand.isBot());
+                createdAt, createOrderCommand.isBot());
     }
 
 }

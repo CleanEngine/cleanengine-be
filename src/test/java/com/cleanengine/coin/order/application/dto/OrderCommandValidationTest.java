@@ -20,7 +20,7 @@ public class OrderCommandValidationTest {
 
             OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(
                     longTicker, 3, true, false,
-                    30.0, 50.0, LocalDateTime.now(), false);
+                    30.0, 50.0, false);
 
             List<ConstraintViolationInfo> constraintViolationInfos = validate(createOrder);
             assertEquals(1, constraintViolationInfos.size());
@@ -37,7 +37,7 @@ public class OrderCommandValidationTest {
 
             OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(
                     emptyTicker, 3, true, false,
-                    30.0, 50.0, LocalDateTime.now(), false);
+                    30.0, 50.0, false);
 
             List<ConstraintViolationInfo> constraintViolationInfos = validate(createOrder);
             assertEquals(1, constraintViolationInfos.size());
@@ -54,7 +54,7 @@ public class OrderCommandValidationTest {
 
             OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(
                     "BTC", 3, true, false,
-                    zeroOrderSize, 50.0, LocalDateTime.now(), false);
+                    zeroOrderSize, 50.0, false);
 
             List<ConstraintViolationInfo> constraintViolationInfos = validate(createOrder);
             assertEquals(1, constraintViolationInfos.size());
@@ -71,7 +71,7 @@ public class OrderCommandValidationTest {
 
             OrderCommand.CreateOrder createOrder = new OrderCommand.CreateOrder(
                     "BTC", 3, true, false,
-                    50.0, zeroPrice, LocalDateTime.now(), false);
+                    50.0, zeroPrice, false);
 
             List<ConstraintViolationInfo> constraintViolationInfos = validate(createOrder);
             assertEquals(1, constraintViolationInfos.size());

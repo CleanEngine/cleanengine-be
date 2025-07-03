@@ -11,6 +11,7 @@ import java.time.ZoneId;
 import java.util.concurrent.*;
 import java.util.stream.IntStream;
 
+import static com.cleanengine.coin.common.CommonValues.BASE_EPOCH_TIME_MILLIS;
 import static org.junit.jupiter.api.Assertions.*;
 
 // 알고리즘이 중요하므로 whitebox 테스트 위주로 작성

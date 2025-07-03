@@ -4,6 +4,8 @@ import com.cleanengine.coin.common.time.ClockHolder;
 
 import java.time.LocalDateTime;
 
+import static com.cleanengine.coin.common.CommonValues.BASE_EPOCH_TIME_MILLIS;
+
 // 최상위 bit 미사용, timestamp 41bit(1ms), workerId 6bit, sequence 16bit = 64bit
 public class LongSequenceSnowflakeIdGenerator implements LongIdGenerator {
 
@@ -25,7 +27,7 @@ public class LongSequenceSnowflakeIdGenerator implements LongIdGenerator {
     private long lastTimestampMillis = -1L;
 
     // 기준 시점 (2025년 1월 1일)
-    private final long epoch = 1735689600000L;
+    private final long epoch = BASE_EPOCH_TIME_MILLIS;
 
     public LongSequenceSnowflakeIdGenerator(long workerId, ClockHolder clockHolder) {
         if (workerId > MAX_WORKER_ID || workerId < 0) {

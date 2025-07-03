@@ -92,7 +92,7 @@ public class HalfMigIdGeneratorTest {
                 Future<Long> future = executorService.submit(task);
 
                 // 한번의 nextId로 2번의 getTimeMillis Count가 늘었다면 대기 상태인 것
-                while(testClockHolder.getCallingGetTimeMillisCount() >= maxSequenceCount + 2) {
+                while(testClockHolder.getCallingGetTimeMillisCount() < maxSequenceCount + 2) {
                     Thread.sleep(1);
                 }
 

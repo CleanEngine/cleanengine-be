@@ -1,7 +1,7 @@
 package com.cleanengine.coin.configuration;
 
 import com.cleanengine.coin.common.idgenerator.LongIdGenerator;
-import com.cleanengine.coin.common.idgenerator.HalfMigIdGenerator;
+import com.cleanengine.coin.common.idgenerator.LongSequenceSnowflakeIdGenerator;
 import com.cleanengine.coin.common.time.ClockHolder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +14,6 @@ public class IdGeneratorConfig {
 
     @Bean
     public LongIdGenerator longIdGenerator(ClockHolder clockHolder) {
-        return new HalfMigIdGenerator(workerId, clockHolder);
+        return new LongSequenceSnowflakeIdGenerator(workerId, clockHolder);
     }
 }

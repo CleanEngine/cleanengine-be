@@ -5,6 +5,7 @@ import com.cleanengine.coin.order.domain.BuyOrder;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public abstract class BuyOrderGenerator {
@@ -13,6 +14,7 @@ public abstract class BuyOrderGenerator {
     private static final Double DEFAULT_ORDER_SIZE = 1.0;
     private static final Double DEFAULT_PRICE = 10000.0;
     private static final LocalDateTime DEFAULT_CREATED_AT = LocalDateTime.of(2025, 5, 9, 10, 18, 0);
+    public static final AtomicLong id = new AtomicLong(0L);
 
     public static class LimitBuyOrderGenerator{
         public static BuyOrder createLimitBuyOrderWithRandomPrice(){
@@ -21,12 +23,12 @@ public abstract class BuyOrderGenerator {
         }
 
         public static BuyOrder createLimitBuyOrderWithPrice(Double price){
-            return BuyOrder.createLimitBuyOrder(DEFAULT_TICKER, DEFAULT_USER_ID, DEFAULT_ORDER_SIZE,
+            return BuyOrder.createLimitBuyOrder(id.incrementAndGet(), DEFAULT_TICKER, DEFAULT_USER_ID, DEFAULT_ORDER_SIZE,
                     price, DEFAULT_CREATED_AT, false);
         }
 
         public static BuyOrder createLimitBuyOrderWithCreatedTime(LocalDateTime createdAt){
-            return BuyOrder.createLimitBuyOrder(DEFAULT_TICKER, DEFAULT_USER_ID, DEFAULT_ORDER_SIZE,
+            return BuyOrder.createLimitBuyOrder(id.incrementAndGet(), DEFAULT_TICKER, DEFAULT_USER_ID, DEFAULT_ORDER_SIZE,
                     DEFAULT_PRICE, createdAt, false);
         }
 
@@ -59,17 +61,17 @@ public abstract class BuyOrderGenerator {
         }
 
         public static BuyOrder createMarketBuyOrderWithPrice(Double price){
-            return BuyOrder.createMarketBuyOrder(DEFAULT_TICKER, DEFAULT_USER_ID,
+            return BuyOrder.createMarketBuyOrder(id.incrementAndGet(), DEFAULT_TICKER, DEFAULT_USER_ID,
                     price, DEFAULT_CREATED_AT, false);
         }
 
         public static BuyOrder createMarketBuyOrderWithCreatedTime(LocalDateTime createdAt){
-            return BuyOrder.createMarketBuyOrder(DEFAULT_TICKER, DEFAULT_USER_ID,
+            return BuyOrder.createMarketBuyOrder(id.incrementAndGet(), DEFAULT_TICKER, DEFAULT_USER_ID,
                     DEFAULT_PRICE, createdAt, false);
         }
 
         public static BuyOrder createMarketBuyOrderWithPriceAndCreatedTime(Double price, LocalDateTime createdAt){
-            return BuyOrder.createMarketBuyOrder(DEFAULT_TICKER, DEFAULT_USER_ID,
+            return BuyOrder.createMarketBuyOrder(id.incrementAndGet(), DEFAULT_TICKER, DEFAULT_USER_ID,
                     price, createdAt, false);
         }
 

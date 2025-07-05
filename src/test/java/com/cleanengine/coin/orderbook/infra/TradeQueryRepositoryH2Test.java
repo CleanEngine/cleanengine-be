@@ -15,7 +15,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ActiveProfiles("dev, it, h2-mem")
+@ActiveProfiles({"dev", "it", "h2-mem"})
 @DataJpaTest
 @Import({TradeQueryRepository.class})
 public class TradeQueryRepositoryH2Test {

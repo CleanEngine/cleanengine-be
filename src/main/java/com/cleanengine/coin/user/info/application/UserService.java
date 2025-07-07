@@ -49,7 +49,12 @@ public class UserService {
         return wallets.stream()
                 .map(w -> {
                     Double currentPrice = assetService.getCurrentPrice(w.getTicker());
-                    Double roi = currentPrice == null ? null : (currentPrice / w.getBuyPrice() - 1) * 100;
+                    Double roi;
+                    if (currentPrice == null || w.getBuyPrice() == 0.0) {
+                        roi = null;
+                    } else {
+                        roi = (currentPrice / w.getBuyPrice() - 1) * 100;
+                    }
 
                     return UserWalletDTO.of(w.getTicker(),
                             assetService.getAssetName(w.getTicker()),

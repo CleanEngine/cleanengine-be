@@ -25,8 +25,8 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDto.CreateOrder>> createOrder(
+            @AuthenticationPrincipal CustomOAuth2User user,
             @RequestBody @Valid OrderRequestDto.CreateOrderRequest createOrderRequest) {
-        CustomOAuth2User user = (CustomOAuth2User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Integer userId = user.getUserId();
 
         OrderCommand.CreateOrder createOrderCommand = createOrderRequest.toOrderCommand(userId);
@@ -38,9 +38,9 @@ public class OrderController {
 
     @PostMapping("/{orderId}/cancel")
     public ResponseEntity<ApiResponse<OrderCancelResult>> cancelOrder(
-            @AuthenticationPrincipal CustomOAuth2User user, @PathVariable Long orderId) {
+            @AuthenticationPrincipal CustomOAuth2User user,
+            @PathVariable Long orderId) {
         if (orderId == null) throw new IllegalArgumentException("orderId cannot be null.");
-        if (user == null) throw new BadCredentialsException("user cannot be null.");
 
         OrderCancelResult orderCancelResult = orderCancelService.cancelOrder(orderId, user.getUserId());
 

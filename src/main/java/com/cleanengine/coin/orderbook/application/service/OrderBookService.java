@@ -50,6 +50,16 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
         sendOrderBookUpdated(ticker);
     }
 
+    @Override
+    public void updateOrderBookOnOrderCanceled(Order order) {
+        if(order.getIsMarketOrder()){return;}
+
+        boolean isBuyOrder = order instanceof BuyOrder;
+        orderBookDomainService.updateOrderBookOnOrderCanceled(order.getTicker(), isBuyOrder, order.getPrice(), order.getRemainingSize());
+
+        sendOrderBookUpdated(order.getTicker());
+    }
+
     private void updateOrderBookOnTradeExecuted(String ticker, Long orderId, boolean isBuyOrder, Double orderSize) {
         Optional<OrderInfo> orderInfoOptional = orderInfoQueryService.getOrderInfo(orderId, isBuyOrder);
 

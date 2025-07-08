@@ -8,4 +8,6 @@ import java.util.List;
 public interface AssetRepository extends JpaRepository<Asset, String> {
     @Override
     List<Asset> findAll();
+
+    Asset findByTicker(String ticker);
 }

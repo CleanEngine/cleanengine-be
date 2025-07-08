@@ -4,6 +4,7 @@ import com.cleanengine.coin.common.domain.port.KeyValueStore;
 import com.cleanengine.coin.order.domain.Order;
 
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
 
 public interface ActiveOrders {
     String getTicker();
@@ -13,6 +14,10 @@ public interface ActiveOrders {
     Optional<Order> getOrder(Long orderId);
 
     Optional<Order> removeOrder(Long orderId);
+
+    ReentrantLock lockOrder(Long orderId);
+
+    void unlockOrder(Long orderId);
 
     KeyValueStore<Long, Order> getOrderKeyValueStore();
 }

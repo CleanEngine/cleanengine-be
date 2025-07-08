@@ -7,6 +7,7 @@ import com.cleanengine.coin.order.domain.spi.ActiveOrders;
 import lombok.Getter;
 
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class InMemoryActiveOrders implements ActiveOrders {
     @Getter
@@ -31,6 +32,16 @@ public class InMemoryActiveOrders implements ActiveOrders {
     @Override
     public Optional<Order> removeOrder(Long orderId) {
         return activeOrders.remove(orderId);
+    }
+
+    @Override
+    public ReentrantLock lockOrder(Long orderId) {
+        return null;
+    }
+
+    @Override
+    public void unlockOrder(Long orderId) {
+
     }
 
     @Override

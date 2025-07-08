@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-@Component
+//@Component
 public class InMemoryActiveOrdersManager implements ActiveOrdersManager {
     private final HashMap<String, InMemoryActiveOrders> activeOrdersMap = new HashMap<>();
 

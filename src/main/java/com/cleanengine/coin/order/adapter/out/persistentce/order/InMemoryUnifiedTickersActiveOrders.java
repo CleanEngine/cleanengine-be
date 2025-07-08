@@ -43,7 +43,7 @@ public class InMemoryUnifiedTickersActiveOrders implements ActiveOrders {
 
         orderLockMap.compute(orderId, (k, v) -> {
             activeOrders.remove(orderId);
-            if(v != null) v.unlock();
+            if(v != null && v.isHeldByCurrentThread()) v.unlock();
             return null;
         });
 

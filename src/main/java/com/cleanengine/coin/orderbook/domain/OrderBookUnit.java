@@ -22,4 +22,9 @@ public abstract class OrderBookUnit implements Comparable<OrderBookUnit> {
     public void executeTrade(Double size) {
         this.size -= size;
     }
+
+    @Synchronized
+    public void cancelOrder(Double size) {
+        this.size -= size;
+    }
 }

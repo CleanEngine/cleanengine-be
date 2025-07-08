@@ -62,6 +62,28 @@ public class OrderBook {
         }
     }
 
+    public void updateOrderBookOnOrderCanceled(boolean isBuyOrder, Double price, Double orderSize) {
+        if(isBuyOrder) {
+            BuyOrderBookUnit buyOrderBookUnit = buyOrderBookUnitMap.get(price);
+            if(buyOrderBookUnit == null) {
+                return;
+            }
+            buyOrderBookUnit.cancelOrder(orderSize);
+            if(approxEquals(buyOrderBookUnit.getSize(), 0.0)){
+                removeBuyOrderBookUnit(buyOrderBookUnit, price);
+            }
+        } else {
+            SellOrderBookUnit sellOrderBookUnit = sellOrderBookUnitMap.get(price);
+            if(sellOrderBookUnit == null) {
+                return;
+            }
+            sellOrderBookUnit.cancelOrder(orderSize);
+            if(approxEquals(sellOrderBookUnit.getSize(), 0.0)){
+                removeSellOrderBookUnit(sellOrderBookUnit, price);
+            }
+        }
+    }
+
     public List<OrderBookUnit> getBuyOrderBookList(int size){
         return buyOrderBookUnitListSet
                 .stream()

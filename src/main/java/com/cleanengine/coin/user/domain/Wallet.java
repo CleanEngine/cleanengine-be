@@ -81,4 +81,12 @@ public class Wallet {
 
         this.size = this.getSize() - orderSize;
     }
+
+    public void increaseSize(Double orderSize) {
+        if(orderSize <= 0){
+            throw new IllegalArgumentException("orderSize must be greater than zero.");
+        }
+
+        this.size = this.getSize() + orderSize;
+    }
 }

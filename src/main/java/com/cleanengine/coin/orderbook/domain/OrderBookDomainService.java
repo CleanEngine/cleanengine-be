@@ -21,6 +21,10 @@ public class OrderBookDomainService {
         getOrderBook(ticker).updateOrderBookOnTradeExecuted(isBuyOrder, price, orderSize);
     }
 
+    public void updateOrderBookOnOrderCanceled(String ticker, boolean isBuyOrder, Double price, Double orderSize) {
+        getOrderBook(ticker).updateOrderBookOnOrderCanceled(isBuyOrder, price, orderSize);
+    }
+
     public List<OrderBookUnit> getBuyOrderBookList(String ticker, int size) {
         return getOrderBook(ticker).getBuyOrderBookList(size);
     }

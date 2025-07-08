@@ -6,6 +6,7 @@ import com.cleanengine.coin.order.adapter.out.persistentce.order.query.SellOrder
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
+import com.cleanengine.coin.order.domain.spi.ActiveOrdersManager;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
@@ -26,6 +27,7 @@ public class OrderRestoreService implements ApplicationRunner {
     private final UpdateOrderBookUsecase updateOrderBookUsecase;
     private final BuyOrderQueryRepository buyOrderQueryRepository;
     private final SellOrderQueryRepository sellOrderQueryRepository;
+    private final ActiveOrdersManager activeOrdersManager;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -38,6 +40,9 @@ public class OrderRestoreService implements ApplicationRunner {
     protected void restoreOrder(Order order){
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(order.getTicker());
         waitingOrders.addOrder(order);
+
+        activeOrdersManager.getActiveOrders(order.getTicker()).saveOrder(order);
+
         updateOrderBookUsecase.updateOrderBookOnRestored(order);
     }
 }

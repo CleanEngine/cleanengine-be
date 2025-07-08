@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-@Component
+//@Component
 public class InMemoryActiveOrdersManager implements ActiveOrdersManager {
     private final HashMap<String, InMemoryActiveOrders> activeOrdersMap = new HashMap<>();
 
@@ -19,14 +19,14 @@ public class InMemoryActiveOrdersManager implements ActiveOrdersManager {
         activeOrders.saveOrder(order);
     }
 
-    public Optional<Order> getOrder(String ticker, Long orderId, boolean isBuyOrder) {
+    public Optional<Order> getOrder(String ticker, Long orderId) {
         ActiveOrders activeOrders = getActiveOrders(ticker);
-        return activeOrders.getOrder(orderId,isBuyOrder);
+        return activeOrders.getOrder(orderId);
     }
 
-    public void removeOrder(String ticker, Long orderId, boolean isBuyOrder) {
+    public void removeOrder(String ticker, Long orderId) {
         ActiveOrders activeOrders = getActiveOrders(ticker);
-        activeOrders.removeOrder(orderId, isBuyOrder);
+        activeOrders.removeOrder(orderId);
     }
 
     protected synchronized void addActiveOrderManager(String ticker) {

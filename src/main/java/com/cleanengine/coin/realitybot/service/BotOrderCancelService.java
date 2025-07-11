@@ -23,10 +23,7 @@ public class BotOrderCancelService {
     private final ExecutorService executorService;
 
     public void cancelBotOrdersAllTicker(double cancelRate) {
-        log.debug("cancelAllBotOrders started.");
         List<AssetInfo> assetInfos = assetService.getAllAssetInfos();
-
-        log.debug("assetInfos.size() : {}", assetInfos.size());
 
         for(AssetInfo assetInfo : assetInfos){
             executorService.submit(() -> cancelBotLimitOrder(cancelRate, assetInfo.ticker()));
@@ -34,18 +31,10 @@ public class BotOrderCancelService {
     }
 
     public void cancelBotLimitOrder(double cancelRate, String ticker) {
-        log.debug("cancelBotLimitOrder started.");
-
         BotOrderCount botOrderCountNeededToBeCanceled = getCountNeededToBeCanceled(cancelRate, ticker);
-        log.debug("ticker : {}, buyOrderCount : {}, sellOrderCount : {}",
-                ticker,
-                botOrderCountNeededToBeCanceled.buyOrderCount(),
-                botOrderCountNeededToBeCanceled.sellOrderCount());
 
         List<BotOrderInfo> orderIdsNeededToBeCanceled = getBotOrderInfosNeededToBeCanceled(
                 botOrderCountNeededToBeCanceled, ticker);
-
-        log.debug("orderIdsNeededToBeCanceled.size() : {}", orderIdsNeededToBeCanceled.size());
 
         for(BotOrderInfo botOrderInfo : orderIdsNeededToBeCanceled){
             cancelEachOrder(botOrderInfo);
@@ -53,7 +42,6 @@ public class BotOrderCancelService {
     }
 
     private BotOrderCount getCountNeededToBeCanceled(double cancelRate, String ticker) {
-        log.debug("getCountNeededToBeCanceled started.");
         if(cancelRate <= 0 || cancelRate > 1) throw new IllegalArgumentException("cancelRate는 0과 1 사이");
 
         BotOrderCount botOrderCount = botOrderQueryRepository.countWaitingBotOrdersByTicker(ticker);
@@ -70,7 +58,6 @@ public class BotOrderCancelService {
 
     private void cancelEachOrder(BotOrderInfo botOrderInfo) {
         try{
-            log.debug("cancelBotOrder starts : {}", botOrderInfo);
             orderCancelService.cancelOrder(botOrderInfo.orderId(), botOrderInfo.userId());
         }
         catch (Exception e){

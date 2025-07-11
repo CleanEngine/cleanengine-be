@@ -43,7 +43,6 @@ public class BotOrderQueryRepository {
     BooleanPath isMarketOrder = Expressions.booleanPath("is_marketorder");
 
     public BotOrderCount countWaitingBotOrdersByTicker(String targetTicker) {
-        log.debug("countWaitingBotOrdersByTicker started.");
         if(targetTicker == null) {
             throw new IllegalArgumentException("ticker cannot be null");
         }

@@ -16,14 +16,6 @@ public class QueryDslConfig {
     public SQLQueryFactory h2QueryFactory(DataSource dataSource) {
         com.querydsl.sql.Configuration configuration = new com.querydsl.sql.Configuration(
                 new H2Templates());
-//         SQLListener listener = new SQLBaseListener() {
-//             @Override
-//             public void preExecute(SQLListenerContext context) {
-//                 System.out.println("### QueryDSL-SQL Connection: " + context.getConnection());
-//                 super.preExecute(context);
-//             }
-//         };
-//         configuration.addListener(listener);
 
         return new SQLQueryFactory(configuration, new TransactionAwareDataSourceProxy(dataSource));
     }

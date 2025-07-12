@@ -2,6 +2,8 @@ package com.cleanengine.coin.order.application;
 
 import com.cleanengine.coin.common.error.UnauthorizedAccessException;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.InMemoryUnifiedTickersActiveOrdersManager;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
 import com.cleanengine.coin.order.application.dto.OrderCancelResult;
 import com.cleanengine.coin.order.application.port.out.PublishOrderCanceledPort;
 import com.cleanengine.coin.order.domain.BuyOrder;
@@ -32,6 +34,8 @@ public class OrderCancelService {
     private final WalletRepository walletRepository;
     private final AccountRepository accountRepository;
     private final PublishOrderCanceledPort publishOrderCanceledPort;
+    private final BuyOrderRepository buyOrderRepository;
+    private final SellOrderRepository sellOrderRepository;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public OrderCancelResult cancelOrder(Long orderId, Integer userId){
@@ -44,7 +48,7 @@ public class OrderCancelService {
         try{
             // 메서드 분할해서 어느 부분에서 에러 발생했는지에 따라 롤백로직 차등 두어야
             Optional<Order> orderOpt = activeOrdersManager.getOrder(orderId);
-            if(orderOpt.isEmpty()) throw new IllegalArgumentException("order is not exist.");
+            if(orderOpt.isEmpty()) throw new IllegalArgumentException("order is not active.");
             Order order = orderOpt.get();
 
             validateCancel(order, userId);
@@ -52,6 +56,7 @@ public class OrderCancelService {
             refund(order, userId);
 
             order.setState(OrderStatus.CANCELED);
+            saveOrder(order);
 
             WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(orderOpt.get().getTicker());
             waitingOrders.removeOrder(order);
@@ -72,6 +77,15 @@ public class OrderCancelService {
     private void validateCancel(Order order, Integer userId) {
         if(!order.getUserId().equals(userId)) throw new UnauthorizedAccessException("user is not owner of order.");
         if(order.getState() != OrderStatus.WAIT) throw new IllegalArgumentException("order is not active.");
+    }
+
+    private void saveOrder(Order order) {
+        if(order instanceof BuyOrder) {
+            buyOrderRepository.save((BuyOrder) order);
+        }
+        else {
+            sellOrderRepository.save((SellOrder) order);
+        }
     }
 
     private void refund(Order order, Integer userId) {

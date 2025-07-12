@@ -2,6 +2,8 @@ package com.cleanengine.coin.order;
 
 import com.cleanengine.coin.common.CommonValues;
 import com.cleanengine.coin.common.error.UnauthorizedAccessException;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.query.BuyOrderQueryRepository;
+import com.cleanengine.coin.order.adapter.out.persistentce.order.query.SellOrderQueryRepository;
 import com.cleanengine.coin.order.application.OrderCancelService;
 import com.cleanengine.coin.order.application.OrderService;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
@@ -15,7 +17,6 @@ import com.cleanengine.coin.user.info.infra.AccountQueryRepository;
 import com.cleanengine.coin.user.info.infra.WalletQueryRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,9 @@ public class OrderCancelServiceIntegrationTest {
 
     @Autowired
     WalletQueryRepository walletQueryRepository;
+
+    @Autowired
+    BuyOrderQueryRepository buyOrderQueryRepository;
 
     @Autowired
     ActiveOrdersManager activeOrdersManager;
@@ -220,6 +224,34 @@ public class OrderCancelServiceIntegrationTest {
         // then
         Wallet walletAfterCancel = walletQueryRepository.findByUserIdAndTicker(CommonValues.SELL_ORDER_BOT_ID, USED_COIN).orElseThrow();
         assertEquals(decreasedAmount + sellOrderSize, walletAfterCancel.getSize());
+    }
+
+    @DisplayName("주문을 취소하면, db상 주문의 상태가 성공적으로 변경된다.")
+    @Test
+    public void cancelOrder_orderCanceledAppliedInDBSuccessfully() {
+        // given
+        TestTransaction.flagForCommit();
+
+        Double price = 100.0;
+        Double buyOrderSize = 100.0;
+
+        OrderCommand.CreateOrder buyOrderCommand = createOrderCommand(true, false,
+                CommonValues.BUY_ORDER_BOT_ID, buyOrderSize, price);
+        OrderInfo<?> orderInfo = orderService.createOrder(buyOrderCommand);
+        Long orderId = orderInfo.getId();
+
+        em.flush();
+        em.clear();
+
+        TestTransaction.end();
+
+        // when
+        orderCancelService.cancelOrder(orderId, CommonValues.BUY_ORDER_BOT_ID);
+
+        // then
+        int orderCount = buyOrderQueryRepository.findIncompletedBuyOrders().size();
+        assertEquals(0, orderCount);
+
     }
 
     private OrderCommand.CreateOrder createOrderCommand(boolean isBuyOrder, boolean isMarketOrder, Integer userId,

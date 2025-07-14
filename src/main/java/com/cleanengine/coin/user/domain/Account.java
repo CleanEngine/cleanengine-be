@@ -1,7 +1,10 @@
 package com.cleanengine.coin.user.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Setter
 @Getter
@@ -53,6 +56,10 @@ public class Account {
         }
         this.cash -= amount;
         return this;
+    }
+
+    public void reset() {
+        this.cash = 0.0;
     }
 
 }

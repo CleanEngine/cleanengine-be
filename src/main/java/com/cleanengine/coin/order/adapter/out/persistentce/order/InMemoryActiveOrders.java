@@ -49,4 +49,13 @@ public class InMemoryActiveOrders implements ActiveOrders {
         return activeOrders;
     }
 
+    @Override
+    public void removeAllByUserId(int userId) {
+        activeOrders.forEach((orderId, order) -> {
+            if (order.getUserId() == userId) {
+                activeOrders.remove(orderId);
+            }
+        });
+    }
+
 }

@@ -20,4 +20,6 @@ public interface ActiveOrders {
     void unlockOrder(Long orderId);
 
     KeyValueStore<Long, Order> getOrderKeyValueStore();
+
+    void removeAllByUserId(int userId);
 }

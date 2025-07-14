@@ -74,4 +74,18 @@ public class InMemoryUnifiedTickersActiveOrders implements ActiveOrders {
     public KeyValueStore<Long, Order> getOrderKeyValueStore() {
         return activeOrders;
     }
+
+    @Override
+    public void removeAllByUserId(int userId) {
+        activeOrders.forEach((orderId, order) -> {
+            if (order.getUserId() == userId) {
+                orderLockMap.compute(orderId, (k, v) -> {
+                    activeOrders.remove(orderId);
+                    if(v != null && v.isHeldByCurrentThread()) v.unlock();
+                    return null;
+                });
+            }
+        });
+    }
+
 }

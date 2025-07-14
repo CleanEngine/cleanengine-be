@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
@@ -58,6 +59,17 @@ public class AccountService {
 
     public int increaseAccountCash(int userId, double amount) {
         return accountRepository.increaseAccountCash(userId, amount);
+    }
+
+    @Transactional
+    public void resetWithWallets(Integer integer) {
+        Account account = accountRepository.findByUserId(integer).orElseThrow();
+        account.reset();
+        accountRepository.save(account);
+
+        List<Wallet> wallets = walletRepository.findByAccountId(account.getId());
+        wallets.forEach(Wallet::reset);
+        walletRepository.saveAll(wallets);
     }
 
 }

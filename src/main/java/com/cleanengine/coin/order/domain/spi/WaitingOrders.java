@@ -20,6 +20,8 @@ public interface WaitingOrders extends Closeable {
     // TODO removeOrder 여기에 있는 것이 나을지 고민
     void removeOrder(Order order);
 
+    void removeAllByUserId(int userId);
+
     void clearAllQueues();
 
     @Override

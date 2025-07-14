@@ -89,4 +89,11 @@ public class Wallet {
 
         this.size = this.getSize() + orderSize;
     }
+
+    public void reset() {
+        this.size = 0.0;
+        this.buyPrice = 0.0;
+        this.roi = 0.0;
+    }
+
 }

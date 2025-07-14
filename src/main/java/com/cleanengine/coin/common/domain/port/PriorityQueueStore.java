@@ -14,4 +14,6 @@ public interface PriorityQueueStore <T extends Comparable<T>> {
     boolean isEmpty();
 
     void clear();
+
+    void removeAllByUserId(int userId);
 }

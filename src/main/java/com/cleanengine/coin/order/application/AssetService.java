@@ -50,6 +50,10 @@ public class AssetService {
         return assetRepository.findAll().stream().map(AssetInfo::from).toList();
     }
 
+    public List<String> getAllTickers() {
+        return assetCache.keySet().stream().toList();
+    }
+
     public boolean isAssetExist(String ticker){
         if(assetCacheRepository.isAssetExists(ticker)) return true;
 

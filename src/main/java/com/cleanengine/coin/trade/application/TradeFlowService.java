@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
@@ -78,8 +77,7 @@ public class TradeFlowService {
                 unlockLocks(locks);
                 tradePair = tradeMatcher.matchOrders(waitingOrders);
                 continueProcessing = tradePair.isPresent();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 log.error("{} - 체결 에러 발생: {}", ticker, e.getMessage());
                 continueProcessing = false;
                 unlockLocks(locks);
@@ -103,10 +101,9 @@ public class TradeFlowService {
     private List<ReentrantLock> lockPair(ActiveOrders activeOrders, TradePair<Order, Order> pair) {
         List<ReentrantLock> locks = new ArrayList<>();
         locks.add(activeOrders.lockOrder(pair.getBuyOrder().getId()));
-        try{
+        try {
             locks.add(activeOrders.lockOrder(pair.getSellOrder().getId()));
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             activeOrders.unlockOrder(pair.getBuyOrder().getId());
             throw e;
         }
@@ -115,7 +112,7 @@ public class TradeFlowService {
 
     private void unlockLocks(List<ReentrantLock> locks) {
         for (ReentrantLock lock : locks) {
-            if(lock.isHeldByCurrentThread()) lock.unlock();
+            if (lock.isHeldByCurrentThread()) lock.unlock();
         }
     }
 

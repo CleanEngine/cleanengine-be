@@ -77,6 +77,14 @@ public class InMemoryWaitingOrders implements WaitingOrders {
     }
 
     @Override
+    public void removeAllByUserId(int userId) {
+        limitSellOrderPriorityQueueStore.removeAllByUserId(userId);
+        limitBuyOrderPriorityQueueStore.removeAllByUserId(userId);
+        marketSellOrderPriorityQueueStore.removeAllByUserId(userId);
+        marketBuyOrderPriorityQueueStore.removeAllByUserId(userId);
+    }
+
+    @Override
     public void clearAllQueues() {
         limitBuyOrderPriorityQueueStore.clear();
         marketBuyOrderPriorityQueueStore.clear();

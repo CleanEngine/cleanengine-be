@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,6 +37,8 @@ public class OrderCancelService {
     private final PublishOrderCanceledPort publishOrderCanceledPort;
     private final BuyOrderRepository buyOrderRepository;
     private final SellOrderRepository sellOrderRepository;
+
+    private final AssetService assetService;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public OrderCancelResult cancelOrder(Long orderId, Integer userId){
@@ -97,6 +100,27 @@ public class OrderCancelService {
             Account account = accountRepository.findByUserId(userId).orElseThrow();
             account.increaseCash(buyOrder.getRemainingDeposit());
         }
+    }
+
+    /**
+     * 오더 큐 전체를 순회하며 userId와 일치하는 Order를 "삭제"한다.
+     * 사용자 초기화를 위한 것이므로 Account, Wallet 연계 작업은 필요하지 않다.
+     *
+     * @param userId 사용자 ID
+     */
+    public void cancelAllForReset(int userId) {
+        ActiveOrders activeOrders = activeOrdersManager.getActiveOrders(null);
+        List<String> tickers = assetService.getAllTickers();
+
+        tickers.forEach(ticker -> {
+            WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
+
+            waitingOrders.removeAllByUserId(userId);
+            activeOrders.removeAllByUserId(userId);
+
+            // TODO: 호가창(OrderBook) 갱신
+        });
+
     }
 
 }

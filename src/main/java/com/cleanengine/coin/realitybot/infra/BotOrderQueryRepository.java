@@ -116,7 +116,7 @@ public class BotOrderQueryRepository {
 
         return sqlQueryFactory
                 .select(Projections.constructor(BotOrderInfo.class, userId, ticker, orderId))
-                .from(SQLExpressions.unionAll(queries))
+                .from(SQLExpressions.unionAll(queries).as("combined_order_infos"))
                 .fetch();
     }
 }

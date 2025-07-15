@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
@@ -14,6 +15,7 @@ import java.time.Duration;
 @Configuration
 @RequiredArgsConstructor
 @WorkingServerProfile
+@Order(6)
 @Slf4j
 public class BotCancelSchedulerConfig implements SchedulingConfigurer {
 

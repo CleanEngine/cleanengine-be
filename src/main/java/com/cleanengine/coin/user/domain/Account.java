@@ -59,7 +59,10 @@ public class Account {
     }
 
     public void reset() {
-        this.cash = 0.0;
+        if (this.userId == 1 || this.userId == 2)
+            this.cash = 500_000_000.0;
+        else
+            this.cash = 50_000_000.0;
     }
 
 }

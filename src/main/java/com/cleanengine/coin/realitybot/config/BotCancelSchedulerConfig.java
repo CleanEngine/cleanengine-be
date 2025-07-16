@@ -31,7 +31,7 @@ public class BotCancelSchedulerConfig implements SchedulingConfigurer {
 
     @Override
     public void configureTasks(ScheduledTaskRegistrar registrar) {
-        registrar.addFixedRateTask(() -> {
+        registrar.addFixedDelayTask(() -> {
             try {
                 if(!restored) return;
                 botOrderCancelService.cancelBotOrdersAllTicker(cancelRate);

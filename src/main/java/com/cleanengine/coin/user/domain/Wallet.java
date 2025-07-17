@@ -60,16 +60,6 @@ public class Wallet {
                 .build();
     }
 
-    public static Wallet generateEmptyWallet(String ticker, Integer accountId) {
-        Wallet wallet = new Wallet();
-        wallet.setTicker(ticker);
-        wallet.setAccountId(accountId);
-        wallet.setSize(0.0);
-        wallet.setBuyPrice(0.0);
-        wallet.setRoi(0.0);
-        return wallet;
-    }
-
     public void decreaseSize(Double orderSize) {
         if (orderSize <= 0) {
             throw new IllegalArgumentException("orderSize must be greater than zero.");

@@ -27,13 +27,16 @@ public class BotCancelSchedulerConfig implements SchedulingConfigurer {
     @Value("${bot-cancel-scheduler.cancel-rate}")
     protected double cancelRate;
 
+    @Value("${bot-cancel-scheduler.enabled}")
+    protected boolean enabled;
+
     private boolean restored = false;
 
     @Override
     public void configureTasks(ScheduledTaskRegistrar registrar) {
         registrar.addFixedDelayTask(() -> {
             try {
-                if(!restored) return;
+                if(!enabled || !restored) return;
                 botOrderCancelService.cancelBotOrdersAllTicker(cancelRate);
             } catch (Exception e) {
                 log.error("handling되지 않은 에러가 bot 주문취소 스케줄러에서 발생", e);

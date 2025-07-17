@@ -50,17 +50,17 @@ public class Wallet {
                 .build();
     }
 
-    public static Wallet of(String ticker, Integer accountId, Double size) {
+    public static Wallet of(String ticker, Integer accountId, Double buyPrice, Double size) {
         return Wallet.builder()
                 .ticker(ticker)
                 .accountId(accountId)
                 .size(size)
-                .buyPrice(0.0)
+                .buyPrice(buyPrice)
                 .roi(0.0)
                 .build();
     }
 
-    public static Wallet generateEmptyWallet(String ticker, Integer accountId){
+    public static Wallet generateEmptyWallet(String ticker, Integer accountId) {
         Wallet wallet = new Wallet();
         wallet.setTicker(ticker);
         wallet.setAccountId(accountId);
@@ -71,11 +71,11 @@ public class Wallet {
     }
 
     public void decreaseSize(Double orderSize) {
-        if(orderSize <= 0){
+        if (orderSize <= 0) {
             throw new IllegalArgumentException("orderSize must be greater than zero.");
         }
 
-        if(this.getSize() < orderSize){
+        if (this.getSize() < orderSize) {
             throw new IllegalArgumentException("Cannot decrease size. Available size: " + this.getSize() + ", requested: " + orderSize);
         }
 
@@ -83,7 +83,7 @@ public class Wallet {
     }
 
     public void increaseSize(Double orderSize) {
-        if(orderSize <= 0){
+        if (orderSize <= 0) {
             throw new IllegalArgumentException("orderSize must be greater than zero.");
         }
 
@@ -94,6 +94,29 @@ public class Wallet {
         this.size = 0.0;
         this.buyPrice = 0.0;
         this.roi = 0.0;
+    }
+
+    /**
+     * 매수 후처리 (평균 매수 단가, 수량 갱신)
+     *
+     * @param price     매수 가격
+     * @param addedSize 매수 수량
+     */
+    public void updateAfterPurchase(double price, double addedSize) {
+        if (price <= 0) {
+            throw new IllegalArgumentException("price must be greater than zero.");
+        }
+        if (addedSize <= 0) {
+            throw new IllegalArgumentException("addedSize must be greater than zero.");
+        }
+
+        if (this.buyPrice == 0) {
+            this.buyPrice = price;
+        } else {
+            this.buyPrice = (this.buyPrice * this.size + price * addedSize) / (this.size + addedSize);
+        }
+
+        this.size += addedSize;
     }
 
 }

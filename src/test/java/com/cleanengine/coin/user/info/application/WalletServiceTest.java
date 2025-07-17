@@ -39,7 +39,7 @@ class WalletServiceTest {
         testAccount = Account.of(3, 0.0);
         accountRepository.save(testAccount);
 
-        Wallet testWallet = Wallet.of("BTC", testAccount.getId(), 1000.0);
+        Wallet testWallet = Wallet.of("BTC", testAccount.getId(), 0.0, 1000.0);
         walletRepository.save(testWallet);
     }
 
@@ -58,7 +58,7 @@ class WalletServiceTest {
     @Test
     void save_thenCreateNewWallet() {
         // when
-        Wallet newWallet = Wallet.of("TRUMP", testAccount.getId(), 5000.0);
+        Wallet newWallet = Wallet.of("TRUMP", testAccount.getId(), 0.0, 5000.0);
         Wallet savedWallet = walletService.save(newWallet);
 
         // then

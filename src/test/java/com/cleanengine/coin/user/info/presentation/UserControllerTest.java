@@ -1,6 +1,8 @@
 package com.cleanengine.coin.user.info.presentation;
 
+import com.cleanengine.coin.common.util.SecurityUtil;
 import com.cleanengine.coin.configuration.SecurityEndpoints;
+import com.cleanengine.coin.order.application.OrderCancelService;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.info.application.AccountService;
 import com.cleanengine.coin.user.info.application.UserService;
@@ -13,7 +15,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +28,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.*;
@@ -60,6 +62,12 @@ public class UserControllerTest {
     @MockitoBean
     private SecurityEndpoints.EndpointConfig endpointConfig;
 
+    @MockitoBean
+    private SecurityUtil securityUtil;
+
+    @MockitoBean
+    private OrderCancelService orderCancelService;
+
     @Mock
     private CustomOAuth2User customOAuth2User;
 
@@ -80,8 +88,7 @@ public class UserControllerTest {
         when(customOAuth2User.getUserId()).thenReturn(userId);
         when(customOAuth2User.getAttributes()).thenReturn(null);
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-        when(customOAuth2User.getAuthorities()).thenAnswer((Answer<Collection<? extends GrantedAuthority>>) invocation -> authorities)
-        ;
+        doReturn(authorities).when(customOAuth2User).getAuthorities();
 
         Authentication authenticationToken = new UsernamePasswordAuthenticationToken(
                 customOAuth2User, null, authorities
@@ -92,6 +99,7 @@ public class UserControllerTest {
 
         Account account = Account.of(userId, cash);
         when(accountService.retrieveAccountByUserId(userId)).thenReturn(account);
+        when(securityUtil.getCurrentUserId()).thenReturn(Optional.of(userId));
 
         mockMvc.perform(get("/api/userinfo")
                         .with(authentication(authenticationToken)))

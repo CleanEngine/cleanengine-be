@@ -47,8 +47,8 @@ public class BotOrderCancelService {
         BotOrderCount botOrderCount = botOrderQueryRepository.countWaitingBotOrdersByTicker(ticker);
 
         return new BotOrderCount(
-                (long)Math.floor(botOrderCount.buyOrderCount() * cancelRate),
-                (long)Math.floor(botOrderCount.sellOrderCount() * cancelRate)
+                calculateRateCount(botOrderCount.buyOrderCount(), cancelRate),
+                calculateRateCount(botOrderCount.sellOrderCount(), cancelRate)
         );
     }
 
@@ -65,5 +65,9 @@ public class BotOrderCancelService {
             log.warn("cause : {}", e.getMessage());
             log.warn("stackTrace : {}", (Object[]) e.getStackTrace());
         }
+    }
+
+    private long calculateRateCount(long count, double rate) {
+        return (long)Math.floor(count * rate);
     }
 }

@@ -60,5 +60,6 @@ bot-handler:
   order-level : 1,2 #오더북 단계 설정 - 주문량 증가
 
 bot-cancel-scheduler:
+  enabled: true
   fixed-rate: 5000
   cancel-rate: 0.2

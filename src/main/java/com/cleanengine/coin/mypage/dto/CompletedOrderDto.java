@@ -1,6 +1,8 @@
 package com.cleanengine.coin.mypage.dto;
 
+import com.cleanengine.coin.order.OrderSide;
 import com.cleanengine.coin.order.domain.OrderStatus;
+import com.cleanengine.coin.order.domain.OrderType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,12 +12,15 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class CompletedOrderDto {
-    private Boolean isBuy;
-    private OrderStatus state;
-    private Long id;
+    private OrderSide side;
+    private OrderStatus orderStatus;
+    private OrderType orderType;
+    private Long orderId;
     private String ticker;
     private String name;
     private Double price;
-    private Double size;
+    private Double orderSize;
+    private Double remainingSize;
+    private Double displaySize;
     private LocalDateTime tradeTime;
 }

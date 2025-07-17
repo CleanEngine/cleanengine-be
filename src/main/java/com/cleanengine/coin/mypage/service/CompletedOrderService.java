@@ -5,9 +5,11 @@ import com.cleanengine.coin.mypage.dto.PagedCompletedOrdersDto;
 import com.cleanengine.coin.mypage.repository.CompletedBuyOrderRepository;
 import com.cleanengine.coin.mypage.repository.CompletedOrderRepository;
 import com.cleanengine.coin.mypage.repository.CompletedSellOrderRepository;
+import com.cleanengine.coin.order.OrderSide;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.OrderStatus;
+import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.trade.entity.Trade;
 import lombok.AllArgsConstructor;
@@ -52,14 +54,22 @@ public class CompletedOrderService {
         }
         List<CompletedOrderDto> buyDtos = buyOrders.stream()
                 .map(b ->
-                        new CompletedOrderDto(true,b.getState(), b.getId(), b.getTicker(),
+                        new CompletedOrderDto(OrderSide.BID,b.getState(),
+                                convertToOrderType(b.getIsMarketOrder()),
+                                b.getId(), b.getTicker(),
                         assetRepository.findByTicker(b.getTicker()).getName(),b.getPrice()
-                                ,b.getOrderSize(),b.getCreatedAt())).toList();
+                                ,b.getOrderSize(),b.getRemainingSize(),
+                                calcDisplaySize(b.getState(),b.getOrderSize(),b.getRemainingSize())
+                                ,b.getCreatedAt())).toList();
         List<CompletedOrderDto> sellDtos = sellOrders.stream()
                 .map(s ->
-                        new CompletedOrderDto(false,s.getState(), s.getId(), s.getTicker(),
+                        new CompletedOrderDto(OrderSide.ASK,s.getState(),
+                                convertToOrderType(s.getIsMarketOrder()),
+                                s.getId(), s.getTicker(),
                                 assetRepository.findByTicker(s.getTicker()).getName(),s.getPrice()
-                                ,s.getOrderSize(),s.getCreatedAt())).toList();
+                                ,s.getOrderSize(),s.getRemainingSize(),
+                                calcDisplaySize(s.getState(),s.getOrderSize(),s.getRemainingSize())
+                                ,s.getCreatedAt())).toList();
         List<CompletedOrderDto> completedOrderDtos = Stream.concat(buyDtos.stream(),sellDtos.stream())
                 .sorted(Comparator.comparing(CompletedOrderDto::getTradeTime).reversed()).toList();
 //        System.out.println("============ service : "+trades.get(0).getId()+"==================");
@@ -69,5 +79,16 @@ public class CompletedOrderService {
 
         return new PagedCompletedOrdersDto(totalPages,currentPage,pageSize,completedOrderDtos);
     }
+        private double calcDisplaySize(OrderStatus orderStatus,Double orderSize,Double remainingSize) {
+            if (orderStatus == null) return 0.0;
 
+            return switch (orderStatus) {
+                case DONE -> orderSize; //전체 수량
+                case WAIT -> remainingSize; //남은 수량
+                case CANCELED -> orderSize - remainingSize; //실제로 체결 된 수량
+            };
+        }
+    private OrderType convertToOrderType(boolean isMarketOrder) {
+            return isMarketOrder ? OrderType.MARKET : OrderType.LIMIT;
+    }
 }

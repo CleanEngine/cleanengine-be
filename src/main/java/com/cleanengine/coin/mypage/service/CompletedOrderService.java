@@ -1,14 +1,19 @@
 package com.cleanengine.coin.mypage.service;
 
 import com.cleanengine.coin.mypage.dto.CompletedOrderDto;
+import com.cleanengine.coin.mypage.dto.PagedCompletedOrdersDto;
 import com.cleanengine.coin.mypage.repository.CompletedBuyOrderRepository;
 import com.cleanengine.coin.mypage.repository.CompletedOrderRepository;
 import com.cleanengine.coin.mypage.repository.CompletedSellOrderRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.order.domain.BuyOrder;
+import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.trade.entity.Trade;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,11 +30,26 @@ public class CompletedOrderService {
     private final CompletedSellOrderRepository completedSellOrderRepository;
     private final AssetRepository assetRepository;
 
-    public List<CompletedOrderDto> getCompletedOrders(Integer userId) {
+    public PagedCompletedOrdersDto getCompletedOrders(Integer userId, int currentPage, int pageSize, boolean settled) {//todo cursortradetime, long cursorid, int pageisze 받기
         System.out.println("============ service : "+userId+"==================");
-//        List<Trade> trades = completedOrderRepository.findAllByBuyUserIdOrderByTradeTimeAsc(userId);
-        List<BuyOrder> buyOrders = completedBuyOrderRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
-        List<SellOrder> sellOrders = completedSellOrderRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+        //커서기반에서 오프셋 기반으로 변경
+        PageRequest pageRequest = PageRequest.of(currentPage, pageSize, Sort.by(Sort.Direction.DESC,"createdAt","id"));
+        List<BuyOrder> buyOrders;
+        List<SellOrder> sellOrders;
+        long totalBuyOrders;
+        long totalSellOrders;
+        if (settled) {
+            buyOrders = completedBuyOrderRepository.findByUserIdAndState(userId, OrderStatus.DONE,pageRequest).getContent();
+            sellOrders = completedSellOrderRepository.findByUserIdAndState(userId,OrderStatus.DONE,pageRequest).getContent();
+            totalBuyOrders = completedBuyOrderRepository.countByUserIdAndState(userId,OrderStatus.DONE);
+            totalSellOrders = completedSellOrderRepository.countByUserIdAndState(userId,OrderStatus.DONE);
+        }else {
+            buyOrders = completedBuyOrderRepository.findByUserId(userId,pageRequest).getContent();
+            sellOrders = completedSellOrderRepository.findByUserId(userId,pageRequest).getContent();
+            totalBuyOrders = completedBuyOrderRepository.countByUserId(userId);
+            totalSellOrders = completedSellOrderRepository.countByUserId(userId);
+
+        }
         List<CompletedOrderDto> buyDtos = buyOrders.stream()
                 .map(b ->
                         new CompletedOrderDto(true,b.getState(), b.getId(), b.getTicker(),
@@ -43,7 +63,11 @@ public class CompletedOrderService {
         List<CompletedOrderDto> completedOrderDtos = Stream.concat(buyDtos.stream(),sellDtos.stream())
                 .sorted(Comparator.comparing(CompletedOrderDto::getTradeTime).reversed()).toList();
 //        System.out.println("============ service : "+trades.get(0).getId()+"==================");
-        return completedOrderDtos;
+        long totalElements = totalBuyOrders + totalSellOrders;
+
+        int totalPages = (int) Math.ceil((double)totalElements / pageSize);
+
+        return new PagedCompletedOrdersDto(totalPages,currentPage,pageSize,completedOrderDtos);
     }
 
 }

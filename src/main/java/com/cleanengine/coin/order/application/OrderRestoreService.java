@@ -13,6 +13,7 @@ import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class OrderRestoreService implements ApplicationRunner {
     private final BuyOrderQueryRepository buyOrderQueryRepository;
     private final SellOrderQueryRepository sellOrderQueryRepository;
     private final ActiveOrdersManager activeOrdersManager;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -35,6 +37,8 @@ public class OrderRestoreService implements ApplicationRunner {
         buyOrders.forEach(this::restoreOrder);
         List<SellOrder> sellOrders = sellOrderQueryRepository.findIncompletedSellOrders();
         sellOrders.forEach(this::restoreOrder);
+
+        applicationEventPublisher.publishEvent(new OrderRestoreCompleted());
     }
 
     protected void restoreOrder(Order order){
@@ -44,5 +48,9 @@ public class OrderRestoreService implements ApplicationRunner {
         activeOrdersManager.getActiveOrders(order.getTicker()).saveOrder(order);
 
         updateOrderBookUsecase.updateOrderBookOnRestored(order);
+    }
+
+    public static class OrderRestoreCompleted {
+
     }
 }

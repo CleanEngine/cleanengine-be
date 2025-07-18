@@ -26,7 +26,13 @@ public class BotOrderCancelService {
         List<AssetInfo> assetInfos = assetService.getAllAssetInfos();
 
         for(AssetInfo assetInfo : assetInfos){
-            executorService.submit(() -> cancelBotLimitOrder(cancelRate, assetInfo.ticker()));
+            executorService.submit(() -> {
+                        try {
+                            cancelBotLimitOrder(cancelRate, assetInfo.ticker());
+                        } catch (Exception e) {
+                            log.error("봇 주문 취소중 에러 발생", e);
+                        }
+            });
         }
     }
 
@@ -37,7 +43,11 @@ public class BotOrderCancelService {
                 botOrderCountNeededToBeCanceled, ticker);
 
         for(BotOrderInfo botOrderInfo : orderIdsNeededToBeCanceled){
-            cancelEachOrder(botOrderInfo);
+            try{
+                cancelEachOrder(botOrderInfo);
+            } catch (IllegalStateException e) {
+                log.warn("해당 봇 주문은 이미 취소 됨 : {}", botOrderInfo.orderId());
+            }
         }
     }
 
@@ -47,8 +57,8 @@ public class BotOrderCancelService {
         BotOrderCount botOrderCount = botOrderQueryRepository.countWaitingBotOrdersByTicker(ticker);
 
         return new BotOrderCount(
-                (long)Math.floor(botOrderCount.buyOrderCount() * cancelRate),
-                (long)Math.floor(botOrderCount.sellOrderCount() * cancelRate)
+                calculateRateCount(botOrderCount.buyOrderCount(), cancelRate),
+                calculateRateCount(botOrderCount.sellOrderCount(), cancelRate)
         );
     }
 
@@ -65,5 +75,9 @@ public class BotOrderCancelService {
             log.warn("cause : {}", e.getMessage());
             log.warn("stackTrace : {}", (Object[]) e.getStackTrace());
         }
+    }
+
+    private long calculateRateCount(long count, double rate) {
+        return (long)Math.floor(count * rate);
     }
 }

@@ -42,10 +42,6 @@ public class UserController {
 
             UserInfoDTO userInfoDTO = userService.retrieveUserInfoByUserId(currentUserId.get());
 
-            if (userInfoDTO == null) {
-                return ApiResponse.fail(ErrorResponse.of(ErrorStatus.UNAUTHORIZED_RESOURCE));
-            }
-
             return ApiResponse.success(userInfoDTO, HttpStatus.OK);
         } catch (Exception e) {
             log.error("유저 정보 로딩 에러: {}", e.getMessage(), e);
@@ -56,7 +52,6 @@ public class UserController {
     @Operation(summary = "사용자 자산 초기화 (쿠키의 유저ID 사용)")
     @PostMapping("/api/account/reset")
     public ApiResponse<UserInfoDTO> resetAccount() {
-
         try {
             Optional<Integer> currentUserId = securityUtil.getCurrentUserId();
             if (currentUserId.isEmpty()) {

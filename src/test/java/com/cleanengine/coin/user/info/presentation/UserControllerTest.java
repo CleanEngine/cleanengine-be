@@ -80,6 +80,34 @@ public class UserControllerTest {
 
     @Test
     @WithCustomMockUser(id = 3)
+    @DisplayName("사용자가 사용자 정보 요청 시 인증정보가 없는 경우 401 응답을 반환한다.")
+    public void testRetrieveUserInfoWithoutAuthorization() throws Exception {
+        // given
+        when(securityUtil.getCurrentUserId()).thenReturn(Optional.empty());
+
+        // when, then
+        mockMvc.perform(get("/api/userinfo"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.isSuccess", is(false)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error.errorCode", is("A05")));
+        verifyNoInteractions(userService, accountService);
+    }
+
+    @Test
+    @WithCustomMockUser
+    @DisplayName("사용자 정보 조회 중 예외가 발생하면 500 응답을 반환한다.")
+    public void testRetrieveUserInfoException() throws Exception {
+        int userId = 1;
+        when(securityUtil.getCurrentUserId()).thenReturn(Optional.of(userId));
+        when(userService.retrieveUserInfoByUserId(userId)).thenThrow(new RuntimeException("ㅇㅇㅇ 예외 발생"));
+
+        mockMvc.perform(get("/api/userinfo"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.isSuccess", is(false)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error.errorCode", is("A88")));
+    }
+
+    @Test
+    @WithCustomMockUser(id = 3)
     @DisplayName("성공적으로 사용자의 계정을 초기화한다.")
     public void testResetAccountSuccess() throws Exception {
         // given
@@ -99,7 +127,7 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("인증되지 않은 사용자가 계정 초기화 요청 시 리디렉션 응답을 반환한다.")
-    public void testResetAccountUnauthorized() throws Exception {
+    public void testResetAccountWithoutAuthorization() throws Exception {
         // given
         when(securityUtil.getCurrentUserId()).thenReturn(Optional.empty());
 
@@ -107,6 +135,22 @@ public class UserControllerTest {
         mockMvc.perform(post("/api/account/reset")
                         .with(csrf()))
                 .andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+
+        verifyNoInteractions(orderCancelService, accountService);
+    }
+
+    @Test
+    @WithCustomMockUser(id = 3)
+    @DisplayName("사용자가 계정 초기화 요청 시 인증 정보가 없는 경우 401 응답을 반환한다.")
+    public void testResetAccountUnauthorized() throws Exception {
+        // given
+        when(securityUtil.getCurrentUserId()).thenReturn(Optional.empty());
+
+        // when, then
+        mockMvc.perform(post("/api/account/reset")
+                        .with(csrf()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.isSuccess", is(false)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error.errorCode", is("A05")));
 
         verifyNoInteractions(orderCancelService, accountService);
     }

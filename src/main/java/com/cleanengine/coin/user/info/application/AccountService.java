@@ -65,7 +65,7 @@ public class AccountService {
     @Transactional
     public void resetWithWallets(Integer userId) {
         Account account = accountRepository.findByUserId(userId).orElseThrow();
-        account.resetCash(initialCashUser);
+        this.resetCash(account);
         accountRepository.save(account);
 
         List<Wallet> wallets = walletRepository.findByAccountId(account.getId());

@@ -25,6 +25,7 @@ public class Wallet {
     @Column(name = "size", nullable = false)
     private Double size;
 
+    // TODO : 값 없는 경우 0 대신 null로 처리할 것
     @Column(name = "buy_price")
     private Double buyPrice;
 
@@ -80,8 +81,8 @@ public class Wallet {
         this.size = this.getSize() + orderSize;
     }
 
-    public void reset() {
-        this.size = 0.0;
+    public void reset(double initialSize) {
+        this.size = initialSize;
         this.buyPrice = 0.0;
         this.roi = 0.0;
     }

@@ -71,31 +71,31 @@ class AccountTest {
 
     @DisplayName("봇 계좌의 예수금을 초기화한다.")
     @Test
-    void resetCashForSpecialUser() {
+    void resetCashCashForSpecialUser() {
         // given
         Account buyBot = Account.of(CommonValues.BUY_ORDER_BOT_ID, 1000.0);
         Account sellBot = Account.of(CommonValues.SELL_ORDER_BOT_ID, 1000.0);
 
         // when
-        buyBot.reset();
-        sellBot.reset();
+        buyBot.resetCash(5000.0);
+        sellBot.resetCash(0.0);
 
         // then
-        assertEquals(500_000_000.0, buyBot.getCash());
-        assertEquals(500_000_000.0, sellBot.getCash());
+        assertEquals(5000.0, buyBot.getCash());
+        assertEquals(0.0, sellBot.getCash());
     }
 
     @DisplayName("실사용자 계좌의 예수금을 초기화한다.")
     @Test
-    void resetCashForRegularUser() {
+    void resetCashCashForRegularUser() {
         // given
         Account account = Account.of(3, 1000.0);
 
         // when
-        account.reset();
+        account.resetCash(0.0);
 
         // then
-        assertEquals(50_000_000.0, account.getCash());
+        assertEquals(0.0, account.getCash());
     }
 
 }

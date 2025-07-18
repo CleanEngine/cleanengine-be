@@ -182,7 +182,7 @@ class WalletTest {
         }
     }
 
-    @DisplayName("reset 메서드를 호출하면 size, buyPrice, roi가 초기값으로 설정되어야 한다.")
+    @DisplayName("resetCash 메서드를 호출하면 size, buyPrice, roi가 초기값으로 설정되어야 한다.")
     @Test
     void testReset_ShouldSetAllFieldsToDefaultValues() {
         // given
@@ -191,26 +191,14 @@ class WalletTest {
         wallet.setRoi(10.0);
 
         // when
-        wallet.reset();
+        wallet.reset(0.0);
 
         // then
-        assertEquals(0.0, wallet.getSize(), "Size should be reset to 0.0");
-        assertEquals(0.0, wallet.getBuyPrice(), "Buy price should be reset to 0.0");
-        assertEquals(0.0, wallet.getRoi(), "ROI should be reset to 0.0");
-    }
-
-    @DisplayName("reset 메서드는 ticker와 accountId 값을 변경하지 않아야 한다.")
-    @Test
-    void testReset_ShouldNotAffectTickerAndAccountId() {
-        // given
-        Wallet wallet = Wallet.of(TICKER, ACCOUNT_ID, INITIAL_BUY_PRICE, INITIAL_SIZE);
-
-        // when
-        wallet.reset();
-
-        // then
-        assertEquals(TICKER, wallet.getTicker(), "Ticker should remain unchanged");
-        assertEquals(ACCOUNT_ID, wallet.getAccountId(), "Account ID should remain unchanged");
+        assertEquals(0.0, wallet.getSize());
+        assertEquals(0.0, wallet.getBuyPrice());
+        assertEquals(0.0, wallet.getRoi());
+        assertEquals(TICKER, wallet.getTicker());
+        assertEquals(ACCOUNT_ID, wallet.getAccountId());
     }
 
     @DisplayName("초기 상태에서 수량과 평단을 정상적으로 갱신한다.")
@@ -225,8 +213,8 @@ class WalletTest {
         wallet.updateAfterPurchase(price, addedSize);
 
         // then
-        assertEquals(100.0, wallet.getSize(), "The size should be increased correctly.");
-        assertEquals(60000.0, wallet.getBuyPrice(), "The buy price should match the trade price as it's the first trade.");
+        assertEquals(100.0, wallet.getSize());
+        assertEquals(60000.0, wallet.getBuyPrice());
     }
 
     @DisplayName("updateAfterPurchase 메서드에 0의 price를 전달하면 예외가 발생한다.")
@@ -269,8 +257,8 @@ class WalletTest {
         wallet.updateAfterPurchase(price, addedSize);
 
         // then
-        assertEquals(55000.0, wallet.getBuyPrice(), "The buy price should be updated with a weighted average.");
-        assertEquals(200.0, wallet.getSize(), "The size should be incremented correctly.");
+        assertEquals(55000.0, wallet.getBuyPrice());
+        assertEquals(200.0, wallet.getSize());
     }
 
 }

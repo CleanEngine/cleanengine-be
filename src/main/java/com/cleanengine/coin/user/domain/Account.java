@@ -1,6 +1,5 @@
 package com.cleanengine.coin.user.domain;
 
-import com.cleanengine.coin.common.CommonValues;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -61,11 +60,8 @@ public class Account {
         return this;
     }
 
-    public void reset() {
-        if (this.userId == CommonValues.BUY_ORDER_BOT_ID || this.userId == CommonValues.SELL_ORDER_BOT_ID)
-            this.cash = 500_000_000.0;
-        else
-            this.cash = 50_000_000.0;
+    public void resetCash(double newCash) {
+        this.cash = newCash;
     }
 
 }

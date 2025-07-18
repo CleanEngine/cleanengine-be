@@ -15,6 +15,10 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
     Optional<Wallet> findByAccountIdAndTicker(Integer accountId, String ticker);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT w FROM Wallet w JOIN Account a ON w.accountId = a.id WHERE a.userId IN (1, 2) AND w.ticker = :ticker")
+    List<Wallet> findWalletsOfBotByTicker(String ticker);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Wallet> findByAccountId(Integer accountId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

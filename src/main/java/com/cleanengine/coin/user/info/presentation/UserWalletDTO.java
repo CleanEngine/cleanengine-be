@@ -29,7 +29,7 @@ public class UserWalletDTO {
     private final Double currentPrice;  // 현재가(최근 체결가)
 
     @Builder
-    public UserWalletDTO(String ticker, String name, Integer accountId, Double size, Double buyPrice, Double roi, Double currentPrice) {
+    private UserWalletDTO(String ticker, String name, Integer accountId, Double size, Double buyPrice, Double roi, Double currentPrice) {
         this.ticker = ticker;
         this.name = name;
         this.accountId = accountId;

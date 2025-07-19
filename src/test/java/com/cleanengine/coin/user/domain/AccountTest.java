@@ -1,10 +1,11 @@
 package com.cleanengine.coin.user.domain;
 
+import com.cleanengine.coin.common.CommonValues;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("계좌 단위테스트")
 class AccountTest {
@@ -65,7 +66,36 @@ class AccountTest {
         // when, then
         assertThatThrownBy(() -> account.decreaseCash(5000.0))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Cannot decrease cash. Available cash: 1000.0, requested: 5000.0");
+                .hasMessage("Cannot decrease cash. Available cash: 1000.00, requested: 5000.00");
+    }
+
+    @DisplayName("봇 계좌의 예수금을 초기화한다.")
+    @Test
+    void resetCashCashForSpecialUser() {
+        // given
+        Account buyBot = Account.of(CommonValues.BUY_ORDER_BOT_ID, 1000.0);
+        Account sellBot = Account.of(CommonValues.SELL_ORDER_BOT_ID, 1000.0);
+
+        // when
+        buyBot.resetCash(5000.0);
+        sellBot.resetCash(0.0);
+
+        // then
+        assertEquals(5000.0, buyBot.getCash());
+        assertEquals(0.0, sellBot.getCash());
+    }
+
+    @DisplayName("실사용자 계좌의 예수금을 초기화한다.")
+    @Test
+    void resetCashCashForRegularUser() {
+        // given
+        Account account = Account.of(3, 1000.0);
+
+        // when
+        account.resetCash(0.0);
+
+        // then
+        assertEquals(0.0, account.getCash());
     }
 
 }

@@ -5,6 +5,8 @@ import com.cleanengine.coin.common.domain.port.KeyValueStore;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.spi.ActiveOrders;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,4 +76,24 @@ public class InMemoryUnifiedTickersActiveOrders implements ActiveOrders {
     public KeyValueStore<Long, Order> getOrderKeyValueStore() {
         return activeOrders;
     }
+
+    @Override
+    public List<Order> removeAllByUserId(int userId) {
+        List<Order> removed = new ArrayList<>();
+
+        activeOrders.forEach((orderId, order) -> {
+            if (order.getUserId() == userId) {
+                orderLockMap.compute(orderId, (k, lock) -> {
+                    activeOrders.remove(orderId);
+                    if (lock != null && lock.isHeldByCurrentThread())
+                        lock.unlock();
+                    return null; // orderLockMap에서 삭제
+                });
+                removed.add(order);
+            }
+        });
+
+        return removed;
+    }
+
 }

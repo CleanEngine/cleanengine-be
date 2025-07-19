@@ -42,11 +42,11 @@ spring:
           time_zone: Asia/Seoul
 
 springdoc:
-    api-docs:
-      path: /api/swagger/v3/api-docs
-    swagger-ui:
-      path: /api/swagger/swagger-ui.html
-      url: /api/swagger/v3/api-docs
+  api-docs:
+    path: /api/swagger/v3/api-docs
+  swagger-ui:
+    path: /api/swagger/swagger-ui.html
+    url: /api/swagger/v3/api-docs
 
 server:
   forward-headers-strategy: native
@@ -56,10 +56,18 @@ worker:
 
 bot-handler:
   fixed-rate: 1000 #  5초마다 실행
-  cron : "0 0 0 * * *" # 매일 자정마다 호가
-  order-level : 1,2 #오더북 단계 설정 - 주문량 증가
+  cron: "0 0 0 * * *" # 매일 자정마다 호가
+  order-level: 1,2 #오더북 단계 설정 - 주문량 증가
 
 bot-cancel-scheduler:
   enabled: true
   fixed-rate: 5000
   cancel-rate: 0.2
+
+account:
+  initial-cash:
+    buy-bot: 500000000.0
+    sell-bot: 0.0
+    user: 50000000.0
+  initial-wallet:
+    sell-bot: 500000000.0

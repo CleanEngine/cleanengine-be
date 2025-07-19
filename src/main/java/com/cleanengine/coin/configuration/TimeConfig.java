@@ -1,7 +1,7 @@
 package com.cleanengine.coin.configuration;
 
 import com.cleanengine.coin.common.time.ClockHolder;
-import com.cleanengine.coin.common.time.SystemDefaultClockHolder;
+import com.cleanengine.coin.common.time.SystemTimeSmearClockHolder;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +20,6 @@ public class TimeConfig {
 
     @Bean
     public ClockHolder clockHolder() {
-        return new SystemDefaultClockHolder();
+        return new SystemTimeSmearClockHolder();
     }
 }

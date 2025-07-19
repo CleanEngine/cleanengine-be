@@ -6,6 +6,8 @@ import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.spi.ActiveOrders;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -50,12 +52,17 @@ public class InMemoryActiveOrders implements ActiveOrders {
     }
 
     @Override
-    public void removeAllByUserId(int userId) {
+    public List<Order> removeAllByUserId(int userId) {
+        List<Order> removed = new ArrayList<>();
+
         activeOrders.forEach((orderId, order) -> {
             if (order.getUserId() == userId) {
                 activeOrders.remove(orderId);
+                removed.add(order);
             }
         });
+
+        return removed;
     }
 
 }

@@ -1,10 +1,10 @@
 package com.cleanengine.coin.order.application;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
-import com.cleanengine.coin.order.application.dto.AssetInfo;
-import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetCacheRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
+import com.cleanengine.coin.order.application.dto.AssetInfo;
+import com.cleanengine.coin.order.domain.Asset;
 import com.cleanengine.coin.trade.entity.Trade;
 import com.cleanengine.coin.trade.repository.TradeRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +24,11 @@ public class AssetService {
 
     private final ConcurrentHashMap<String, Double> currentPriceCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Asset> assetCache = new ConcurrentHashMap<>();
+
+    public void initAssetCache() {
+        List<Asset> assets = assetRepository.findAll();
+        setAssetCache(assets);
+    }
 
     public void setAssetCache(List<Asset> assets) {
         assets.forEach(a -> assetCache.putIfAbsent(a.getTicker(), a));

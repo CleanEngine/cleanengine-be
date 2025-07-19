@@ -18,8 +18,11 @@ import java.util.List;
 public class WalletService {
 
     private final WalletRepository walletRepository;
+
     private final AccountRepository accountRepository;
+
     private final AssetRepository assetRepository;
+
     private final JPAQueryFactory queryFactory;
 
     public WalletService(WalletRepository walletRepository, AccountRepository accountRepository,
@@ -48,11 +51,14 @@ public class WalletService {
                 .orElseGet(() -> Wallet.of(ticker, accountRepository.findByUserId(userId).orElseThrow().getId()));
     }
 
-    public void createNewWallets(Integer accountId) {
-        assetRepository.findAll()
+    public List<Wallet> createNewWallets(Integer accountId) {
+        List<Wallet> wallets = assetRepository.findAll()
                 .stream()
-                .map(asset -> Wallet.of(asset.getTicker(), accountId))
-                .forEach(walletRepository::save);
+                .map(asset -> Wallet.of(asset.getTicker(), accountId)).toList();
+        
+        walletRepository.saveAll(wallets);
+
+        return wallets;
     }
 
     @Transactional

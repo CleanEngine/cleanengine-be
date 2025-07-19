@@ -1,5 +1,7 @@
 package com.cleanengine.coin.common.domain.port;
 
+import java.util.List;
+
 public interface PriorityQueueStore <T extends Comparable<T>> {
     void put(T item);
 
@@ -15,5 +17,5 @@ public interface PriorityQueueStore <T extends Comparable<T>> {
 
     void clear();
 
-    void removeAllByUserId(int userId);
+    List<T> removeAllByUserId(int userId);
 }

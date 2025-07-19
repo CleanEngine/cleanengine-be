@@ -3,7 +3,9 @@ package com.cleanengine.coin.common.adapter.out.store;
 import com.cleanengine.coin.common.domain.port.PriorityQueueStore;
 import com.cleanengine.coin.order.domain.Order;
 
+import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.stream.Collectors;
 
 public class InMemoryPriorityQueueStore<T extends Order & Comparable<T>> implements PriorityQueueStore<T> {
     private final PriorityBlockingQueue<T> queue = new PriorityBlockingQueue<>();
@@ -47,8 +49,14 @@ public class InMemoryPriorityQueueStore<T extends Order & Comparable<T>> impleme
     }
 
     @Override
-    public void removeAllByUserId(int userId) {
-        queue.stream().filter(order -> order.getUserId() == userId).forEach(queue::remove);
+    public List<T> removeAllByUserId(int userId) {
+        List<T> toRemove = queue.stream()
+                .filter(order -> order.getUserId() == userId)
+                .collect(Collectors.toList());
+
+        queue.removeAll(toRemove);
+
+        return toRemove;
     }
 
 }

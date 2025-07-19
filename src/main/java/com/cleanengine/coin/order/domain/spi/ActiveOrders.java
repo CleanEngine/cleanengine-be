@@ -3,6 +3,7 @@ package com.cleanengine.coin.order.domain.spi;
 import com.cleanengine.coin.common.domain.port.KeyValueStore;
 import com.cleanengine.coin.order.domain.Order;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,5 +22,5 @@ public interface ActiveOrders {
 
     KeyValueStore<Long, Order> getOrderKeyValueStore();
 
-    void removeAllByUserId(int userId);
+    List<Order> removeAllByUserId(int userId);
 }

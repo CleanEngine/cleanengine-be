@@ -13,11 +13,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
 import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +41,9 @@ class AccountServiceTest {
 
     @Value("${account.initial-cash.sell-bot}")
     private double initialCashSellBot;
+
+    @Value("${account.initial-cash.user}")
+    private double initialCashUser;
 
     @Test
     @DisplayName("봇 자산을 초기화한다.")
@@ -64,25 +69,63 @@ class AccountServiceTest {
     }
 
     @Test
-    @DisplayName("정상적으로 계좌와 지갑들을 초기화한다.")
+    @DisplayName("정상적으로 사용자 계좌와 지갑들을 초기화한다.")
     void resetWithWallets_successfullyResetsAccountAndWallets() {
         // given
-        Integer accountId = 3;
-        Account account = Account.of(accountId, 1000.0);
+        Integer userId = 3;
+        Account account = Account.of(userId, 1000.0);
         List<Wallet> wallets = List.of(
-                Wallet.of("BTC", accountId, 100000.0, 50.0),
-                Wallet.of("ETH", accountId, 20000.0, 20.0)
+                Wallet.of("BTC", userId, 100000.0, 50.0),
+                Wallet.of("ETH", userId, 20000.0, 20.0)
         );
 
-        when(accountRepository.findByUserId(accountId)).thenReturn(Optional.of(account));
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(account));
         when(walletRepository.findByAccountId(account.getId())).thenReturn(wallets);
 
         // when
-        accountService.resetWithWallets(accountId);
+        accountService.resetWithWallets(userId);
 
         // then
         verify(accountRepository).save(account);
         verify(walletRepository).saveAll(wallets);
+        assertThat(account.getCash()).isEqualTo(initialCashUser);
+        wallets.forEach(wallet -> {
+            assertThat(wallet.getSize()).isEqualTo(0.0);
+            assertThat(wallet.getBuyPrice()).isEqualTo(0.0);
+            assertThat(wallet.getRoi()).isEqualTo(0.0);
+        });
+    }
+
+    @Test
+    @DisplayName("계좌가 없으면 예외를 던진다.")
+    void resetWithWallets_throwsWhenAccountNotFound() {
+        // given
+        Integer userId = 3;
+
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        // when, then
+        assertThatThrownBy(() -> accountService.resetWithWallets(userId))
+                .isInstanceOf(NoSuchElementException.class);
+    }
+
+    @Test
+    @DisplayName("지갑이 없어도 계좌는 초기화한다.")
+    void resetWithWallets_successfullyResetsWalletNotFound() {
+        // given
+        Integer userId = 3;
+        Account account = Account.of(userId, 1000.0);
+        List<Wallet> wallets = List.of();
+
+        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(account));
+        when(walletRepository.findByAccountId(account.getId())).thenReturn(wallets);
+
+        // when
+        accountService.resetWithWallets(userId);
+
+        // then
+        verify(accountRepository).save(account);
+        assertThat(account.getCash()).isEqualTo(initialCashUser);
     }
 
 }

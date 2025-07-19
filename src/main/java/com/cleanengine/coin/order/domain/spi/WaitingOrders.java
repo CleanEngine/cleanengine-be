@@ -7,6 +7,7 @@ import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 
 import java.io.Closeable;
+import java.util.List;
 
 public interface WaitingOrders extends Closeable {
 
@@ -20,7 +21,7 @@ public interface WaitingOrders extends Closeable {
     // TODO removeOrder 여기에 있는 것이 나을지 고민
     void removeOrder(Order order);
 
-    void removeAllByUserId(int userId);
+    List<Order> removeAllByUserId(int userId);
 
     void clearAllQueues();
 

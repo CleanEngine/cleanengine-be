@@ -1,7 +1,10 @@
 package com.cleanengine.coin.user.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Setter
 @Getter
@@ -49,10 +52,16 @@ public class Account {
             throw new IllegalArgumentException("Decrease amount must be greater than zero.");
         }
         if (this.cash < amount) {
-            throw new IllegalArgumentException("Cannot decrease cash. Available cash: " + this.cash + ", requested: " + amount);
+            throw new IllegalArgumentException(
+                    "Cannot decrease cash. Available cash: %.2f, requested: %.2f".formatted(this.cash, amount)
+            );
         }
         this.cash -= amount;
         return this;
+    }
+
+    public void resetCash(double newCash) {
+        this.cash = newCash;
     }
 
 }

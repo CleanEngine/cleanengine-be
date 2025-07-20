@@ -1,6 +1,7 @@
 package com.cleanengine.coin.user.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -45,5 +46,24 @@ public class OAuth {
 
     @Column(name = "scope")
     private String scope;
+
+    @Builder
+    private OAuth(Integer userId, String provider, String providerUserId, String email, String nickname) {
+        this.userId = userId;
+        this.provider = provider;
+        this.providerUserId = providerUserId;
+        this.email = email;
+        this.nickname = nickname;
+    }
+
+    public static OAuth of(Integer userId, String provider, String providerUserId, String email, String nickname) {
+        return OAuth.builder()
+                .userId(userId)
+                .provider(provider)
+                .providerUserId(providerUserId)
+                .email(email)
+                .nickname(nickname)
+                .build();
+    }
 
 }

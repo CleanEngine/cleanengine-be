@@ -1,6 +1,9 @@
 package com.cleanengine.coin.orderbook.infra;
 
 import com.cleanengine.coin.orderbook.dto.ClosingPriceDto;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
+import com.cleanengine.coin.trade.application.port.out.TradeQueryRepositoryImpl;
+import com.cleanengine.coin.trade.application.service.TradeQueryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +20,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles({"dev", "it", "h2-mem"})
 @DataJpaTest
-@Import({TradeQueryRepository.class})
+@Import({TradeQueryService.class, TradeQueryRepositoryImpl.class})
 public class TradeQueryRepositoryH2Test {
     @Autowired
-    private TradeQueryRepository tradeQueryRepository;
+    private TradeQueryUseCase tradeQueryUseCase;
 
     @DisplayName("어제 trade가 있었을 경우, 정상적으로 yesterdayClosingPrice를 조회한다.")
     @Test
@@ -34,7 +37,7 @@ public class TradeQueryRepositoryH2Test {
     public void queryYesterdayClosingPriceWithTradeExecutedYesterday_shouldReturnSuccessfully() {
         LocalDate yesterdayDate = LocalDate.of(2025, 7, 1);
 
-        ClosingPriceDto closingPriceDto = tradeQueryRepository.getYesterdayClosingPrice("BTC", yesterdayDate);
+        ClosingPriceDto closingPriceDto = tradeQueryUseCase.getYesterdayClosingPrice("BTC", yesterdayDate);
 
         assertNotNull(closingPriceDto);
         assertEquals("BTC", closingPriceDto.ticker());
@@ -48,7 +51,7 @@ public class TradeQueryRepositoryH2Test {
     public void queryYesterdayClosingPriceWithoutYesterdayTrade_shouldReturnNull() {
         LocalDate yesterdayDate = LocalDate.of(2025, 7, 1);
 
-        ClosingPriceDto closingPriceDto = tradeQueryRepository.getYesterdayClosingPrice("BTC", yesterdayDate);
+        ClosingPriceDto closingPriceDto = tradeQueryUseCase.getYesterdayClosingPrice("BTC", yesterdayDate);
 
         assertNull(closingPriceDto);
     }
@@ -65,7 +68,7 @@ public class TradeQueryRepositoryH2Test {
     public void queryYesterdayClosingPriceWithTradeExecutedToday_shouldReturnNull() {
         LocalDate yesterdayDate = LocalDate.of(2025, 7, 1);
 
-        ClosingPriceDto closingPriceDto = tradeQueryRepository.getYesterdayClosingPrice("BTC", yesterdayDate);
+        ClosingPriceDto closingPriceDto = tradeQueryUseCase.getYesterdayClosingPrice("BTC", yesterdayDate);
 
         assertNull(closingPriceDto);
     }
@@ -82,7 +85,7 @@ public class TradeQueryRepositoryH2Test {
     public void queryYesterdayClosingPriceWithDuplicateTimeTrades_shouldReturnBiggestIdDto() {
         LocalDate yesterdayDate = LocalDate.of(2025, 7, 1);
 
-        ClosingPriceDto closingPriceDto = tradeQueryRepository.getYesterdayClosingPrice("BTC", yesterdayDate);
+        ClosingPriceDto closingPriceDto = tradeQueryUseCase.getYesterdayClosingPrice("BTC", yesterdayDate);
 
         assertNotNull(closingPriceDto);
         assertEquals("BTC", closingPriceDto.ticker());

@@ -1,10 +1,11 @@
-package com.cleanengine.coin.trade.application;
+package com.cleanengine.coin.trade.domain.model;
 
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
 
 public record TradePair<T extends Order, U extends Order>(T first, U second) {
+
     public TradePair {
         if ((first instanceof BuyOrder && second instanceof BuyOrder) ||
                 (first instanceof SellOrder && second instanceof SellOrder)) {
@@ -23,4 +24,5 @@ public record TradePair<T extends Order, U extends Order>(T first, U second) {
     public static <T extends Order, U extends Order> TradePair<T, U> of(T order1, U order2) {
         return new TradePair<>(order1, order2);
     }
+
 }

@@ -1,12 +1,17 @@
-package com.cleanengine.coin.trade.application;
+package com.cleanengine.coin.trade.application.service;
 
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.port.out.TradeExecutedEventPublisherPort;
+import com.cleanengine.coin.trade.application.port.out.TradeExecutedEventPublisherPort;
+import com.cleanengine.coin.trade.application.port.out.TradeOrderCompletedEventPublisherPort;
+import com.cleanengine.coin.trade.domain.event.TradeExecutedEvent;
+import com.cleanengine.coin.trade.domain.event.TradeOrderCompletedEvent;
+import com.cleanengine.coin.trade.domain.exception.TradeZeroOrderException;
+import com.cleanengine.coin.trade.domain.model.Trade;
+import com.cleanengine.coin.trade.domain.model.TradePair;
 import com.cleanengine.coin.user.info.application.AccountService;
 import com.cleanengine.coin.user.info.application.WalletService;
 import lombok.Getter;
@@ -33,7 +38,7 @@ public class TradeExecutor {
     @Getter
     private final TradeExecutedEventPublisherPort tradeExecutedEventPublisher;
 
-    private final TradeOrderCompletedEventPublisher tradeOrderCompletedEventPublisher;
+    private final TradeOrderCompletedEventPublisherPort tradeOrderCompletedEventPublisher;
 
     private final TradeService tradeService;
 
@@ -183,7 +188,7 @@ public class TradeExecutor {
     }
 
     private void publishOrderCompletionEvent(Order order) {
-        tradeOrderCompletedEventPublisher.publish(TradeOrderCompletedEventImpl.of(order));
+        tradeOrderCompletedEventPublisher.publish(TradeOrderCompletedEvent.of(order));
     }
 
     private static void updateCompletedOrderStatus(Order order) {

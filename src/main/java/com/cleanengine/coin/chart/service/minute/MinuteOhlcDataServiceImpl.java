@@ -2,7 +2,7 @@ package com.cleanengine.coin.chart.service.minute;
 
 import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
 import com.cleanengine.coin.chart.repository.MinuteOhlcDataRepository;
-import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;

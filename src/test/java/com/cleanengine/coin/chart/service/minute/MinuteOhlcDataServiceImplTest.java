@@ -2,7 +2,7 @@ package com.cleanengine.coin.chart.service.minute;
 
 import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
 import com.cleanengine.coin.chart.repository.MinuteOhlcDataRepository;
-import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

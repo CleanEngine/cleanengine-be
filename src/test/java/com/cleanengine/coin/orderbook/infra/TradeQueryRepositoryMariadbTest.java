@@ -2,6 +2,7 @@ package com.cleanengine.coin.orderbook.infra;
 
 import com.cleanengine.coin.base.MariaDBAdapterTest;
 import com.cleanengine.coin.orderbook.dto.ClosingPriceDto;
+import com.cleanengine.coin.trade.application.port.out.TradeQueryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

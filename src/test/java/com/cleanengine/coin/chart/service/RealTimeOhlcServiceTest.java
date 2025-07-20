@@ -1,8 +1,8 @@
 package com.cleanengine.coin.chart.service;
 
 import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 class RealTimeOhlcServiceTest {
 
     @Mock
-    private TradeRepository tradeRepository;
+    private TradeQueryUseCase tradeQueryUseCase;
 
     @InjectMocks
     private RealTimeOhlcService realTimeOhlcService;
@@ -42,7 +42,7 @@ class RealTimeOhlcServiceTest {
                 new Trade(ticker, now.minusSeconds(10), dummyBuyUserId, dummySellUserId, 50000.0, 10.0) // 10:01:05
         );
 
-        when(tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(minuteStart), eq(now)))
+        when(tradeQueryUseCase.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(minuteStart), eq(now)))
                 .thenReturn(trades);
 
         // when
@@ -68,7 +68,7 @@ class RealTimeOhlcServiceTest {
         List<Trade> initialTrades = List.of(
                 new Trade(ticker, time1.minusSeconds(10), dummyBuyUserId, dummySellUserId, 50000.0, 10.0) // 10:01:05
         );
-        when(tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(minuteStart), eq(time1)))
+        when(tradeQueryUseCase.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(minuteStart), eq(time1)))
                 .thenReturn(initialTrades);
 
         realTimeOhlcService.getAndUpdateCumulative1mOhlc(ticker, time1); // 첫 호출로 상태 초기화
@@ -80,7 +80,7 @@ class RealTimeOhlcServiceTest {
                 new Trade(ticker, time2.minusSeconds(10), dummyBuyUserId, dummySellUserId, 52000.0, 5.0),  // 10:01:20 (고가)
                 new Trade(ticker, time2.minusSeconds(5), dummyBuyUserId, dummySellUserId, 49000.0, 8.0)   // 10:01:25 (저가, 종가)
         );
-        when(tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(time1), eq(time2)))
+        when(tradeQueryUseCase.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(time1), eq(time2)))
                 .thenReturn(newTrades);
 
         // when
@@ -106,7 +106,7 @@ class RealTimeOhlcServiceTest {
         List<Trade> tradesInMin1 = List.of(
                 new Trade(ticker, time1.minusSeconds(10), dummyBuyUserId, dummySellUserId, 50000.0, 10.0)
         );
-        when(tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(minute1Start), eq(time1)))
+        when(tradeQueryUseCase.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(minute1Start), eq(time1)))
                 .thenReturn(tradesInMin1);
         realTimeOhlcService.getAndUpdateCumulative1mOhlc(ticker, time1);
 
@@ -117,7 +117,7 @@ class RealTimeOhlcServiceTest {
         List<Trade> tradesInMin2 = List.of(
                 new Trade(ticker, time2.minusSeconds(5), dummyBuyUserId, dummySellUserId, 51500.0, 20.0)
         );
-        when(tradeRepository.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(minute2Start), eq(time2)))
+        when(tradeQueryUseCase.findByTickerAndTradeTimeBetweenOrderByTradeTimeAsc(eq(ticker), eq(minute2Start), eq(time2)))
                 .thenReturn(tradesInMin2);
 
         // when

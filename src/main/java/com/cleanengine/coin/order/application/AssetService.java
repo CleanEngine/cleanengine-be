@@ -5,8 +5,8 @@ import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetCacheRepos
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
 import com.cleanengine.coin.order.application.dto.AssetInfo;
 import com.cleanengine.coin.order.domain.Asset;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.FieldError;
@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AssetService {
     private final AssetRepository assetRepository;
     private final AssetCacheRepository assetCacheRepository;
-    private final TradeRepository tradeRepository;
+    private final TradeQueryUseCase tradeQueryUseCase;
 
     private final ConcurrentHashMap<String, Double> currentPriceCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Asset> assetCache = new ConcurrentHashMap<>();
@@ -74,7 +74,7 @@ public class AssetService {
 
     public Double getCurrentPrice(String ticker) {
         return currentPriceCache.computeIfAbsent(ticker, t -> {
-            Trade recentTrade = tradeRepository.findFirstByTickerOrderByTradeTimeDesc(t);
+            Trade recentTrade = tradeQueryUseCase.findFirstByTickerOrderByTradeTimeDesc(t);
             return recentTrade == null ? null : recentTrade.getPrice();
         });
     }

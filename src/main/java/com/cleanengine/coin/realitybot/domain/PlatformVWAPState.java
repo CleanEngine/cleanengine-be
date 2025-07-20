@@ -1,6 +1,6 @@
 package com.cleanengine.coin.realitybot.domain;
 
-import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

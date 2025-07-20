@@ -5,7 +5,7 @@ import com.cleanengine.coin.common.CommonValues;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.BuyOrderRepository;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
 import com.cleanengine.coin.order.application.dto.OrderCommand;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.info.infra.AccountRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +15,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,7 +26,7 @@ public class OrderServiceTest extends MariaDBIntegrationTest {
     OrderService orderService;
 
     @Autowired
-    TradeRepository tradeRepository;
+    TradeQueryUseCase tradeQueryUseCase;
 
     @Autowired
     BuyOrderRepository buyOrderRepository;
@@ -81,7 +80,7 @@ public class OrderServiceTest extends MariaDBIntegrationTest {
         // 비동기적으로 처리되는 체결이 완료될때까지 대기
         Thread.sleep(2000);
 
-        long resultCount = tradeRepository.count();
+        long resultCount = tradeQueryUseCase.count();
         long buyOrderCount = buyOrderRepository.count();
         long sellOrderCount = sellOrderRepository.count();
 

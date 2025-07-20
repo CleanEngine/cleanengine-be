@@ -1,10 +1,11 @@
-package com.cleanengine.coin.trade.application;
+package com.cleanengine.coin.trade.application.service;
 
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
+import com.cleanengine.coin.trade.domain.model.TradePair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ public class TradeMatcher {
 
     // 1초마다 로깅
     private long lastLogTime = 0;
+
     private static final long LOG_INTERVAL = 1000;
 
     public Optional<TradePair<Order, Order>> matchOrders(WaitingOrders waitingOrders) {  // 반환값 : 체결여부

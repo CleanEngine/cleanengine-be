@@ -1,4 +1,4 @@
-package com.cleanengine.coin.trade.application;
+package com.cleanengine.coin.trade.domain.exception;
 
 import com.cleanengine.coin.order.domain.Order;
 import lombok.Getter;

@@ -1,11 +1,14 @@
-package com.cleanengine.coin.trade.adapter.out;
+package com.cleanengine.coin.trade.adapter.out.event;
 
-import com.cleanengine.coin.trade.application.TradeExecutedEvent;
-import com.cleanengine.coin.trade.port.out.TradeExecutedEventPublisherPort;
+import com.cleanengine.coin.trade.application.port.out.TradeExecutedEventPublisherPort;
+import com.cleanengine.coin.trade.domain.event.TradeExecutedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+/**
+ * 체결이 완료되었을 때 실시간 정보 전달(호가창, 차트, 체결내역 등)을 위해 발행
+ */
 @RequiredArgsConstructor
 @Service
 public class SpringTradeExecutedEventPublisher implements TradeExecutedEventPublisherPort {

@@ -3,7 +3,7 @@ package com.cleanengine.coin.chart.service;
 import com.cleanengine.coin.chart.dto.PrevRateDto;
 import com.cleanengine.coin.chart.dto.TradeEventDto;
 import com.cleanengine.coin.chart.repository.RealTimeTradeRepository;
-import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

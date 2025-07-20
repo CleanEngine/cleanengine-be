@@ -9,7 +9,9 @@ import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.out.TradeCommandRepository;
+import com.cleanengine.coin.trade.application.port.out.TradeQueryRepository;
+import com.cleanengine.coin.trade.application.service.TradeFlowService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,7 +39,10 @@ class TradeExecuteLoadTest {
     WaitingOrdersManager waitingOrdersManager;
 
     @Autowired
-    TradeRepository tradeRepository;
+    TradeQueryRepository tradeQueryRepository;
+
+    @Autowired
+    TradeCommandRepository tradeCommandRepository;
 
     @Autowired
     private TradeFlowService tradeFlowService;
@@ -75,7 +80,7 @@ class TradeExecuteLoadTest {
     void setUp() {
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
         waitingOrders.clearAllQueues();
-        tradeRepository.deleteAll();
+        tradeCommandRepository.deleteAll();
         sellOrderRepository.deleteAll();
         buyOrderRepository.deleteAll();
         tradeFlowService.setTestLatch(null);
@@ -169,7 +174,7 @@ class TradeExecuteLoadTest {
 
         // 큐와 DB 초기화
         waitingOrders.clearAllQueues();
-        tradeRepository.deleteAll();
+        tradeCommandRepository.deleteAll();
         sellOrderRepository.deleteAll();
         buyOrderRepository.deleteAll();
 
@@ -213,7 +218,7 @@ class TradeExecuteLoadTest {
         tradeFlowService.setTestLatch(null);
 
         // 결과 출력
-        long tradeCount = tradeRepository.count();
+        long tradeCount = tradeQueryRepository.count();
         System.out.print("체결 종료 - 체결내역[: " + tradeCount + "건]");
         System.out.println("잔여 주문[매도 " + sellOrderPriorityQueueStore.size() + "건, 매수 " + buyOrderPriorityQueueStore.size() + "건]");
         if (tradeCount != orderCount || !completed) {

@@ -7,8 +7,8 @@ import com.cleanengine.coin.chart.service.ChartSubscriptionService; // 의존성
 import com.cleanengine.coin.chart.service.RealTimeDataPrevRateService;
 import com.cleanengine.coin.chart.service.RealTimeTradeService;
 import com.cleanengine.coin.chart.service.WebsocketSendService;
-import com.cleanengine.coin.trade.application.TradeExecutedEvent;
-import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.trade.domain.event.TradeExecutedEvent;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;

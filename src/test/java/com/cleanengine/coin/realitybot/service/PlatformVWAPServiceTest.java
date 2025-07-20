@@ -1,8 +1,8 @@
 package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.realitybot.domain.PlatformVWAPState;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,7 +25,7 @@ public class PlatformVWAPServiceTest {
     private PlatformVWAPService platformVWAPService;
 
     @Mock
-    private TradeRepository tradeRepository;
+    private TradeQueryUseCase tradeQueryUseCase;
 
     @Mock
     private PlatformVWAPState platformVwapState;
@@ -40,7 +41,7 @@ public class PlatformVWAPServiceTest {
                 new Trade(3, "BTC", LocalDateTime.now(), 2, 1, 12000.0, 10.0) // 120000
         );//이게 적용되면 10000원대
         double apiVWAP = 1000.0; //0.1%의 보정값
-        when(tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker)).thenReturn(trades);
+        when(tradeQueryUseCase.findTop10ByTickerOrderByTradeTimeDesc(ticker)).thenReturn(trades);
 
         //when
         double result = platformVWAPService.calculateVWAPbyTrades(ticker, apiVWAP);
@@ -69,7 +70,7 @@ public class PlatformVWAPServiceTest {
                 new Trade(11, "BTC", LocalDateTime.now(), 2, 1, 20000.0, 10.0)  // 200000
         );
         double apiVWAP = 1000.0;
-        when(tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker)).thenReturn(trades);
+        when(tradeQueryUseCase.findTop10ByTickerOrderByTradeTimeDesc(ticker)).thenReturn(trades);
         when(platformVwapState.getVWAP()).thenReturn(15000.0);
         platformVWAPService.vwapMap.put(ticker, platformVwapState);
 

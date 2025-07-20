@@ -4,7 +4,7 @@ import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.spi.ActiveOrders;
 import com.cleanengine.coin.order.domain.spi.ActiveOrdersManager;
-import com.cleanengine.coin.trade.application.TradeExecutedEvent;
+import com.cleanengine.coin.trade.domain.event.TradeExecutedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;

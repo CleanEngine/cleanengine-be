@@ -1,4 +1,4 @@
-package com.cleanengine.coin.trade.application;
+package com.cleanengine.coin.trade.application.service;
 
 import com.cleanengine.coin.common.error.BusinessException;
 import com.cleanengine.coin.common.response.ErrorStatus;
@@ -7,8 +7,8 @@ import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrd
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.out.TradeCommandRepository;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,16 +17,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class TradeService {
 
-    private final TradeRepository tradeRepository;
+    private final TradeCommandRepository tradeCommandRepository;
+
     private final BuyOrderRepository buyOrderRepository;
+
     private final SellOrderRepository sellOrderRepository;
 
     public Trade save(Trade trade) {
-        return tradeRepository.save(trade);
+        return tradeCommandRepository.save(trade);
     }
 
+    // TODO: Port 분리
     @Transactional
-    public Order updateOrder(Order order){
+    public Order updateOrder(Order order) {
         if (order instanceof BuyOrder) {
             return buyOrderRepository.save((BuyOrder) order);
         } else if (order instanceof SellOrder) {

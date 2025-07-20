@@ -1,4 +1,4 @@
-package com.cleanengine.coin.trade.application;
+package com.cleanengine.coin.trade.application.dto;
 
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;

@@ -1,4 +1,4 @@
-package com.cleanengine.coin.trade.application;
+package com.cleanengine.coin.trade.application.service;
 
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
@@ -7,8 +7,10 @@ import com.cleanengine.coin.order.domain.spi.ActiveOrders;
 import com.cleanengine.coin.order.domain.spi.ActiveOrdersManager;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.out.TradeCommandRepository;
+import com.cleanengine.coin.trade.domain.exception.TradeZeroOrderException;
+import com.cleanengine.coin.trade.domain.model.Trade;
+import com.cleanengine.coin.trade.domain.model.TradePair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -26,9 +28,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TradeFlowService {
 
     private final TradeMatcher tradeMatcher;
+
     private final TradeExecutor tradeExecutor;
+
     private final WaitingOrdersManager waitingOrdersManager;
-    private final TradeRepository tradeRepository;
+
+    private final TradeCommandRepository tradeCommandRepository;
+
     private final ActiveOrdersManager activeOrdersManager;
 
     private CountDownLatch testLatch; // 테스트용 후크
@@ -64,7 +70,7 @@ public class TradeFlowService {
 
                 tradesToSave.add(trade);
                 if (tradesToSave.size() > 10000) {
-                    tradeRepository.saveAll(tradesToSave);
+                    tradeCommandRepository.saveAll(tradesToSave);
                     tradesToSave.clear();
                 }
 
@@ -85,7 +91,7 @@ public class TradeFlowService {
         }
 
         if (!tradesToSave.isEmpty()) {
-            tradeRepository.saveAll(tradesToSave);
+            tradeCommandRepository.saveAll(tradesToSave);
             tradesToSave.clear();
         }
 

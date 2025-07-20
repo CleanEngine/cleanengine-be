@@ -7,9 +7,13 @@ import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
-import org.junit.jupiter.api.*;
+import com.cleanengine.coin.trade.adapter.out.persistence.JpaTradeCommandRepository;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
+import com.cleanengine.coin.trade.domain.model.Trade;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -34,7 +38,10 @@ class TradeFlowServiceIntegrationTest {
     @Autowired
     SellOrderRepository sellOrderRepository;
     @Autowired
-    TradeRepository tradeRepository;
+    TradeQueryUseCase tradeQueryUseCase;
+    @Autowired
+    JpaTradeCommandRepository jpaTradeCommandRepository;
+
     @Autowired
     private WaitingOrdersManager waitingOrdersManager;
 
@@ -45,7 +52,7 @@ class TradeFlowServiceIntegrationTest {
     void setUp() {
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(ticker);
         waitingOrders.clearAllQueues();
-        tradeRepository.deleteAll();
+        jpaTradeCommandRepository.deleteAll();
         buyOrderRepository.deleteAll();
         sellOrderRepository.deleteAll();
     }
@@ -71,12 +78,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> tradeOfBuy = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> tradeOfSell = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> tradeOfBuy = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> tradeOfSell = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(tradeOfBuy, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, tradeOfBuy.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 
@@ -116,12 +123,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> byBuyUserIdAndTicker = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> bySellUserIdAndTicker = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> byBuyUserIdAndTicker = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> bySellUserIdAndTicker = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(byBuyUserIdAndTicker, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, byBuyUserIdAndTicker.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 
@@ -154,12 +161,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> byBuyUserIdAndTicker = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> bySellUserIdAndTicker = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> byBuyUserIdAndTicker = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> bySellUserIdAndTicker = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(byBuyUserIdAndTicker, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, byBuyUserIdAndTicker.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 
@@ -192,12 +199,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> byBuyUserIdAndTicker = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> bySellUserIdAndTicker = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> byBuyUserIdAndTicker = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> bySellUserIdAndTicker = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(byBuyUserIdAndTicker, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, byBuyUserIdAndTicker.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 
@@ -230,12 +237,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> byBuyUserIdAndTicker = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> bySellUserIdAndTicker = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> byBuyUserIdAndTicker = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> bySellUserIdAndTicker = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(byBuyUserIdAndTicker, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, byBuyUserIdAndTicker.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 
@@ -268,12 +275,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> byBuyUserIdAndTicker = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> bySellUserIdAndTicker = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> byBuyUserIdAndTicker = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> bySellUserIdAndTicker = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(byBuyUserIdAndTicker, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, byBuyUserIdAndTicker.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 
@@ -306,12 +313,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> byBuyUserIdAndTicker = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> bySellUserIdAndTicker = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> byBuyUserIdAndTicker = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> bySellUserIdAndTicker = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(byBuyUserIdAndTicker, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, byBuyUserIdAndTicker.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 
@@ -349,12 +356,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> byBuyUserIdAndTicker = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> bySellUserIdAndTicker = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> byBuyUserIdAndTicker = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> bySellUserIdAndTicker = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(byBuyUserIdAndTicker, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, byBuyUserIdAndTicker.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 
@@ -387,12 +394,12 @@ class TradeFlowServiceIntegrationTest {
                 .atMost(3, TimeUnit.SECONDS)
                 .pollInterval(100, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                    List<Trade> trades = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
+                    List<Trade> trades = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
                     return !trades.isEmpty();
                 });
 
-        List<Trade> byBuyUserIdAndTicker = tradeRepository.findByBuyUserIdAndTicker(1, ticker);
-        List<Trade> bySellUserIdAndTicker = tradeRepository.findBySellUserIdAndTicker(2, ticker);
+        List<Trade> byBuyUserIdAndTicker = tradeQueryUseCase.findByBuyUserIdAndTicker(1, ticker);
+        List<Trade> bySellUserIdAndTicker = tradeQueryUseCase.findBySellUserIdAndTicker(2, ticker);
         assertNotNull(byBuyUserIdAndTicker, "매수인의 거래 내역이 null이면 안됩니다");
         assertEquals(1, byBuyUserIdAndTicker.size(), "매수인의 거래 내역이 정확히 1개여야 합니다");
 

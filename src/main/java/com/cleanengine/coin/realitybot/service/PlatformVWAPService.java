@@ -1,8 +1,8 @@
 package com.cleanengine.coin.realitybot.service;
 
 import com.cleanengine.coin.realitybot.domain.PlatformVWAPState;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예정임
-    private final TradeRepository tradeRepository;
+    private final TradeQueryUseCase tradeQueryUseCase;
 
     Map<String, PlatformVWAPState> vwapMap = new ConcurrentHashMap<>();
     Map<String, LocalDateTime> lastTradeTimeMap = new ConcurrentHashMap<>();
@@ -25,7 +25,7 @@ public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예�
         LocalDateTime lastTradeTime = lastTradeTimeMap.get(ticker);
 
         //최근 체결 내역 가져오기
-        List<Trade> trades = tradeRepository.findTop10ByTickerOrderByTradeTimeDesc(ticker);
+        List<Trade> trades = tradeQueryUseCase.findTop10ByTickerOrderByTradeTimeDesc(ticker);
 
         if ( trades.size() < 10){
             //체결 내역이 10개 이하일 경우 자체 계산
@@ -46,7 +46,7 @@ public class PlatformVWAPService {//TODO 가상 시장 조회용 사라질 예�
         }
 
         if (!containsSameTime) {
-            trades = tradeRepository.findByTickerAndTradeTimeGreaterThanEqualOrderByTradeTimeDesc(ticker, lastTradeTime);
+            trades = tradeQueryUseCase.findByTickerAndTradeTimeGreaterThanEqualOrderByTradeTimeDesc(ticker, lastTradeTime);
             newestTime = trades.get(0).getTradeTime();
             lastTradeTimeMap.put(ticker, newestTime);
         }

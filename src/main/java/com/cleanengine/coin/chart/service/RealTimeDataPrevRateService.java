@@ -3,7 +3,7 @@ package com.cleanengine.coin.chart.service;
 import com.cleanengine.coin.chart.dto.PrevRateDto;
 import com.cleanengine.coin.chart.dto.TradeEventDto;
 import com.cleanengine.coin.chart.repository.RealTimeTradeRepository;
-import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;

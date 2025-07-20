@@ -1,8 +1,8 @@
 package com.cleanengine.coin.chart.service;
 
 import com.cleanengine.coin.chart.dto.RealTimeOhlcDto;
-import com.cleanengine.coin.trade.entity.Trade;
-import com.cleanengine.coin.trade.repository.TradeRepository;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
+import com.cleanengine.coin.trade.domain.model.Trade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class RealTimeOhlcService {
 
-    private final TradeRepository tradeRepository;
+    private final TradeQueryUseCase tradeRepository;
 
 
     private final Map<String, RealTimeOhlcDto> currentMinuteOhlcCache = new ConcurrentHashMap<>();

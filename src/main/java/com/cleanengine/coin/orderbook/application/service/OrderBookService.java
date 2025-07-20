@@ -7,6 +7,7 @@ import com.cleanengine.coin.orderbook.domain.OrderBookDomainService;
 import com.cleanengine.coin.orderbook.dto.ClosingPriceDto;
 import com.cleanengine.coin.orderbook.dto.OrderBookInfo;
 import com.cleanengine.coin.orderbook.dto.OrderBookUnitInfo;
+import com.cleanengine.coin.trade.application.port.in.TradeQueryUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
     private final OrderBookOrderInfoQueryService orderInfoQueryService;
     private final OrderBookDomainService orderBookDomainService;
     private final OrderBookUpdatedNotifierPort orderBookUpdatedNotifierPort;
-    private final TradeQueryService tradeQueryService;
+    private final TradeQueryUseCase tradeQueryUseCase;
 
     @Override
     public void updateOrderBookOnNewOrder(Order order) {
@@ -94,7 +95,7 @@ public class OrderBookService implements UpdateOrderBookUsecase, ReadOrderBookUs
 
     private ClosingPriceDto getYesterdayClosingPrice(String ticker){
         LocalDate yesterday = LocalDate.now().minusDays(1);
-        ClosingPriceDto closingPriceDto = tradeQueryService.getYesterdayClosingPrice(ticker, yesterday);
+        ClosingPriceDto closingPriceDto = tradeQueryUseCase.getYesterdayClosingPrice(ticker, yesterday);
 
         if(closingPriceDto == null) {
             closingPriceDto = new ClosingPriceDto(ticker, yesterday, 0.0);

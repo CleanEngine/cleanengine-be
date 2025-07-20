@@ -1,13 +1,10 @@
 package com.cleanengine.coin.trade.application;
 
-import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
-import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.SellOrder;
+import com.cleanengine.coin.trade.adapter.in.event.TradeExecutedNotificationHandler;
+import com.cleanengine.coin.trade.application.dto.TradeOrderCompletedNotifyDto;
+import com.cleanengine.coin.trade.domain.event.TradeOrderCompletedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +14,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
+
+import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
+import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @DisplayName("체결 알림 단위테스트")
 @ExtendWith(MockitoExtension.class)
@@ -37,7 +40,7 @@ class TradeExecutedNotificationHandlerTest {
     void shouldSendNotificationsForValidTrade() {
         // given
         SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, "BTC", 3, 5.0, 130_000_000.0, LocalDateTime.now(), false);
-        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEvent.of(sellOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
@@ -52,7 +55,7 @@ class TradeExecutedNotificationHandlerTest {
     void shouldSendNotificationsForValidTrade2() {
         // given
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 4, 5.0, 130_000_000.0, LocalDateTime.now(), false);
-        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(buyOrder);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEvent.of(buyOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
@@ -67,7 +70,7 @@ class TradeExecutedNotificationHandlerTest {
     void shouldNotSendNotificationForNullBuyUserId() {
         // given
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", null, 5.0, 130_000_000.0, LocalDateTime.now(), false);
-        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(buyOrder);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEvent.of(buyOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
@@ -81,7 +84,7 @@ class TradeExecutedNotificationHandlerTest {
     void shouldNotSendNotificationForNullSellUserId() {
         // given
         SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, "BTC", null, 5.0, 130_000_000.0, LocalDateTime.now(), false);
-        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEvent.of(sellOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
@@ -96,8 +99,8 @@ class TradeExecutedNotificationHandlerTest {
         // given
         SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, "BTC", SELL_ORDER_BOT_ID, 5.0, 130_000_000.0, LocalDateTime.now(), false);
         BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(2L, "BTC", BUY_ORDER_BOT_ID, 5.0, 130_000_000.0, LocalDateTime.now(), false);
-        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(sellOrder);
-        TradeOrderCompletedEvent event2 = TradeOrderCompletedEventImpl.of(buyOrder);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEvent.of(sellOrder);
+        TradeOrderCompletedEvent event2 = TradeOrderCompletedEvent.of(buyOrder);
 
         // when
         handler.notifyAfterTradeExecuted(event);
@@ -111,7 +114,7 @@ class TradeExecutedNotificationHandlerTest {
     @Test
     void shouldNotSendNotificationForNullTrade() {
         // given
-        TradeOrderCompletedEvent event = TradeOrderCompletedEventImpl.of(null);
+        TradeOrderCompletedEvent event = TradeOrderCompletedEvent.of(null);
 
         // when
         handler.notifyAfterTradeExecuted(event);

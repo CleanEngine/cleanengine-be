@@ -1,7 +1,7 @@
-package com.cleanengine.coin.trade.event;
+package com.cleanengine.coin.trade.adapter.in.event;
 
 import com.cleanengine.coin.order.application.event.OrderInsertedToQueue;
-import com.cleanengine.coin.trade.application.TradeFlowService;
+import com.cleanengine.coin.trade.application.service.TradeFlowService;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -13,18 +13,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * 주문이 큐에 들어오면 체결이 작동되도록 하는 리스너
+ */
 @Component
 @Order(4)
 @RequiredArgsConstructor
 public class OrderInsertedQueueStartMatchingHandler {
+
     private final Map<String, ExecutorService> tickerExecutorServices = new ConcurrentHashMap<>();
+
     private final TradeFlowService tradeFlowService;
 
     @EventListener
     public void handleOrderInserted(OrderInsertedToQueue orderInsertedToQueue) {
         String ticker = orderInsertedToQueue.order().getTicker();
 
-        if(!tickerExecutorServices.containsKey(ticker)) {
+        if (!tickerExecutorServices.containsKey(ticker)) {
             addThreadExecutor(ticker);
         }
 
@@ -37,7 +42,7 @@ public class OrderInsertedQueueStartMatchingHandler {
             return;
         }
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor(r->{
+        ExecutorService executorService = Executors.newSingleThreadExecutor(r -> {
             Thread thread = new Thread(r);
             thread.setName("Trade-" + ticker);
             return thread;
@@ -50,4 +55,5 @@ public class OrderInsertedQueueStartMatchingHandler {
     public void shutdown() {
         tickerExecutorServices.values().forEach(ExecutorService::shutdown);
     }
+
 }

@@ -6,6 +6,7 @@ import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.trade.entity.Trade;
+import com.cleanengine.coin.trade.port.out.TradeExecutedEventPublisherPort;
 import com.cleanengine.coin.user.info.application.AccountService;
 import com.cleanengine.coin.user.info.application.WalletService;
 import lombok.Getter;
@@ -26,10 +27,14 @@ import static com.cleanengine.coin.common.CommonValues.approxEquals;
 public class TradeExecutor {
 
     private final WalletService walletService;
+
     private final AccountService accountService;
+
     @Getter
-    private final TradeExecutedEventPublisher tradeExecutedEventPublisher;
+    private final TradeExecutedEventPublisherPort tradeExecutedEventPublisher;
+
     private final TradeOrderCompletedEventPublisher tradeOrderCompletedEventPublisher;
+
     private final TradeService tradeService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
@@ -129,6 +134,7 @@ public class TradeExecutor {
     }
 
     private record TradeUnitPriceAndSize(double tradedSize, double tradedPrice) {
+
     }
 
     private static double getTradedUnitPrice(BuyOrder buyOrder, SellOrder sellOrder) {
@@ -164,7 +170,7 @@ public class TradeExecutor {
 
         if (order instanceof BuyOrder buyOrder) {
             isOrderCompleted = (isMarketOrder(buyOrder) && approxEquals(buyOrder.getRemainingDeposit(), 0.0)) ||
-                (isLimitOrder(buyOrder) && approxEquals(buyOrder.getRemainingSize(), 0.0));
+                    (isLimitOrder(buyOrder) && approxEquals(buyOrder.getRemainingSize(), 0.0));
         } else if (order instanceof SellOrder sellOrder) {
             isOrderCompleted = approxEquals(sellOrder.getRemainingSize(), 0.0);
         }

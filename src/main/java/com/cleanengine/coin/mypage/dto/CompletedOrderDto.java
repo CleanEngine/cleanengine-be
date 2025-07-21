@@ -5,7 +5,6 @@ import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.OrderType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 

@@ -3,7 +3,6 @@ package com.cleanengine.coin.mypage.service;
 import com.cleanengine.coin.mypage.dto.CompletedOrderDto;
 import com.cleanengine.coin.mypage.dto.PagedCompletedOrdersDto;
 import com.cleanengine.coin.mypage.repository.CompletedBuyOrderRepository;
-import com.cleanengine.coin.mypage.repository.CompletedOrderRepository;
 import com.cleanengine.coin.mypage.repository.CompletedSellOrderRepository;
 import com.cleanengine.coin.order.OrderSide;
 import com.cleanengine.coin.order.adapter.out.persistentce.asset.AssetRepository;
@@ -11,23 +10,18 @@ import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.OrderStatus;
 import com.cleanengine.coin.order.domain.OrderType;
 import com.cleanengine.coin.order.domain.SellOrder;
-import com.cleanengine.coin.trade.entity.Trade;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
 public class CompletedOrderService {
-    private final CompletedOrderRepository completedOrderRepository;
     private final CompletedBuyOrderRepository completedBuyOrderRepository;
     private final CompletedSellOrderRepository completedSellOrderRepository;
     private final AssetRepository assetRepository;
@@ -72,7 +66,6 @@ public class CompletedOrderService {
                                 ,s.getCreatedAt())).toList();
         List<CompletedOrderDto> completedOrderDtos = Stream.concat(buyDtos.stream(),sellDtos.stream())
                 .sorted(Comparator.comparing(CompletedOrderDto::getTradeTime).reversed()).toList();
-//        System.out.println("============ service : "+trades.get(0).getId()+"==================");
         long totalElements = totalBuyOrders + totalSellOrders;
 
         int totalPages = (int) Math.ceil((double)totalElements / pageSize);

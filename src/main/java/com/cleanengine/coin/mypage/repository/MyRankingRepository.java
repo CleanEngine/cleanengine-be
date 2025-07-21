@@ -14,5 +14,4 @@ public interface MyRankingRepository extends JpaRepository<Wallet,Integer> {
      *
      **/
     List<Wallet> findAllByAccountId(Integer accountId);
-    Wallet findFirstByAccountId(Integer accountId);
 }

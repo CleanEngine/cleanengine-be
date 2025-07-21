@@ -1,7 +1,6 @@
 package com.cleanengine.coin.mypage.controller;
 
 import com.cleanengine.coin.common.response.ApiResponse;
-import com.cleanengine.coin.mypage.dto.CompletedOrderDto;
 import com.cleanengine.coin.mypage.dto.PagedCompletedOrdersDto;
 import com.cleanengine.coin.mypage.service.CompletedOrderService;
 import com.cleanengine.coin.user.login.infra.CustomOAuth2User;
@@ -9,11 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor

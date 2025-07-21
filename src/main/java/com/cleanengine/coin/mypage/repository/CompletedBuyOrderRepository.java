@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CompletedBuyOrderRepository extends JpaRepository<BuyOrder, Long> {
-    List<BuyOrder> findAllByUserIdOrderByCreatedAtDesc(Integer userId);
-    List<BuyOrder> findAllByUserIdAndIsBotFalse(Integer userId);
     Page<BuyOrder> findByUserId(Integer userId, Pageable pageable);
     long countByUserId(Integer userId);
 

@@ -9,6 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PagedCompletedOrdersDto {
     private int totalPages;
+    private long totalElements;
     private int currentPage;
     private int pageSize;
     private List<CompletedOrderDto> completedOrders;

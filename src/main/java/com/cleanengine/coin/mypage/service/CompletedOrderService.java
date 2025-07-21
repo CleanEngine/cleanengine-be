@@ -27,7 +27,6 @@ public class CompletedOrderService {
     private final AssetRepository assetRepository;
 
     public PagedCompletedOrdersDto getCompletedOrders(Integer userId, int currentPage, int pageSize, boolean settled) {//todo cursortradetime, long cursorid, int pageisze 받기
-        System.out.println("============ service : "+userId+"==================");
         //커서기반에서 오프셋 기반으로 변경
         PageRequest pageRequest = PageRequest.of(currentPage, pageSize, Sort.by(Sort.Direction.DESC,"createdAt","id"));
         List<BuyOrder> buyOrders;
@@ -70,7 +69,7 @@ public class CompletedOrderService {
 
         int totalPages = (int) Math.ceil((double)totalElements / pageSize);
 
-        return new PagedCompletedOrdersDto(totalPages,currentPage,pageSize,completedOrderDtos);
+        return new PagedCompletedOrdersDto(totalPages,totalElements,currentPage,pageSize,completedOrderDtos);
     }
         private double calcDisplaySize(OrderStatus orderStatus,Double orderSize,Double remainingSize) {
             if (orderStatus == null) return 0.0;

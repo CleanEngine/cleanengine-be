@@ -7,12 +7,17 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Account> findByUserId(Integer userId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Account a WHERE a.userId IN (1, 2)")
+    List<Account> findAccountsOfBot();
 
     @Modifying(flushAutomatically = true)
     @Query("UPDATE Account a SET a.cash = a.cash + :amount WHERE a.userId = :userId")

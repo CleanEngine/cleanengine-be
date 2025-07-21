@@ -17,7 +17,7 @@ import java.util.Objects;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public abstract class Order {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
     protected Long id;
 
     @Column(name="ticker", length = 10, nullable = false, updatable = false)

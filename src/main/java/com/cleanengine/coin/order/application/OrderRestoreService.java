@@ -6,12 +6,14 @@ import com.cleanengine.coin.order.adapter.out.persistentce.order.query.SellOrder
 import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.Order;
 import com.cleanengine.coin.order.domain.SellOrder;
+import com.cleanengine.coin.order.domain.spi.ActiveOrdersManager;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import com.cleanengine.coin.order.domain.spi.WaitingOrdersManager;
 import com.cleanengine.coin.orderbook.application.service.UpdateOrderBookUsecase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,6 +28,8 @@ public class OrderRestoreService implements ApplicationRunner {
     private final UpdateOrderBookUsecase updateOrderBookUsecase;
     private final BuyOrderQueryRepository buyOrderQueryRepository;
     private final SellOrderQueryRepository sellOrderQueryRepository;
+    private final ActiveOrdersManager activeOrdersManager;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -33,11 +37,20 @@ public class OrderRestoreService implements ApplicationRunner {
         buyOrders.forEach(this::restoreOrder);
         List<SellOrder> sellOrders = sellOrderQueryRepository.findIncompletedSellOrders();
         sellOrders.forEach(this::restoreOrder);
+
+        applicationEventPublisher.publishEvent(new OrderRestoreCompleted());
     }
 
     protected void restoreOrder(Order order){
         WaitingOrders waitingOrders = waitingOrdersManager.getWaitingOrders(order.getTicker());
         waitingOrders.addOrder(order);
+
+        activeOrdersManager.getActiveOrders(order.getTicker()).saveOrder(order);
+
         updateOrderBookUsecase.updateOrderBookOnRestored(order);
+    }
+
+    public static class OrderRestoreCompleted {
+
     }
 }

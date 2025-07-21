@@ -57,8 +57,8 @@ class TradeFlowServiceIntegrationTest {
     void testLimitToLimitCompleteTrade() {
         double orderSize = 10.0;
         double price = 130_000_000.0;
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, orderSize, price, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, orderSize, price, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, ticker, 1, orderSize, price, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, ticker, 2, orderSize, price, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
@@ -102,8 +102,8 @@ class TradeFlowServiceIntegrationTest {
     @DisplayName("지정가매수-지정가매도 매도부분체결")
     @Test
     void testLimitToLimitPartialTrade1() {
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 5.0, 130_000_000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, ticker, 1, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
@@ -140,8 +140,8 @@ class TradeFlowServiceIntegrationTest {
     @DisplayName("지정가매수-지정가매도 매수부분체결")
     @Test
     void testLimitToLimitPartialTrade2() {
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 5.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, ticker, 2, 5.0, 130_000_000.0, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
@@ -178,8 +178,8 @@ class TradeFlowServiceIntegrationTest {
     @DisplayName("시장가매수-지정가매도 완전체결")
     @Test
     void testMarketToLimitCompleteTrade1() {
-        BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(ticker, 1, 1_300_000_000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(1L, ticker, 1, 1_300_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
@@ -216,8 +216,8 @@ class TradeFlowServiceIntegrationTest {
     @DisplayName("지정가매수-시장가매도 완전체결")
     @Test
     void testMarketToLimitCompleteTrade2() {
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createMarketSellOrder(ticker, 2, 10.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createMarketSellOrder(1L, ticker, 2, 10.0, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
@@ -254,8 +254,8 @@ class TradeFlowServiceIntegrationTest {
     @DisplayName("시장가매수-지정가매도 매도부분체결")
     @Test
     void testMarketToLimitPartialTrade1() {
-        BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(ticker, 1, 130_000_000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(1L, ticker, 1, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, ticker, 2, 10.0, 130_000_000.0, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
@@ -292,8 +292,8 @@ class TradeFlowServiceIntegrationTest {
     @DisplayName("시장가매수-지정가매도 매수부분체결")
     @Test
     void testMarketToLimitPartialTrade2() {
-        BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(ticker, 1, 1_300_000_000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createLimitSellOrder(ticker, 2, 1.0, 130_000_000.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createMarketBuyOrder(1L, ticker, 1, 1_300_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createLimitSellOrder(1L, ticker, 2, 1.0, 130_000_000.0, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
@@ -335,8 +335,8 @@ class TradeFlowServiceIntegrationTest {
     @DisplayName("지정가매수-시장가매도 매수부분체결")
     @Test
     void testMarketToLimitPartialTrade3() {
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createMarketSellOrder(ticker, 2, 1.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, ticker, 1, 10.0, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createMarketSellOrder(1L, ticker, 2, 1.0, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);
@@ -373,8 +373,8 @@ class TradeFlowServiceIntegrationTest {
     @DisplayName("지정가매수-시장가매도 매도부분체결")
     @Test
     void testMarketToLimitPartialTrade4() {
-        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(ticker, 1, 1.0, 130_000_000.0, LocalDateTime.now(), false);
-        SellOrder sellOrder = SellOrder.createMarketSellOrder(ticker, 2, 10.0, LocalDateTime.now(), false);
+        BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, ticker, 1, 1.0, 130_000_000.0, LocalDateTime.now(), false);
+        SellOrder sellOrder = SellOrder.createMarketSellOrder(1L, ticker, 2, 10.0, LocalDateTime.now(), false);
 
         buyOrderRepository.save(buyOrder);
         sellOrderRepository.save(sellOrder);

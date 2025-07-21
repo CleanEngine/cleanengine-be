@@ -34,6 +34,9 @@ public class SecurityConfig {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    @Value("${spring.security.allowed-origins}")
+    private List<String> allowedOrigins;
+
     public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
                           CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil, EndpointConfig endpointConfig) {
         this.customOAuth2UserService = customOAuth2UserService;
@@ -45,12 +48,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         String frontendBaseUrl = buildBaseUrl(new URI(frontendUrl));
+        allowedOrigins.add(frontendBaseUrl);
 
         http
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
                     CorsConfiguration configuration = new CorsConfiguration();
 
-                    configuration.setAllowedOrigins(List.of(frontendBaseUrl,"http://localhost:63343"));
+                    configuration.setAllowedOrigins(allowedOrigins);
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));

@@ -7,4 +7,5 @@ public interface UpdateOrderBookUsecase {
     void updateOrderBookOnNewOrder(Order order);
     void updateOrderBookOnRestored(Order order);
     void updateOrderBookOnTradeExecuted(String ticker, Long buyOrderId, Long sellOrderId, Double orderSize);
+    void updateOrderBookOnOrderCanceled(Order order);
 }

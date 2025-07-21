@@ -9,6 +9,11 @@ import com.cleanengine.coin.order.domain.SellOrder;
 import com.cleanengine.coin.order.domain.spi.WaitingOrders;
 import lombok.AllArgsConstructor;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @AllArgsConstructor
 public class InMemoryWaitingOrders implements WaitingOrders {
     private final String ticker;
@@ -74,6 +79,18 @@ public class InMemoryWaitingOrders implements WaitingOrders {
                 limitSellOrderPriorityQueueStore.remove((SellOrder) order);
             }
         }
+    }
+
+    @Override
+    public List<Order> removeAllByUserId(int userId) {
+        return Stream.of(
+                        limitSellOrderPriorityQueueStore.removeAllByUserId(userId),
+                        limitBuyOrderPriorityQueueStore.removeAllByUserId(userId),
+                        marketSellOrderPriorityQueueStore.removeAllByUserId(userId),
+                        marketBuyOrderPriorityQueueStore.removeAllByUserId(userId)
+                )
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     @Override

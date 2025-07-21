@@ -114,7 +114,7 @@ class OrderTest {
         @DisplayName("null인 amount로 decreaseRemainingSize 호출시, Exception을 반환한다.")
         @Test
         void decreaseRemainingSizeWithNullAmount_throwsException() {
-            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 10.0, LocalDateTime.now(), false);
+            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 10.0, LocalDateTime.now(), false);
 
             assertThrows(IllegalArgumentException.class, () -> buyOrder.decreaseRemainingSize(null));
         }
@@ -122,7 +122,7 @@ class OrderTest {
         @DisplayName("remainingSize보다 큰 amount로 decreaseRemainingSize 호출시, Exception을 반환한다.")
         @Test
         void decreaseRemainingSizeWithBiggerAmount_throwsException() {
-            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 10.0, LocalDateTime.now(), false);
+            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 10.0, LocalDateTime.now(), false);
 
             assertThrows(IllegalArgumentException.class, () -> buyOrder.decreaseRemainingSize(200.0));
         }
@@ -130,7 +130,7 @@ class OrderTest {
         @DisplayName("remainingSize보다 작은 amount로 decreaseRemainingSize 호출시, 정상 적용된다.")
         @Test
         void decreaseRemainingSizeWithSmallerAmount_resultAsExpected() {
-            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder("BTC", 1, 100.0, 10.0, LocalDateTime.now(), false);
+            BuyOrder buyOrder = BuyOrder.createLimitBuyOrder(1L, "BTC", 1, 100.0, 10.0, LocalDateTime.now(), false);
 
             buyOrder.decreaseRemainingSize(90.0);
 

@@ -22,8 +22,8 @@ public class OrderBookUpdatedNotifierAdapterTest extends WebSocketTest {
     @Test
     public void getOrderBooks() throws Exception {
         OrderBookInfo orderBookInfo = new OrderBookInfo("BTC",
-                List.of(new OrderBookUnitInfo(1.0, 1.0)),
-                List.of(new OrderBookUnitInfo( 2.0, 2.0)));
+                List.of(new OrderBookUnitInfo(1.0, 1.0, 0.0)),
+                List.of(new OrderBookUnitInfo( 2.0, 2.0, 0.0)));
 
         session.subscribe("/topic/orderbook/BTC",
                 new GenericStompFrameHandler<>(OrderBookInfo.class, responseQueue));

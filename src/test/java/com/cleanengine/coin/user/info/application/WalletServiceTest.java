@@ -4,6 +4,7 @@ import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.infra.AccountRepository;
 import com.cleanengine.coin.user.info.infra.WalletRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("지갑 서비스-Repository 통합테스트")
-@ActiveProfiles({"dev", "h2-mem"})
+@ActiveProfiles({"dev", "it", "h2-mem"})
 @Transactional
 @SpringBootTest
 class WalletServiceTest {
@@ -36,11 +37,20 @@ class WalletServiceTest {
     @BeforeEach
     void setUp() {
         // given
-        testAccount = Account.of(3, 0.0);
+        int userId = 3;
+        testAccount = Account.of(userId, 0.0);
+        accountRepository.findById(userId).ifPresent(accountRepository::delete);
         accountRepository.save(testAccount);
+        walletRepository.deleteAll(walletRepository.findByAccountId(testAccount.getId()));
 
-        Wallet testWallet = Wallet.of("BTC", testAccount.getId(), 1000.0);
+        Wallet testWallet = Wallet.of("BTC", testAccount.getId(), 0.0, 1000.0);
         walletRepository.save(testWallet);
+    }
+
+    @AfterEach
+    void tearDown() {
+        accountRepository.findById(testAccount.getUserId()).ifPresent(accountRepository::delete);
+        walletRepository.deleteAll(walletRepository.findByAccountId(testAccount.getId()));
     }
 
     @DisplayName("계좌 ID로 조회 시 지갑이 정상 반환된다.")
@@ -58,7 +68,7 @@ class WalletServiceTest {
     @Test
     void save_thenCreateNewWallet() {
         // when
-        Wallet newWallet = Wallet.of("TRUMP", testAccount.getId(), 5000.0);
+        Wallet newWallet = Wallet.of("TRUMP", testAccount.getId(), 0.0, 5000.0);
         Wallet savedWallet = walletService.save(newWallet);
 
         // then

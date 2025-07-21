@@ -55,7 +55,6 @@ public class RankingSchedulerService {
             double totalValue = cash + purchaseValue;
             double roi = (purchaseValue == 0) ? 0 : ((totalValue - purchaseValue / purchaseValue) * 100);
             roiCache.put(userId, roi);
-            System.out.println("userid : "+userId+" / roi : "+roi);
         }
         getRankingAll();
     }

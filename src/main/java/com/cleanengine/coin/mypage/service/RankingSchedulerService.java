@@ -1,5 +1,6 @@
 package com.cleanengine.coin.mypage.service;
 
+import com.cleanengine.coin.mypage.dto.PagedRankingsDto;
 import com.cleanengine.coin.mypage.dto.RankingDto;
 import com.cleanengine.coin.mypage.infra.CurrentPriceCache;
 import com.cleanengine.coin.mypage.repository.MyRankingRepository;
@@ -16,6 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
+import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
+
 @RequiredArgsConstructor
 @Service
 public class RankingSchedulerService {
@@ -25,6 +29,7 @@ public class RankingSchedulerService {
     private final Map<Integer,Double> roiCache = new ConcurrentHashMap<>();
     private final CurrentPriceCache currentPriceCache;
     private List<RankingDto> rankingDtoList = new ArrayList<>();
+    private static final Set<Integer> EXCLUDED_USER_IDS = Set.of(BUY_ORDER_BOT_ID,SELL_ORDER_BOT_ID);
 
 
 
@@ -59,8 +64,10 @@ public class RankingSchedulerService {
 
     public void getRankingAll(){
         AtomicInteger rank = new AtomicInteger(1);
+
         rankingDtoList = roiCache.entrySet().stream()
-                .sorted(Map.Entry.<Integer, Double>comparingByValue().reversed())
+                .filter(entry -> !EXCLUDED_USER_IDS.contains(entry.getKey())) //봇 유저 필터
+                .sorted(Map.Entry.<Integer, Double>comparingByValue().reversed()) //value값으로 랭킹 정렬
                 .map(e -> new RankingDto(
                         rank.getAndIncrement(),
                         e.getKey(),
@@ -68,7 +75,36 @@ public class RankingSchedulerService {
                 ))
                 .collect(Collectors.toList());
     }
+    public PagedRankingsDto getAllRanking(int page, int size){
+        List<RankingDto> currentRankingList = this.rankingDtoList;
+        long totalElements = currentRankingList.size();
+        int totalPages = (int)Math.ceil((double)totalElements / size);
 
+        //유효성
+        if (page<0) page = 0;
+        if (size<=0) size = 10;
+        if (page >= totalPages && totalPages > 0) {
+            page = totalPages - 1; //마지막 페이지 넘어가기 방어
+            }
+
+
+        //유저가 없으면 빈 배열
+        if (totalElements == 0 || page >= totalPages) { // +page 요청 수 넘어가면 추가 방어
+            return new PagedRankingsDto(totalPages,totalElements,page,size,Collections.emptyList());
+        }
+
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, (int) totalElements);
+
+        List<RankingDto> pageContent;
+        if (startIndex >= totalElements) {
+            pageContent = Collections.emptyList();
+        } else {
+            pageContent = currentRankingList.subList(startIndex, endIndex);
+        }
+
+        return new PagedRankingsDto(totalPages,totalElements,page,size,pageContent);
+    }
     public List<RankingDto> getMyRanking(Integer userId){
         int myIndex = IntStream.range(0, rankingDtoList.size())
                 .filter(i -> rankingDtoList.get(i).getId().equals(userId))

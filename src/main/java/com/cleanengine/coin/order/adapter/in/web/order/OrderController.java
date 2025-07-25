@@ -36,10 +36,10 @@ public class OrderController {
                 .toResponseEntity();
     }
 
-    @PostMapping("/{orderId}/cancel")
+    @DeleteMapping
     public ResponseEntity<ApiResponse<OrderCancelResult>> cancelOrder(
             @AuthenticationPrincipal CustomOAuth2User user,
-            @PathVariable Long orderId) {
+            @RequestParam Long orderId) {
         if (orderId == null) throw new IllegalArgumentException("orderId cannot be null.");
 
         OrderCancelResult orderCancelResult = orderCancelService.cancelOrder(orderId, user.getUserId());

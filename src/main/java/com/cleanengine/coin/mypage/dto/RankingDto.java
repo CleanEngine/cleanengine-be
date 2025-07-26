@@ -8,5 +8,5 @@ import lombok.Getter;
 public class RankingDto {
     private Integer ranking;
     private Integer id;
-    private Double price;
+    private Double roi;
 }

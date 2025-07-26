@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class CompletedOrderDto {
+public class OrderListDto {
     private OrderSide side;
     private OrderStatus orderStatus;
     private OrderType orderType;

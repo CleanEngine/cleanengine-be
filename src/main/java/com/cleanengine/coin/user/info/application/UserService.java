@@ -47,6 +47,7 @@ public class UserService {
 
     private List<UserWalletDTO> convertToDTO(List<Wallet> wallets) {
         return wallets.stream()
+                .filter(w -> w.getSize() > 0.0)
                 .map(w -> {
                     Double currentPrice = assetService.getCurrentPrice(w.getTicker());
                     Double roi;

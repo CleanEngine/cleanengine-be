@@ -80,19 +80,21 @@ public class RankingSchedulerService {
         int totalPages = (int)Math.ceil((double)totalElements / size);
 
         //유효성
-        if (page<0) page = 0;
+        int adjustedPage = page -1;
+
+        if (adjustedPage<0) adjustedPage = 0;
         if (size<=0) size = 10;
-        if (page >= totalPages && totalPages > 0) {
-            page = totalPages - 1; //마지막 페이지 넘어가기 방어
+        if (adjustedPage >= totalPages && totalPages > 0) {
+            adjustedPage = totalPages - 1; //마지막 페이지 넘어가기 방어
             }
 
 
         //유저가 없으면 빈 배열
-        if (totalElements == 0 || page >= totalPages) { // +page 요청 수 넘어가면 추가 방어
+        if (totalElements == 0) { // +page 요청 수 넘어가면 추가 방어
             return new PagedRankingsDto(totalPages,totalElements,page,size,Collections.emptyList());
         }
 
-        int startIndex = page * size;
+        int startIndex = adjustedPage * size;
         int endIndex = Math.min(startIndex + size, (int) totalElements);
 
         List<RankingDto> pageContent;

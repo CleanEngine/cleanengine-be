@@ -18,7 +18,7 @@ public class OrderListController {
     private final OrderListService orderListService;
     @GetMapping("/trades")
     public ResponseEntity<ApiResponse<PagedOrderListDto>> getOrderList(@AuthenticationPrincipal CustomOAuth2User user,
-                                                                            @RequestParam(defaultValue = "0") int page,
+                                                                            @RequestParam(defaultValue = "1") int page,
                                                                             @RequestParam(defaultValue = "10") int size,
                                                                             @RequestParam(defaultValue = "false") boolean settled) {
         Integer userId = user.getUserId();

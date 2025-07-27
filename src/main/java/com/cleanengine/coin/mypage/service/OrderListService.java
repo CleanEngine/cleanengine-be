@@ -28,7 +28,8 @@ public class OrderListService {
 
     public PagedOrderListDto getOrderList(Integer userId, int currentPage, int pageSize, boolean settled) {//todo cursortradetime, long cursorid, int pageisze 받기
         //커서기반에서 오프셋 기반으로 변경
-        PageRequest pageRequest = PageRequest.of(currentPage, pageSize, Sort.by(Sort.Direction.DESC,"createdAt","id"));
+        int adjustedPage = currentPage - 1;
+        PageRequest pageRequest = PageRequest.of(adjustedPage, pageSize, Sort.by(Sort.Direction.DESC,"createdAt","id"));
         List<BuyOrder> buyOrders;
         List<SellOrder> sellOrders;
         long totalBuyOrders;

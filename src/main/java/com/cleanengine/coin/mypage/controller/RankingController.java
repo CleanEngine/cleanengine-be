@@ -27,7 +27,7 @@ public class RankingController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<PagedRankingsDto>> getAllRanking(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<ApiResponse<PagedRankingsDto>> getAllRanking(@RequestParam(defaultValue = "1") int page,
                                                                        @RequestParam(defaultValue = "10") int size) {
         PagedRankingsDto rankingDtos = rankingSchedulerService.getAllRanking(page,size);
         return ApiResponse.success(rankingDtos, HttpStatus.OK).toResponseEntity();

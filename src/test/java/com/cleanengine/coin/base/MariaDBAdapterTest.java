@@ -1,6 +1,6 @@
 package com.cleanengine.coin.base;
 
-import com.cleanengine.coin.configuration.TimeZoneConfig;
+import com.cleanengine.coin.configuration.TimeConfig;
 import com.cleanengine.coin.tool.extension.MariaDBTestContainerExtension;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -27,7 +27,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
 @ActiveProfiles({"dev", "it"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(MariaDBTestContainerExtension.class)
-@Import(TimeZoneConfig.class)
+@Import(TimeConfig.class)
 @Sql(
         scripts = "classpath:db/mariadb/data/delete.sql",
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,

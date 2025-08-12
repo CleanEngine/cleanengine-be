@@ -25,6 +25,7 @@ public class Wallet {
     @Column(name = "size", nullable = false)
     private Double size;
 
+    // TODO : 값 없는 경우 0 대신 null로 처리할 것
     @Column(name = "buy_price")
     private Double buyPrice;
 
@@ -50,35 +51,63 @@ public class Wallet {
                 .build();
     }
 
-    public static Wallet of(String ticker, Integer accountId, Double size) {
+    public static Wallet of(String ticker, Integer accountId, Double buyPrice, Double size) {
         return Wallet.builder()
                 .ticker(ticker)
                 .accountId(accountId)
                 .size(size)
-                .buyPrice(0.0)
+                .buyPrice(buyPrice)
                 .roi(0.0)
                 .build();
     }
 
-    public static Wallet generateEmptyWallet(String ticker, Integer accountId){
-        Wallet wallet = new Wallet();
-        wallet.setTicker(ticker);
-        wallet.setAccountId(accountId);
-        wallet.setSize(0.0);
-        wallet.setBuyPrice(0.0);
-        wallet.setRoi(0.0);
-        return wallet;
-    }
-
     public void decreaseSize(Double orderSize) {
-        if(orderSize <= 0){
+        if (orderSize <= 0) {
             throw new IllegalArgumentException("orderSize must be greater than zero.");
         }
 
-        if(this.getSize() < orderSize){
+        if (this.getSize() < orderSize) {
             throw new IllegalArgumentException("Cannot decrease size. Available size: " + this.getSize() + ", requested: " + orderSize);
         }
 
         this.size = this.getSize() - orderSize;
     }
+
+    public void increaseSize(Double orderSize) {
+        if (orderSize <= 0) {
+            throw new IllegalArgumentException("orderSize must be greater than zero.");
+        }
+
+        this.size = this.getSize() + orderSize;
+    }
+
+    public void reset(double initialSize) {
+        this.size = initialSize;
+        this.buyPrice = 0.0;
+        this.roi = 0.0;
+    }
+
+    /**
+     * 매수 후처리 (평균 매수 단가, 수량 갱신)
+     *
+     * @param price     매수 가격
+     * @param addedSize 매수 수량
+     */
+    public void updateAfterPurchase(double price, double addedSize) {
+        if (price <= 0) {
+            throw new IllegalArgumentException("price must be greater than zero.");
+        }
+        if (addedSize <= 0) {
+            throw new IllegalArgumentException("addedSize must be greater than zero.");
+        }
+
+        if (this.buyPrice == 0) {
+            this.buyPrice = price;
+        } else {
+            this.buyPrice = (this.buyPrice * this.size + price * addedSize) / (this.size + addedSize);
+        }
+
+        this.size += addedSize;
+    }
+
 }

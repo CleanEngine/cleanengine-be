@@ -76,6 +76,18 @@ public class BaseExceptionHandler {
         return ApiResponse.fail(response).toResponseEntity();
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException e) {
+        final ErrorResponse response = ErrorResponse.of(ErrorStatus.INVALID_INPUT_VALUE);
+        return ApiResponse.fail(response).toResponseEntity();
+    }
+
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    protected ResponseEntity<ApiResponse<Object>> handleUnauthorizedAccessException(UnauthorizedAccessException e) {
+        final ErrorResponse response = ErrorResponse.of(e.getErrorStatus());
+        return ApiResponse.fail(response).toResponseEntity();
+    }
+
     @ExceptionHandler(DomainValidationException.class)
     protected ResponseEntity<ApiResponse<Object>> handleDomainValidationException(DomainValidationException e) {
         final ErrorResponse response = ErrorResponse.of(e.getErrorStatus(), e.getFieldErrors());

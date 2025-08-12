@@ -5,6 +5,7 @@ import com.cleanengine.coin.common.domain.port.KeyValueStore;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 public class InMemoryKeyValueStore<K, V> implements KeyValueStore<K, V> {
     private final Map<K, V> map = new ConcurrentHashMap<>();
@@ -43,4 +44,10 @@ public class InMemoryKeyValueStore<K, V> implements KeyValueStore<K, V> {
     public long size() {
         return map.size();
     }
+
+    @Override
+    public void forEach(BiConsumer<? super K, ? super V> action) {
+        map.forEach(action);
+    }
+
 }

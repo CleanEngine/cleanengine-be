@@ -1,6 +1,7 @@
 package com.cleanengine.coin.order.application.strategy;
 
 import com.cleanengine.coin.common.error.DomainValidationException;
+import com.cleanengine.coin.common.idgenerator.LongIdGenerator;
 import com.cleanengine.coin.order.adapter.out.persistentce.order.command.SellOrderRepository;
 import com.cleanengine.coin.order.application.AssetService;
 import com.cleanengine.coin.order.application.dto.OrderInfo;
@@ -64,9 +65,10 @@ public class SellOrderStrategy extends CreateOrderStrategy<SellOrder, OrderInfo.
                              AssetService assetService,
                              WalletRepository walletRepository,
                              AccountRepository accountRepository,
+                             LongIdGenerator idGenerator,
                              SellOrderRepository sellOrderRepository,
                              CreateSellOrderDomainService createOrderDomainService) {
-        super(publishOrderCreatedPort, assetService, walletRepository, accountRepository);
+        super(publishOrderCreatedPort, assetService, walletRepository, accountRepository, idGenerator);
         this.sellOrderRepository = sellOrderRepository;
         this.createOrderDomainService = createOrderDomainService;
     }

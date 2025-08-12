@@ -5,6 +5,7 @@ import com.cleanengine.coin.order.domain.SellOrder;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public abstract class SellOrderGenerator {
@@ -13,7 +14,8 @@ public abstract class SellOrderGenerator {
     private static final Double DEFAULT_ORDER_SIZE = 1.0;
     private static final Double DEFAULT_PRICE = 10000.0;
     private static final LocalDateTime DEFAULT_CREATED_AT = LocalDateTime.of(2025, 5, 9, 10, 18, 0);
-
+    public static final AtomicLong id = new AtomicLong(0L);
+    
     public static class LimitSellOrderGenerator{
         public static SellOrder createLimitSellOrderWithRandomPrice(){
             Random random = new Random();
@@ -21,12 +23,12 @@ public abstract class SellOrderGenerator {
         }
 
         public static SellOrder createLimitSellOrderWithPrice(Double price){
-            return SellOrder.createLimitSellOrder(DEFAULT_TICKER, DEFAULT_USER_ID, DEFAULT_ORDER_SIZE,
+            return SellOrder.createLimitSellOrder(id.incrementAndGet(), DEFAULT_TICKER, DEFAULT_USER_ID, DEFAULT_ORDER_SIZE,
                     price, DEFAULT_CREATED_AT, false);
         }
 
         public static SellOrder createLimitSellOrderWithCreatedTime(LocalDateTime createdAt){
-            return SellOrder.createLimitSellOrder(DEFAULT_TICKER, DEFAULT_USER_ID, DEFAULT_ORDER_SIZE,
+            return SellOrder.createLimitSellOrder(id.incrementAndGet(), DEFAULT_TICKER, DEFAULT_USER_ID, DEFAULT_ORDER_SIZE,
                     DEFAULT_PRICE, createdAt, false);
         }
 
@@ -54,7 +56,7 @@ public abstract class SellOrderGenerator {
 
     public static class MarketSellOrderGenerator{
         public static SellOrder createMarketSellOrderWithCreatedTime(LocalDateTime createdAt){
-            return SellOrder.createMarketSellOrder(DEFAULT_TICKER, DEFAULT_USER_ID,
+            return SellOrder.createMarketSellOrder(id.incrementAndGet(), DEFAULT_TICKER, DEFAULT_USER_ID,
                     DEFAULT_ORDER_SIZE, createdAt, false);
         }
 

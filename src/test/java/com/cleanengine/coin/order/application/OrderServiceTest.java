@@ -48,8 +48,8 @@ public class OrderServiceTest extends MariaDBIntegrationTest {
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch endLatch = new CountDownLatch(numberOfThreads);
 
-        OrderCommand.CreateOrder buyOrderCommand = new OrderCommand.CreateOrder("BTC", CommonValues.BUY_ORDER_BOT_ID,true, false, 100.0, 100.0, LocalDateTime.now(),false);
-        OrderCommand.CreateOrder sellOrderCommand = new OrderCommand.CreateOrder("BTC", CommonValues.SELL_ORDER_BOT_ID,false, false, 100.0, 100.0, LocalDateTime.now(),false);
+        OrderCommand.CreateOrder buyOrderCommand = new OrderCommand.CreateOrder("BTC", CommonValues.BUY_ORDER_BOT_ID,true, false, 100.0, 100.0,false);
+        OrderCommand.CreateOrder sellOrderCommand = new OrderCommand.CreateOrder("BTC", CommonValues.SELL_ORDER_BOT_ID,false, false, 100.0, 100.0,false);
 
         for (int i = 0; i < numberOfThreads; i++) {
             executorService.submit(() -> {

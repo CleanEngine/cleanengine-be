@@ -1,10 +1,10 @@
 package com.cleanengine.coin.order.adapter.out.persistentce.order.queue;
 
 import com.cleanengine.coin.common.domain.port.PriorityQueueStore;
-import com.cleanengine.coin.order.domain.BuyOrder;
 import com.cleanengine.coin.order.domain.SellOrder;
 
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -78,6 +78,32 @@ public class NestedInMemorySellOrderSkipListSet implements PriorityQueueStore<Se
         });
 
         return item;
+    }
+
+    @Override
+    public List<SellOrder> removeAllByUserId(int userId) {
+        List<SellOrder> toRemove = new ArrayList<>();
+
+        for (ConcurrentSkipListSet<SellOrder> orders : map.values()) {
+            List<SellOrder> ordersToRemove = orders.stream()
+                    .filter(o -> o.getUserId() == userId)
+                    .toList();
+
+            for (SellOrder order : ordersToRemove) {
+                if (orders.remove(order)) {
+                    toRemove.add(order);
+                }
+            }
+        }
+
+        int totalRemovedCount = toRemove.size();
+
+        if (totalRemovedCount > 0) {
+            size.addAndGet(-totalRemovedCount);
+        }
+
+        map.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        return toRemove;
     }
 
     @Override

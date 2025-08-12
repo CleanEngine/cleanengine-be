@@ -19,7 +19,7 @@ create table asset
 
 create table buy_orders
 (
-    buy_order_id      bigint auto_increment
+    buy_order_id      bigint
         primary key,
     created_at        datetime(6)                       not null,
     is_bot            bit                               not null,
@@ -51,7 +51,7 @@ create table oauth
 
 create table sell_orders
 (
-    sell_order_id  bigint auto_increment
+    sell_order_id  bigint
         primary key,
     created_at     datetime(6)                       not null,
     is_bot         bit                               not null,
@@ -75,6 +75,9 @@ create table trade
     ticker       varchar(255) not null,
     trade_time   datetime(6)  not null
 );
+
+create or replace index idx_trade_ticker_trade_time
+       on trade (ticker, trade_time);
 
 create table users
 (

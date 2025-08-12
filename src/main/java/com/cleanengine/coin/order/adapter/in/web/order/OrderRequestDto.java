@@ -22,7 +22,7 @@ public final class OrderRequestDto {
         @JsonCreator
         public CreateOrderRequest {}
 
-        public OrderCommand.CreateOrder toOrderCommand(Integer userId, LocalDateTime createdAt) {
+        public OrderCommand.CreateOrder toOrderCommand(Integer userId) {
             boolean isMarketOrder;
             boolean isBuyOrder;
 
@@ -31,7 +31,7 @@ public final class OrderRequestDto {
             isMarketOrder = orderType.equals("market");
 
             return new OrderCommand.CreateOrder(ticker, userId, isBuyOrder, isMarketOrder,
-                    orderSize, price, createdAt, false);
+                    orderSize, price, false);
         }
     }
 }

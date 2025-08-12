@@ -1,33 +1,41 @@
 package com.cleanengine.coin.user.info.application;
 
+import com.cleanengine.coin.common.CommonValues;
 import com.cleanengine.coin.user.domain.Account;
 import com.cleanengine.coin.user.domain.Wallet;
 import com.cleanengine.coin.user.info.infra.AccountRepository;
 import com.cleanengine.coin.user.info.infra.WalletRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
-import static com.cleanengine.coin.common.CommonValues.BUY_ORDER_BOT_ID;
-import static com.cleanengine.coin.common.CommonValues.SELL_ORDER_BOT_ID;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 public class AccountService {
 
     private final AccountRepository accountRepository;
+
     private final WalletRepository walletRepository;
+
+    @Value("${account.initial-cash.buy-bot}")
+    private double initialCashBuyBot;
+
+    @Value("${account.initial-cash.sell-bot}")
+    private double initialCashSellBot;
+
+    @Value("${account.initial-cash.user}")
+    private double initialCashUser;
+
+    @Value("${account.initial-wallet.sell-bot}")
+    private double initialWalletSellBot;
 
     @Transactional
     public Account retrieveAccountByUserId(Integer userId) {
         return accountRepository.findByUserId(userId).orElse(null);
-    }
-
-    public Optional<Account> findAccountByUserId(Integer userId) {
-        return accountRepository.findByUserId(userId);
     }
 
     public Account save(Account account) {
@@ -41,23 +49,51 @@ public class AccountService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void resetBot(String ticker) {
-        Account sellBotAccount = accountRepository.findByUserId(SELL_ORDER_BOT_ID).orElseThrow();
-        sellBotAccount.setCash(0.0);
-        Account buyBotAccount = accountRepository.findByUserId(BUY_ORDER_BOT_ID).orElseThrow();
-        buyBotAccount.setCash(500_000_000.0);
-        accountRepository.save(sellBotAccount);
-        accountRepository.save(buyBotAccount);
+        List<Account> accountsOfBot = accountRepository.findAccountsOfBot();
+        accountsOfBot.forEach(this::resetCash);
+        accountRepository.saveAll(accountsOfBot);
 
-        Wallet wallet = walletRepository.findByAccountIdAndTicker(SELL_ORDER_BOT_ID, ticker).orElseThrow();
-        wallet.setSize(500_000_000.0);
-        Wallet wallet2 = walletRepository.findByAccountIdAndTicker(BUY_ORDER_BOT_ID, ticker).orElseThrow();
-        wallet2.setSize(0.0);
-        walletRepository.save(wallet);
-        walletRepository.save(wallet2);
+        List<Wallet> walletsOfBot = walletRepository.findWalletsOfBotByTicker(ticker);
+        walletsOfBot.forEach(this::resetWallet);
+        walletRepository.saveAll(walletsOfBot);
     }
 
     public int increaseAccountCash(int userId, double amount) {
         return accountRepository.increaseAccountCash(userId, amount);
+    }
+
+    @Transactional
+    public void resetWithWallets(Integer userId) {
+        Account account = accountRepository.findByUserId(userId).orElseThrow();
+        this.resetCash(account);
+        accountRepository.save(account);
+
+        List<Wallet> wallets = walletRepository.findByAccountId(account.getId());
+        wallets.forEach(this::resetWallet);
+        walletRepository.saveAll(wallets);
+    }
+
+    private void resetCash(Account account) {
+        double initialCash;
+
+        if (account.getUserId() == CommonValues.BUY_ORDER_BOT_ID)
+            initialCash = initialCashBuyBot;
+        else if (account.getUserId() == CommonValues.SELL_ORDER_BOT_ID)
+            initialCash = initialCashSellBot;
+        else
+            initialCash = initialCashUser;
+        account.resetCash(initialCash);
+    }
+
+    private void resetWallet(Wallet wallet) {
+        double initialSize;
+
+        if (wallet.getAccountId() == CommonValues.SELL_ORDER_BOT_ID) {
+            initialSize = initialWalletSellBot;
+        } else {
+            initialSize = 0.0;
+        }
+        wallet.reset(initialSize);
     }
 
 }
